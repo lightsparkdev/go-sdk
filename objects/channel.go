@@ -3,9 +3,11 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/requester"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // An object that represents a payment channel between two nodes in the Lightning Network.

@@ -3,8 +3,9 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/requester"
 )
 
 // This is a node on the Lightning Network, managed by a third party. The information about this node is public data that has been obtained by observing the Lightning Network.

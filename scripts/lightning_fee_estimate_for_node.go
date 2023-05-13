@@ -1,7 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package scripts
 
-import "lightspark/objects"
+import "github.com/lightsparkdev/go-sdk/objects"
 
 const LIGHTNING_FEE_ESTIMATE_FOR_NODE_QUERY = `
 query LightningFeeEstimateForNode(

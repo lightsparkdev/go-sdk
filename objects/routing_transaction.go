@@ -2,8 +2,9 @@
 package objects
 
 import (
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // A transaction that was forwarded through a Lightspark node on the Lightning Network.

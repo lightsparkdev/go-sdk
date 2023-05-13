@@ -3,9 +3,11 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/requester"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // This is a node that is managed by Lightspark and is managed within the current connected account. It contains many details about the node configuration, state, and metadata.

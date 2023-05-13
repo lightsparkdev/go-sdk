@@ -3,9 +3,11 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
+
+	"github.com/lightsparkdev/go-sdk/requester"
 )
 
 // An attempt for a payment over a route from sender node to recipient node.

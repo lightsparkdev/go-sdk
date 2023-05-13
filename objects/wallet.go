@@ -3,8 +3,9 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/requester"
 )
 
 type Wallet struct {

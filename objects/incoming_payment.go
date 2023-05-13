@@ -3,9 +3,11 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/requester"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // A transaction that was sent to a Lightspark node on the Lightning Network.

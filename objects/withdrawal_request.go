@@ -3,9 +3,11 @@ package objects
 
 import (
 	"encoding/json"
-	"lightspark/requester"
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
+
+	"github.com/lightsparkdev/go-sdk/requester"
 )
 
 type WithdrawalRequest struct {

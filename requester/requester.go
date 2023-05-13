@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"lightspark"
-	"lightspark/utils"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"runtime"
 	"time"
+
+	lightspark "github.com/lightsparkdev/go-sdk"
+	"github.com/lightsparkdev/go-sdk/utils"
 )
 
 type Requester struct {

@@ -2,8 +2,9 @@
 package objects
 
 import (
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // An attempt for a payment over a route from sender node to recipient node.

@@ -2,8 +2,9 @@
 package objects
 
 import (
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // One hop signifies a payment moving one node ahead on a payment route; a list of sequential hops defines the path from sender node to recipient node for a payment attempt.

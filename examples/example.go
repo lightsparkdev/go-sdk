@@ -3,10 +3,12 @@ package main
 
 import (
 	"fmt"
-	"lightspark/objects"
-	"lightspark/services"
 	"os"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/services"
+
+	"github.com/lightsparkdev/go-sdk/objects"
 )
 
 func main() {
@@ -24,7 +26,6 @@ func main() {
 
 	nodeId := os.Getenv("LIGHTSPARK_TEST_NODE_ID")
 	nodePassword := os.Getenv("LIGHTSPARK_TEST_NODE_PASSWORD")
-
 
 	// Get current account
 	fmt.Println("Getting current account...")
@@ -235,7 +236,7 @@ func main() {
 	fmt.Println()
 
 	ampInvoice := "<your encoded invoice>"
-	
+
 	// Decode an encoded invoice
 	fmt.Println("Decoding an encoded invoice...")
 	decodedPaymentRequest, err := client.DecodePaymentRequest(ampInvoice)

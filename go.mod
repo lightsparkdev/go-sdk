@@ -1,4 +1,4 @@
-module lightspark
+module github.com/lightsparkdev/go-sdk
 
 go 1.20
 

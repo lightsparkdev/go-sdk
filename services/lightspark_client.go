@@ -4,10 +4,11 @@ package services
 import (
 	"encoding/json"
 	"errors"
-	"lightspark/objects"
-	"lightspark/requester"
-	"lightspark/scripts"
-	"lightspark/utils"
+
+	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/requester"
+	"github.com/lightsparkdev/go-sdk/scripts"
+	"github.com/lightsparkdev/go-sdk/utils"
 )
 
 type LightsparkClient struct {

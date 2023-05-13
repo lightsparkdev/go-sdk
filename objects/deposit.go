@@ -2,8 +2,9 @@
 package objects
 
 import (
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // The transaction on Bitcoin blockchain to fund the Lightspark node's wallet.

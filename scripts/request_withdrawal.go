@@ -1,7 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package scripts
 
-import "lightspark/objects"
+import "github.com/lightsparkdev/go-sdk/objects"
 
 const REQUEST_WITHDRAWAL_MUTATION = `
 mutation RequestWithdrawal(

@@ -2,8 +2,9 @@
 package objects
 
 import (
-	"lightspark/types"
 	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 // The transaction on Bitcoin blockchain to close a channel on Lightning Network where the balances are allocated back to local and remote nodes.
