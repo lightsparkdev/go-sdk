@@ -26,47 +26,43 @@ type OnChainTransaction interface {
 	GetNumConfirmations() *int64
 }
 
-type OnChainTransactionUnmarshaler struct {
-	Object OnChainTransaction
-}
-
-func (unmarshaler *OnChainTransactionUnmarshaler) UnmarshalJSON(data []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
+func OnChainTransactionUnmarshal(data map[string]interface{}) (OnChainTransaction, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	var t OnChainTransaction
-	switch string(raw["__typename"]) {
-	case `"ChannelClosingTransaction"`:
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	switch data["__typename"].(string) {
+	case "ChannelClosingTransaction":
 		var channelClosingTransaction ChannelClosingTransaction
-		if err := json.Unmarshal(data, &channelClosingTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channelClosingTransaction); err != nil {
+			return nil, err
 		}
-		t = &channelClosingTransaction
-	case `"ChannelOpeningTransaction"`:
+		return channelClosingTransaction, nil
+	case "ChannelOpeningTransaction":
 		var channelOpeningTransaction ChannelOpeningTransaction
-		if err := json.Unmarshal(data, &channelOpeningTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channelOpeningTransaction); err != nil {
+			return nil, err
 		}
-		t = &channelOpeningTransaction
-	case `"Deposit"`:
+		return channelOpeningTransaction, nil
+	case "Deposit":
 		var deposit Deposit
-		if err := json.Unmarshal(data, &deposit); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &deposit); err != nil {
+			return nil, err
 		}
-		t = &deposit
-	case `"Withdrawal"`:
+		return deposit, nil
+	case "Withdrawal":
 		var withdrawal Withdrawal
-		if err := json.Unmarshal(data, &withdrawal); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &withdrawal); err != nil {
+			return nil, err
 		}
-		t = &withdrawal
+		return withdrawal, nil
 
 	default:
-		return fmt.Errorf("unknown OnChainTransaction type: %s", raw["__typename"])
+		return nil, fmt.Errorf("unknown OnChainTransaction type: %s", data["__typename"])
 	}
-
-	unmarshaler.Object = t
-	return nil
 }

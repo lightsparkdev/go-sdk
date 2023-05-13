@@ -1,3 +1,4 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package utils
 
 import (
@@ -29,7 +30,7 @@ func SignPayload(payload []byte, signingKey []byte) (string, error) {
 
 	hashed := sha256.Sum256(payload)
 	signature, err := rsa.SignPSS(rand.Reader, rsaKey, crypto.SHA256, hashed[:], nil)
-	
+
 	if err != nil {
 		return "", err
 	}
@@ -37,9 +38,9 @@ func SignPayload(payload []byte, signingKey []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(signature), nil
 }
 
-func DecryptPrivateKey(cipherVersion string, encryptedValue string, 
+func DecryptPrivateKey(cipherVersion string, encryptedValue string,
 	password string) ([]byte, error) {
-	
+
 	decoded, err := base64.StdEncoding.DecodeString(encryptedValue)
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func DecryptPrivateKey(cipherVersion string, encryptedValue string,
 
 	var header map[string]interface{}
 	if cipherVersion == "AES_256_CBC_PBKDF2_5000_SHA256" {
-		header = map[string]interface{} {"v": 0, "i": 5000}
+		header = map[string]interface{}{"v": 0, "i": 5000}
 		decoded = decoded[8:]
 	} else {
 		err = json.Unmarshal([]byte(cipherVersion), &header)
@@ -69,27 +70,27 @@ func DecryptPrivateKey(cipherVersion string, encryptedValue string,
 	iteration := int(header["i"].(float64))
 
 	if version == 3 {
-		salt := decoded[len(decoded) - 8:]
+		salt := decoded[len(decoded)-8:]
 		nonce := decoded[0:12]
-		ciphertext := decoded[12:len(decoded) - 8]
+		ciphertext := decoded[12 : len(decoded)-8]
 		key := deriveKey([]byte(password), salt, iteration)
 		return decryptGcm(ciphertext, key, nonce)
 	}
 
 	var saltLen, ivLen int
 	if version < 4 {
-		saltLen=8
-		ivLen=16
+		saltLen = 8
+		ivLen = 16
 	} else {
-		saltLen=16
-		ivLen=12
+		saltLen = 16
+		ivLen = 12
 	}
 
-    salt := decoded[:saltLen]
-    ciphertext := decoded[saltLen:]
+	salt := decoded[:saltLen]
+	ciphertext := decoded[saltLen:]
 
-    key, iv := deriveKeyIv([]byte(password), salt, iteration, KEY_LEN + ivLen)
-	
+	key, iv := deriveKeyIv([]byte(password), salt, iteration, KEY_LEN+ivLen)
+
 	if version < 2 {
 		return decryptCbc(ciphertext, key, iv)
 	} else {
@@ -98,14 +99,13 @@ func DecryptPrivateKey(cipherVersion string, encryptedValue string,
 }
 
 func deriveKey(password []byte, salt []byte, iterations int) []byte {
-    return pbkdf2.Key(password, salt, iterations, 32, sha256.New)
+	return pbkdf2.Key(password, salt, iterations, 32, sha256.New)
 }
 
 func deriveKeyIv(password []byte, salt []byte, iterations int, length int) ([]byte, []byte) {
-    derived := pbkdf2.Key(password, salt, iterations, length, sha256.New)
-    return derived[:KEY_LEN], derived[KEY_LEN:]
+	derived := pbkdf2.Key(password, salt, iterations, length, sha256.New)
+	return derived[:KEY_LEN], derived[KEY_LEN:]
 }
-
 
 func decryptGcm(ciphertext []byte, key []byte, nonce []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)

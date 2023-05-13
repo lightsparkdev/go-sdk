@@ -12,29 +12,25 @@ type PaymentRequestData interface {
 	GetBitcoinNetwork() BitcoinNetwork
 }
 
-type PaymentRequestDataUnmarshaler struct {
-	Object PaymentRequestData
-}
-
-func (unmarshaler *PaymentRequestDataUnmarshaler) UnmarshalJSON(data []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
+func PaymentRequestDataUnmarshal(data map[string]interface{}) (PaymentRequestData, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	var t PaymentRequestData
-	switch string(raw["__typename"]) {
-	case `"InvoiceData"`:
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	switch data["__typename"].(string) {
+	case "InvoiceData":
 		var invoiceData InvoiceData
-		if err := json.Unmarshal(data, &invoiceData); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &invoiceData); err != nil {
+			return nil, err
 		}
-		t = &invoiceData
+		return invoiceData, nil
 
 	default:
-		return fmt.Errorf("unknown PaymentRequestData type: %s", raw["__typename"])
+		return nil, fmt.Errorf("unknown PaymentRequestData type: %s", data["__typename"])
 	}
-
-	unmarshaler.Object = t
-	return nil
 }

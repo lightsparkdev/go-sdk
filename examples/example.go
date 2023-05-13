@@ -1,3 +1,4 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package main
 
 import (
@@ -8,15 +9,14 @@ import (
 	"time"
 )
 
-// MODIFY THOSE VARIABLES BEFORE RUNNING THE EXAMPLE
-//
-// We defined those variables as environment variables, but if you are just
-// running the example locally, feel free to just set the values in Python.
-//
-// First, initialize your client ID and client secret. Those are available
-// in your account at https://app.lightspark.com/api_config
-
 func main() {
+	// MODIFY THOSE VARIABLES BEFORE RUNNING THE EXAMPLE
+	//
+	// We defined those variables as environment variables, but if you are just
+	// running the example locally, feel free to just set the values in code.
+	//
+	// First, initialize your client ID and client secret. Those are available
+	// in your account at https://app.lightspark.com/api_config
 	apiClientID := os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_ID")
 	apiToken := os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_SECRET")
 	baseUrl := os.Getenv("LIGHTSPARK_EXAMPLE_BASE_URL")
@@ -24,6 +24,7 @@ func main() {
 
 	nodeId := os.Getenv("LIGHTSPARK_TEST_NODE_ID")
 	nodePassword := os.Getenv("LIGHTSPARK_TEST_NODE_PASSWORD")
+
 
 	// Get current account
 	fmt.Println("Getting current account...")
@@ -92,27 +93,29 @@ func main() {
 		return
 	}
 	fmt.Printf("You have %v transactions in total.\n", transactionsConnection.Count)
-	var transaction_id string
+	var transactionId string
 	for _, transaction := range transactionsConnection.Entities {
-		transaction_id = transaction.Object.GetId()
+		transactionId = transaction.GetId()
 		fmt.Printf(
 			"    - %v at %v: %v %v (%v)\n",
-			transaction.Object.GetId(),
-			transaction.Object.GetCreatedAt(),
-			transaction.Object.GetAmount().OriginalValue,
-			transaction.Object.GetAmount().OriginalUnit.StringValue(),
-			transaction.Object.GetStatus().StringValue(),
+			transaction.GetId(),
+			transaction.GetCreatedAt(),
+			transaction.GetAmount().OriginalValue,
+			transaction.GetAmount().OriginalUnit.StringValue(),
+			transaction.GetStatus().StringValue(),
 		)
 	}
 	fmt.Println()
 
 	// Fetch a transaction by id
-	entity, err := client.GetEntity(transaction_id)
+	fmt.Println("Getting entity...")
+	entity, err := client.GetEntity(transactionId)
 	if err != nil {
 		fmt.Printf("get entity failed: %v", err)
 		return
 	}
 	fmt.Printf("We fetched transaction %v, created at %v.\n", (*entity).GetId(), (*entity).GetCreatedAt())
+	fmt.Println()
 
 	// Fetch transactions on REGTEST using pagination
 	var pageSize int64 = 10
@@ -147,7 +150,6 @@ func main() {
 
 	// Get the transactions that happened in the past day on REGTEST
 	afterDate := time.Now().UTC().Add(-time.Hour * 24)
-	fmt.Printf("%v", afterDate)
 	transactionsConnection, err = account.GetTransactions(
 		client.Requester,
 		&count,     // first
@@ -160,9 +162,8 @@ func main() {
 		nil,        // statuses
 		nil,        //exclude_failures
 	)
-
 	fmt.Printf("We had %v transactions in the past 24 hours.", transactionsConnection.Count)
-	fmt.Printf(transactionsConnection.Entities[0].Object.GetId())
+	fmt.Println()
 
 	apiTokenConnection, err := account.GetApiTokens(client.Requester, nil)
 	if err != nil {
@@ -234,7 +235,7 @@ func main() {
 	fmt.Println()
 
 	ampInvoice := "<your encoded invoice>"
-
+	
 	// Decode an encoded invoice
 	fmt.Println("Decoding an encoded invoice...")
 	decodedPaymentRequest, err := client.DecodePaymentRequest(ampInvoice)
@@ -242,12 +243,12 @@ func main() {
 		fmt.Printf("decode invoice failed: %v", err)
 		return
 	}
-	decodedInvoice, ok := (*decodedPaymentRequest).(*objects.InvoiceData)
+	decodedInvoice, ok := (*decodedPaymentRequest).(objects.InvoiceData)
 	if !ok {
-		fmt.Printf("decode invoice failed")
+		fmt.Printf("casting payment request to invoice failed")
 		return
 	}
-	destinationNodePublicKey := *(decodedInvoice.Destination.Object.GetPublicKey())
+	destinationNodePublicKey := *(decodedInvoice.Destination.GetPublicKey())
 	fmt.Println("Decoded invoice...")
 	fmt.Printf("    destination public key: %v\n", destinationNodePublicKey)
 	fmt.Printf("    amount: %v %v\n", decodedInvoice.Amount.OriginalValue, decodedInvoice.Amount.OriginalUnit.StringValue())
@@ -305,7 +306,7 @@ func main() {
 
 	// Pay an invoice
 	fmt.Println("Paying an invoice...")
-	amount := 10
+	var amount int64 = 10
 	outgoingPayment, err := client.PayInvoice(nodeId, ampInvoice, 1000, 60, &amount)
 	if err != nil {
 		fmt.Printf("pay invoice failed: %v", err)
@@ -332,5 +333,25 @@ func main() {
 		return
 	}
 	fmt.Printf("Invoice created: %v\n", invoice.Data.EncodedPaymentRequest)
+	fmt.Println()
+
+	// Run a custom query
+	fmt.Println("Run a custom query...")
+	response, err := client.ExecuteGraphqlRequest(
+		`query MyCustomQuery($network: BitcoinNetwork!) {
+			current_account {
+			  id
+			  conductivity(bitcoin_networks: [$network])
+			}
+		}`,
+		map[string]interface{}{"network": objects.BitcoinNetworkRegtest},
+	)
+	if err != nil {
+		fmt.Printf("execute graphql request failed: %v", err)
+		return
+	}
+	accountMap := response["current_account"].(map[string]interface{})
+	conductivityValue := int(accountMap["conductivity"].(float64))
+	fmt.Printf("Your account conductivity is %v.\n", conductivityValue)
 	fmt.Println()
 }

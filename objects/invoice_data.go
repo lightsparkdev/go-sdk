@@ -1,7 +1,10 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // This object represents the BOLT #11 invoice protocol for Lightning Payments. See https://github.com/lightning/bolts/blob/master/11-payment-encoding.md.
 type InvoiceData struct {
@@ -25,7 +28,7 @@ type InvoiceData struct {
 	Memo *string `json:"invoice_data_memo"`
 
 	// The lightning node that will be paid when fulfilling this invoice.
-	Destination NodeUnmarshaler `json:"invoice_data_destination"`
+	Destination Node `json:"invoice_data_destination"`
 }
 
 const (
@@ -176,4 +179,57 @@ func (obj InvoiceData) GetEncodedPaymentRequest() string {
 
 func (obj InvoiceData) GetBitcoinNetwork() BitcoinNetwork {
 	return obj.BitcoinNetwork
+}
+
+type InvoiceDataJSON struct {
+	EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
+
+	BitcoinNetwork BitcoinNetwork `json:"invoice_data_bitcoin_network"`
+
+	// The payment hash of this invoice.
+	PaymentHash string `json:"invoice_data_payment_hash"`
+
+	// The requested amount in this invoice. If it is equal to 0, the sender should choose the amount to send.
+	Amount CurrencyAmount `json:"invoice_data_amount"`
+
+	// The date and time when this invoice was created.
+	CreatedAt time.Time `json:"invoice_data_created_at"`
+
+	// The date and time when this invoice will expire.
+	ExpiresAt time.Time `json:"invoice_data_expires_at"`
+
+	// A short, UTF-8 encoded, description of the purpose of this invoice.
+	Memo *string `json:"invoice_data_memo"`
+
+	// The lightning node that will be paid when fulfilling this invoice.
+	Destination map[string]interface{} `json:"invoice_data_destination"`
+}
+
+func (data *InvoiceData) UnmarshalJSON(dataBytes []byte) error {
+	var temp InvoiceDataJSON
+	if err := json.Unmarshal(dataBytes, &temp); err != nil {
+		return err
+	}
+
+	data.EncodedPaymentRequest = temp.EncodedPaymentRequest
+
+	data.BitcoinNetwork = temp.BitcoinNetwork
+
+	data.PaymentHash = temp.PaymentHash
+
+	data.Amount = temp.Amount
+
+	data.CreatedAt = temp.CreatedAt
+
+	data.ExpiresAt = temp.ExpiresAt
+
+	data.Memo = temp.Memo
+
+	Destination, err := NodeUnmarshal(temp.Destination)
+	if err != nil {
+		return err
+	}
+	data.Destination = Destination
+
+	return nil
 }

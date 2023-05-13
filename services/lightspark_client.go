@@ -1,3 +1,4 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package services
 
 import (
@@ -57,7 +58,7 @@ func (client *LightsparkClient) CreateApiToken(name string, transact bool,
 	return &scripts.CreateApiTokenOutput{ApiToken: &apiToken, ClientSecret: output["client_secret"].(string)}, nil
 }
 
-func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int,
+func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	memo *string, invoiceType *objects.InvoiceType) (*objects.Invoice, error) {
 
 	variables := map[string]interface{}{
@@ -99,10 +100,11 @@ func (client *LightsparkClient) DecodePaymentRequest(encodedPaymentRequest strin
 	}
 
 	output := response["decoded_payment_request"].(map[string]interface{})
-	var paymentRequest objects.PaymentRequestDataUnmarshaler
-	paymentRequestJson, err := json.Marshal(output)
-	json.Unmarshal(paymentRequestJson, &paymentRequest)
-	return &paymentRequest.Object, nil
+	paymentRequest, err := objects.PaymentRequestDataUnmarshal(output)
+	if err != nil {
+		return nil, err
+	}
+	return &paymentRequest, nil
 }
 
 func (client *LightsparkClient) DeleteApiToken(apiTokenId string) error {
@@ -113,7 +115,7 @@ func (client *LightsparkClient) DeleteApiToken(apiTokenId string) error {
 	return err
 }
 
-func (client *LightsparkClient) FundNode(nodeId string, amountSats int) (
+func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 	*objects.CurrencyAmount, error) {
 
 	variables := map[string]interface{}{
@@ -170,7 +172,7 @@ func (client *LightsparkClient) GetCurrentAccount() (*objects.Account, error) {
 }
 
 func (client *LightsparkClient) GetLightningFeeEstimateForInvoice(nodeId string,
-	encodedInvoice string, amountMsats *int) (*objects.LightningFeeEstimateOutput, error) {
+	encodedInvoice string, amountMsats *int64) (*objects.LightningFeeEstimateOutput, error) {
 
 	variables := map[string]interface{}{
 		"node_id":                 nodeId,
@@ -190,7 +192,7 @@ func (client *LightsparkClient) GetLightningFeeEstimateForInvoice(nodeId string,
 }
 
 func (client *LightsparkClient) GetLightningFeeEstimateForNode(nodeId string,
-	destinationNodePublicKey string, amountMsats int) (*objects.LightningFeeEstimateOutput, error) {
+	destinationNodePublicKey string, amountMsats int64) (*objects.LightningFeeEstimateOutput, error) {
 
 	variables := map[string]interface{}{
 		"node_id":                     nodeId,
@@ -210,7 +212,7 @@ func (client *LightsparkClient) GetLightningFeeEstimateForNode(nodeId string,
 }
 
 func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
-	timeoutSecs int, maximumFeesMsats int, amountMsats *int) (*objects.OutgoingPayment, error) {
+	timeoutSecs int, maximumFeesMsats int64, amountMsats *int64) (*objects.OutgoingPayment, error) {
 
 	variables := map[string]interface{}{
 		"node_id":            nodeId,
@@ -260,7 +262,7 @@ func (client *LightsparkClient) RecoverNodeSigningKey(nodeId string,
 	return signingKey, nil
 }
 
-func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int,
+func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int64,
 	bitcoinAddress string, withdrawalMode objects.WithdrawalMode) (*objects.WithdrawalRequest, error) {
 
 	variables := map[string]interface{}{
@@ -289,7 +291,7 @@ func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int,
 }
 
 func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey string,
-	amountMsats int, timeoutSecs int, maximumFeesMsats int) (*objects.OutgoingPayment, error) {
+	amountMsats int64, timeoutSecs int, maximumFeesMsats int64) (*objects.OutgoingPayment, error) {
 
 	variables := map[string]interface{}{
 		"node_id":                nodeId,
@@ -327,10 +329,17 @@ func (client *LightsparkClient) GetEntity(id string) (*objects.Entity, error) {
 	}
 
 	output := response["entity"].(map[string]interface{})
-	var entity objects.EntityUnmarshaler
-	entityJson, err := json.Marshal(output)
-	json.Unmarshal(entityJson, &entity)
-	return &entity.Object, nil
+	entity, err := objects.EntityUnmarshal(output)
+	if err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
+func (client *LightsparkClient) ExecuteGraphqlRequest(document string,
+	variables map[string]interface{}) (map[string]interface{}, error) {
+
+	return client.Requester.ExecuteGraphql(document, variables, nil)
 }
 
 func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, signingKey []byte) {

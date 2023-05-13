@@ -19,131 +19,127 @@ type Entity interface {
 	GetUpdatedAt() time.Time
 }
 
-type EntityUnmarshaler struct {
-	Object Entity
-}
-
-func (unmarshaler *EntityUnmarshaler) UnmarshalJSON(data []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
+func EntityUnmarshal(data map[string]interface{}) (Entity, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	var t Entity
-	switch string(raw["__typename"]) {
-	case `"Account"`:
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	switch data["__typename"].(string) {
+	case "Account":
 		var account Account
-		if err := json.Unmarshal(data, &account); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &account); err != nil {
+			return nil, err
 		}
-		t = &account
-	case `"ApiToken"`:
+		return account, nil
+	case "ApiToken":
 		var apiToken ApiToken
-		if err := json.Unmarshal(data, &apiToken); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &apiToken); err != nil {
+			return nil, err
 		}
-		t = &apiToken
-	case `"Channel"`:
+		return apiToken, nil
+	case "Channel":
 		var channel Channel
-		if err := json.Unmarshal(data, &channel); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channel); err != nil {
+			return nil, err
 		}
-		t = &channel
-	case `"ChannelClosingTransaction"`:
+		return channel, nil
+	case "ChannelClosingTransaction":
 		var channelClosingTransaction ChannelClosingTransaction
-		if err := json.Unmarshal(data, &channelClosingTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channelClosingTransaction); err != nil {
+			return nil, err
 		}
-		t = &channelClosingTransaction
-	case `"ChannelOpeningTransaction"`:
+		return channelClosingTransaction, nil
+	case "ChannelOpeningTransaction":
 		var channelOpeningTransaction ChannelOpeningTransaction
-		if err := json.Unmarshal(data, &channelOpeningTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channelOpeningTransaction); err != nil {
+			return nil, err
 		}
-		t = &channelOpeningTransaction
-	case `"Deposit"`:
+		return channelOpeningTransaction, nil
+	case "Deposit":
 		var deposit Deposit
-		if err := json.Unmarshal(data, &deposit); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &deposit); err != nil {
+			return nil, err
 		}
-		t = &deposit
-	case `"GraphNode"`:
+		return deposit, nil
+	case "GraphNode":
 		var graphNode GraphNode
-		if err := json.Unmarshal(data, &graphNode); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &graphNode); err != nil {
+			return nil, err
 		}
-		t = &graphNode
-	case `"Hop"`:
+		return graphNode, nil
+	case "Hop":
 		var hop Hop
-		if err := json.Unmarshal(data, &hop); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &hop); err != nil {
+			return nil, err
 		}
-		t = &hop
-	case `"IncomingPayment"`:
+		return hop, nil
+	case "IncomingPayment":
 		var incomingPayment IncomingPayment
-		if err := json.Unmarshal(data, &incomingPayment); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &incomingPayment); err != nil {
+			return nil, err
 		}
-		t = &incomingPayment
-	case `"IncomingPaymentAttempt"`:
+		return incomingPayment, nil
+	case "IncomingPaymentAttempt":
 		var incomingPaymentAttempt IncomingPaymentAttempt
-		if err := json.Unmarshal(data, &incomingPaymentAttempt); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &incomingPaymentAttempt); err != nil {
+			return nil, err
 		}
-		t = &incomingPaymentAttempt
-	case `"Invoice"`:
+		return incomingPaymentAttempt, nil
+	case "Invoice":
 		var invoice Invoice
-		if err := json.Unmarshal(data, &invoice); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &invoice); err != nil {
+			return nil, err
 		}
-		t = &invoice
-	case `"LightsparkNode"`:
+		return invoice, nil
+	case "LightsparkNode":
 		var lightsparkNode LightsparkNode
-		if err := json.Unmarshal(data, &lightsparkNode); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &lightsparkNode); err != nil {
+			return nil, err
 		}
-		t = &lightsparkNode
-	case `"OutgoingPayment"`:
+		return lightsparkNode, nil
+	case "OutgoingPayment":
 		var outgoingPayment OutgoingPayment
-		if err := json.Unmarshal(data, &outgoingPayment); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &outgoingPayment); err != nil {
+			return nil, err
 		}
-		t = &outgoingPayment
-	case `"OutgoingPaymentAttempt"`:
+		return outgoingPayment, nil
+	case "OutgoingPaymentAttempt":
 		var outgoingPaymentAttempt OutgoingPaymentAttempt
-		if err := json.Unmarshal(data, &outgoingPaymentAttempt); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &outgoingPaymentAttempt); err != nil {
+			return nil, err
 		}
-		t = &outgoingPaymentAttempt
-	case `"RoutingTransaction"`:
+		return outgoingPaymentAttempt, nil
+	case "RoutingTransaction":
 		var routingTransaction RoutingTransaction
-		if err := json.Unmarshal(data, &routingTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &routingTransaction); err != nil {
+			return nil, err
 		}
-		t = &routingTransaction
-	case `"Wallet"`:
+		return routingTransaction, nil
+	case "Wallet":
 		var wallet Wallet
-		if err := json.Unmarshal(data, &wallet); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &wallet); err != nil {
+			return nil, err
 		}
-		t = &wallet
-	case `"Withdrawal"`:
+		return wallet, nil
+	case "Withdrawal":
 		var withdrawal Withdrawal
-		if err := json.Unmarshal(data, &withdrawal); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &withdrawal); err != nil {
+			return nil, err
 		}
-		t = &withdrawal
-	case `"WithdrawalRequest"`:
+		return withdrawal, nil
+	case "WithdrawalRequest":
 		var withdrawalRequest WithdrawalRequest
-		if err := json.Unmarshal(data, &withdrawalRequest); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &withdrawalRequest); err != nil {
+			return nil, err
 		}
-		t = &withdrawalRequest
+		return withdrawalRequest, nil
 
 	default:
-		return fmt.Errorf("unknown Entity type: %s", raw["__typename"])
+		return nil, fmt.Errorf("unknown Entity type: %s", data["__typename"])
 	}
-
-	unmarshaler.Object = t
-	return nil
 }

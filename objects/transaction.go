@@ -23,65 +23,61 @@ type Transaction interface {
 	GetTransactionHash() *string
 }
 
-type TransactionUnmarshaler struct {
-	Object Transaction
-}
-
-func (unmarshaler *TransactionUnmarshaler) UnmarshalJSON(data []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
+func TransactionUnmarshal(data map[string]interface{}) (Transaction, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	var t Transaction
-	switch string(raw["__typename"]) {
-	case `"ChannelClosingTransaction"`:
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	switch data["__typename"].(string) {
+	case "ChannelClosingTransaction":
 		var channelClosingTransaction ChannelClosingTransaction
-		if err := json.Unmarshal(data, &channelClosingTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channelClosingTransaction); err != nil {
+			return nil, err
 		}
-		t = &channelClosingTransaction
-	case `"ChannelOpeningTransaction"`:
+		return channelClosingTransaction, nil
+	case "ChannelOpeningTransaction":
 		var channelOpeningTransaction ChannelOpeningTransaction
-		if err := json.Unmarshal(data, &channelOpeningTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &channelOpeningTransaction); err != nil {
+			return nil, err
 		}
-		t = &channelOpeningTransaction
-	case `"Deposit"`:
+		return channelOpeningTransaction, nil
+	case "Deposit":
 		var deposit Deposit
-		if err := json.Unmarshal(data, &deposit); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &deposit); err != nil {
+			return nil, err
 		}
-		t = &deposit
-	case `"IncomingPayment"`:
+		return deposit, nil
+	case "IncomingPayment":
 		var incomingPayment IncomingPayment
-		if err := json.Unmarshal(data, &incomingPayment); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &incomingPayment); err != nil {
+			return nil, err
 		}
-		t = &incomingPayment
-	case `"OutgoingPayment"`:
+		return incomingPayment, nil
+	case "OutgoingPayment":
 		var outgoingPayment OutgoingPayment
-		if err := json.Unmarshal(data, &outgoingPayment); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &outgoingPayment); err != nil {
+			return nil, err
 		}
-		t = &outgoingPayment
-	case `"RoutingTransaction"`:
+		return outgoingPayment, nil
+	case "RoutingTransaction":
 		var routingTransaction RoutingTransaction
-		if err := json.Unmarshal(data, &routingTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &routingTransaction); err != nil {
+			return nil, err
 		}
-		t = &routingTransaction
-	case `"Withdrawal"`:
+		return routingTransaction, nil
+	case "Withdrawal":
 		var withdrawal Withdrawal
-		if err := json.Unmarshal(data, &withdrawal); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &withdrawal); err != nil {
+			return nil, err
 		}
-		t = &withdrawal
+		return withdrawal, nil
 
 	default:
-		return fmt.Errorf("unknown Transaction type: %s", raw["__typename"])
+		return nil, fmt.Errorf("unknown Transaction type: %s", data["__typename"])
 	}
-
-	unmarshaler.Object = t
-	return nil
 }

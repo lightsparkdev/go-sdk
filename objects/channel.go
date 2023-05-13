@@ -180,7 +180,7 @@ func (obj Channel) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
-func (obj Channel) GetUptimePercentage(requester *requester.Requester, after_date *time.Time, before_date *time.Time) (*int64, error) {
+func (obj Channel) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time) (*int64, error) {
 	query := `query FetchChannelUptimePercentage($entity_id: ID!, $after_date: DateTime, $before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Channel {
@@ -190,8 +190,8 @@ func (obj Channel) GetUptimePercentage(requester *requester.Requester, after_dat
 }`
 	variables := map[string]interface{}{
 		"entity_id":   obj.Id,
-		"after_date":  after_date,
-		"before_date": before_date,
+		"after_date":  afterDate,
+		"before_date": beforeDate,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -206,7 +206,7 @@ func (obj Channel) GetUptimePercentage(requester *requester.Requester, after_dat
 	return result, nil
 }
 
-func (obj Channel) GetTransactions(requester *requester.Requester, types *[]TransactionType, after_date *time.Time, before_date *time.Time) (*ChannelToTransactionsConnection, error) {
+func (obj Channel) GetTransactions(requester *requester.Requester, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time) (*ChannelToTransactionsConnection, error) {
 	query := `query FetchChannelToTransactionsConnection($entity_id: ID!, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Channel {
@@ -244,8 +244,8 @@ func (obj Channel) GetTransactions(requester *requester.Requester, types *[]Tran
 	variables := map[string]interface{}{
 		"entity_id":   obj.Id,
 		"types":       types,
-		"after_date":  after_date,
-		"before_date": before_date,
+		"after_date":  afterDate,
+		"before_date": beforeDate,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

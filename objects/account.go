@@ -93,7 +93,7 @@ func (obj Account) GetApiTokens(requester *requester.Requester, first *int64) (*
 	return result, nil
 }
 
-func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoin_networks *[]BitcoinNetwork, node_ids *[]string) (*BlockchainBalance, error) {
+func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*BlockchainBalance, error) {
 	query := `query FetchAccountBlockchainBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
@@ -153,8 +153,8 @@ func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoin_
 }`
 	variables := map[string]interface{}{
 		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoin_networks,
-		"node_ids":         node_ids,
+		"bitcoin_networks": bitcoinNetworks,
+		"node_ids":         nodeIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -169,7 +169,7 @@ func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoin_
 	return result, nil
 }
 
-func (obj Account) GetConductivity(requester *requester.Requester, bitcoin_networks *[]BitcoinNetwork, node_ids *[]string) (*int64, error) {
+func (obj Account) GetConductivity(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*int64, error) {
 	query := `query FetchAccountConductivity($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
@@ -179,8 +179,8 @@ func (obj Account) GetConductivity(requester *requester.Requester, bitcoin_netwo
 }`
 	variables := map[string]interface{}{
 		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoin_networks,
-		"node_ids":         node_ids,
+		"bitcoin_networks": bitcoinNetworks,
+		"node_ids":         nodeIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -195,7 +195,7 @@ func (obj Account) GetConductivity(requester *requester.Requester, bitcoin_netwo
 	return result, nil
 }
 
-func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoin_networks *[]BitcoinNetwork, node_ids *[]string) (*CurrencyAmount, error) {
+func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*CurrencyAmount, error) {
 	query := `query FetchAccountLocalBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
@@ -212,8 +212,8 @@ func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoin_netwo
 }`
 	variables := map[string]interface{}{
 		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoin_networks,
-		"node_ids":         node_ids,
+		"bitcoin_networks": bitcoinNetworks,
+		"node_ids":         nodeIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -228,7 +228,7 @@ func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoin_netwo
 	return result, nil
 }
 
-func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoin_networks *[]BitcoinNetwork, node_ids *[]string) (*AccountToNodesConnection, error) {
+func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*AccountToNodesConnection, error) {
 	query := `query FetchAccountToNodesConnection($entity_id: ID!, $first: Int, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
@@ -355,8 +355,8 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
 	variables := map[string]interface{}{
 		"entity_id":        obj.Id,
 		"first":            first,
-		"bitcoin_networks": bitcoin_networks,
-		"node_ids":         node_ids,
+		"bitcoin_networks": bitcoinNetworks,
+		"node_ids":         nodeIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -371,7 +371,7 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
 	return result, nil
 }
 
-func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoin_networks *[]BitcoinNetwork, node_ids *[]string) (*CurrencyAmount, error) {
+func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*CurrencyAmount, error) {
 	query := `query FetchAccountRemoteBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
@@ -388,8 +388,8 @@ func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoin_netw
 }`
 	variables := map[string]interface{}{
 		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoin_networks,
-		"node_ids":         node_ids,
+		"bitcoin_networks": bitcoinNetworks,
+		"node_ids":         nodeIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -404,7 +404,7 @@ func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoin_netw
 	return result, nil
 }
 
-func (obj Account) GetUptimePercentage(requester *requester.Requester, after_date *time.Time, before_date *time.Time, bitcoin_networks *[]BitcoinNetwork, node_ids *[]string) (*int64, error) {
+func (obj Account) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*int64, error) {
 	query := `query FetchAccountUptimePercentage($entity_id: ID!, $after_date: DateTime, $before_date: DateTime, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
@@ -414,10 +414,10 @@ func (obj Account) GetUptimePercentage(requester *requester.Requester, after_dat
 }`
 	variables := map[string]interface{}{
 		"entity_id":        obj.Id,
-		"after_date":       after_date,
-		"before_date":      before_date,
-		"bitcoin_networks": bitcoin_networks,
-		"node_ids":         node_ids,
+		"after_date":       afterDate,
+		"before_date":      beforeDate,
+		"bitcoin_networks": bitcoinNetworks,
+		"node_ids":         nodeIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -432,7 +432,7 @@ func (obj Account) GetUptimePercentage(requester *requester.Requester, after_dat
 	return result, nil
 }
 
-func (obj Account) GetChannels(requester *requester.Requester, bitcoin_network BitcoinNetwork, lightning_node_id *string, after_date *time.Time, before_date *time.Time, first *int64) (*AccountToChannelsConnection, error) {
+func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork BitcoinNetwork, lightningNodeId *string, afterDate *time.Time, beforeDate *time.Time, first *int64) (*AccountToChannelsConnection, error) {
 	query := `query FetchAccountToChannelsConnection($entity_id: ID!, $bitcoin_network: BitcoinNetwork!, $lightning_node_id: ID, $after_date: DateTime, $before_date: DateTime, $first: Int) {
     entity(id: $entity_id) {
         ... on Account {
@@ -539,10 +539,10 @@ func (obj Account) GetChannels(requester *requester.Requester, bitcoin_network B
 }`
 	variables := map[string]interface{}{
 		"entity_id":         obj.Id,
-		"bitcoin_network":   bitcoin_network,
-		"lightning_node_id": lightning_node_id,
-		"after_date":        after_date,
-		"before_date":       before_date,
+		"bitcoin_network":   bitcoinNetwork,
+		"lightning_node_id": lightningNodeId,
+		"after_date":        afterDate,
+		"before_date":       beforeDate,
 		"first":             first,
 	}
 
@@ -558,7 +558,7 @@ func (obj Account) GetChannels(requester *requester.Requester, bitcoin_network B
 	return result, nil
 }
 
-func (obj Account) GetTransactions(requester *requester.Requester, first *int64, after *string, types *[]TransactionType, after_date *time.Time, before_date *time.Time, bitcoin_network *BitcoinNetwork, lightning_node_id *string, statuses *[]TransactionStatus, exclude_failures *TransactionFailures) (*AccountToTransactionsConnection, error) {
+func (obj Account) GetTransactions(requester *requester.Requester, first *int64, after *string, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string, statuses *[]TransactionStatus, excludeFailures *TransactionFailures) (*AccountToTransactionsConnection, error) {
 	query := `query FetchAccountToTransactionsConnection($entity_id: ID!, $first: Int, $after: String, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID, $statuses: [TransactionStatus!], $exclude_failures: TransactionFailures) {
     entity(id: $entity_id) {
         ... on Account {
@@ -974,12 +974,12 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
 		"first":             first,
 		"after":             after,
 		"types":             types,
-		"after_date":        after_date,
-		"before_date":       before_date,
-		"bitcoin_network":   bitcoin_network,
-		"lightning_node_id": lightning_node_id,
+		"after_date":        afterDate,
+		"before_date":       beforeDate,
+		"bitcoin_network":   bitcoinNetwork,
+		"lightning_node_id": lightningNodeId,
 		"statuses":          statuses,
-		"exclude_failures":  exclude_failures,
+		"exclude_failures":  excludeFailures,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -994,7 +994,7 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
 	return result, nil
 }
 
-func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, after_date *time.Time, before_date *time.Time, bitcoin_network *BitcoinNetwork, lightning_node_id *string) (*AccountToPaymentRequestsConnection, error) {
+func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string) (*AccountToPaymentRequestsConnection, error) {
 	query := `query FetchAccountToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: String, $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID) {
     entity(id: $entity_id) {
         ... on Account {
@@ -1171,10 +1171,10 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 		"entity_id":         obj.Id,
 		"first":             first,
 		"after":             after,
-		"after_date":        after_date,
-		"before_date":       before_date,
-		"bitcoin_network":   bitcoin_network,
-		"lightning_node_id": lightning_node_id,
+		"after_date":        afterDate,
+		"before_date":       beforeDate,
+		"bitcoin_network":   bitcoinNetwork,
+		"lightning_node_id": lightningNodeId,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

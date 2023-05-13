@@ -1,7 +1,7 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package scripts
 
 import "lightspark/objects"
-
 
 const SEND_PAYMENT_MUTATION = `
 mutation SendPayment(

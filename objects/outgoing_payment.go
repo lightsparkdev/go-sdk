@@ -42,7 +42,7 @@ type OutgoingPayment struct {
 	Fees *CurrencyAmount `json:"outgoing_payment_fees"`
 
 	// The data of the payment request that was paid by this transaction, if known.
-	PaymentRequestData *PaymentRequestDataUnmarshaler `json:"outgoing_payment_payment_request_data"`
+	PaymentRequestData *PaymentRequestData `json:"outgoing_payment_payment_request_data"`
 
 	// If applicable, the reason why the payment failed.
 	FailureReason *PaymentFailureReason `json:"outgoing_payment_failure_reason"`
@@ -322,4 +322,85 @@ func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *in
 	jsonString, err := json.Marshal(output)
 	json.Unmarshal(jsonString, &result)
 	return result, nil
+}
+
+type OutgoingPaymentJSON struct {
+
+	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	Id string `json:"outgoing_payment_id"`
+
+	// The date and time when this transaction was initiated.
+	CreatedAt time.Time `json:"outgoing_payment_created_at"`
+
+	// The date and time when the entity was last updated.
+	UpdatedAt time.Time `json:"outgoing_payment_updated_at"`
+
+	// The current status of this transaction.
+	Status TransactionStatus `json:"outgoing_payment_status"`
+
+	// The date and time when this transaction was completed or failed.
+	ResolvedAt *time.Time `json:"outgoing_payment_resolved_at"`
+
+	// The amount of money involved in this transaction.
+	Amount CurrencyAmount `json:"outgoing_payment_amount"`
+
+	// The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+	TransactionHash *string `json:"outgoing_payment_transaction_hash"`
+
+	// The Lightspark node this payment originated from.
+	Origin types.EntityWrapper `json:"outgoing_payment_origin"`
+
+	// If known, the final recipient node this payment was sent to.
+	Destination *types.EntityWrapper `json:"outgoing_payment_destination"`
+
+	// The fees paid by the sender node to send the payment.
+	Fees *CurrencyAmount `json:"outgoing_payment_fees"`
+
+	// The data of the payment request that was paid by this transaction, if known.
+	PaymentRequestData map[string]interface{} `json:"outgoing_payment_payment_request_data"`
+
+	// If applicable, the reason why the payment failed.
+	FailureReason *PaymentFailureReason `json:"outgoing_payment_failure_reason"`
+
+	// If applicable, user-facing error message describing why the payment failed.
+	FailureMessage *RichText `json:"outgoing_payment_failure_message"`
+}
+
+func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
+	var temp OutgoingPaymentJSON
+	if err := json.Unmarshal(dataBytes, &temp); err != nil {
+		return err
+	}
+
+	data.Id = temp.Id
+
+	data.CreatedAt = temp.CreatedAt
+
+	data.UpdatedAt = temp.UpdatedAt
+
+	data.Status = temp.Status
+
+	data.ResolvedAt = temp.ResolvedAt
+
+	data.Amount = temp.Amount
+
+	data.TransactionHash = temp.TransactionHash
+
+	data.Origin = temp.Origin
+
+	data.Destination = temp.Destination
+
+	data.Fees = temp.Fees
+
+	PaymentRequestData, err := PaymentRequestDataUnmarshal(temp.PaymentRequestData)
+	if err != nil {
+		return err
+	}
+	data.PaymentRequestData = &PaymentRequestData
+
+	data.FailureReason = temp.FailureReason
+
+	data.FailureMessage = temp.FailureMessage
+
+	return nil
 }

@@ -83,7 +83,7 @@ func (obj Wallet) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
-func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, created_after_date *time.Time, created_before_date *time.Time) (*CurrencyAmount, error) {
+func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*CurrencyAmount, error) {
 	query := `query FetchWalletTotalAmountReceived($entity_id: ID!, $created_after_date: DateTime, $created_before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Wallet {
@@ -100,8 +100,8 @@ func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, created
 }`
 	variables := map[string]interface{}{
 		"entity_id":           obj.Id,
-		"created_after_date":  created_after_date,
-		"created_before_date": created_before_date,
+		"created_after_date":  createdAfterDate,
+		"created_before_date": createdBeforeDate,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -116,7 +116,7 @@ func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, created
 	return result, nil
 }
 
-func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, created_after_date *time.Time, created_before_date *time.Time) (*CurrencyAmount, error) {
+func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*CurrencyAmount, error) {
 	query := `query FetchWalletTotalAmountSent($entity_id: ID!, $created_after_date: DateTime, $created_before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Wallet {
@@ -133,8 +133,8 @@ func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, created_aft
 }`
 	variables := map[string]interface{}{
 		"entity_id":           obj.Id,
-		"created_after_date":  created_after_date,
-		"created_before_date": created_before_date,
+		"created_after_date":  createdAfterDate,
+		"created_before_date": createdBeforeDate,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

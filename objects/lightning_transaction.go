@@ -11,41 +11,37 @@ type LightningTransaction interface {
 	Entity
 }
 
-type LightningTransactionUnmarshaler struct {
-	Object LightningTransaction
-}
-
-func (unmarshaler *LightningTransactionUnmarshaler) UnmarshalJSON(data []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
+func LightningTransactionUnmarshal(data map[string]interface{}) (LightningTransaction, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	var t LightningTransaction
-	switch string(raw["__typename"]) {
-	case `"IncomingPayment"`:
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	switch data["__typename"].(string) {
+	case "IncomingPayment":
 		var incomingPayment IncomingPayment
-		if err := json.Unmarshal(data, &incomingPayment); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &incomingPayment); err != nil {
+			return nil, err
 		}
-		t = &incomingPayment
-	case `"OutgoingPayment"`:
+		return incomingPayment, nil
+	case "OutgoingPayment":
 		var outgoingPayment OutgoingPayment
-		if err := json.Unmarshal(data, &outgoingPayment); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &outgoingPayment); err != nil {
+			return nil, err
 		}
-		t = &outgoingPayment
-	case `"RoutingTransaction"`:
+		return outgoingPayment, nil
+	case "RoutingTransaction":
 		var routingTransaction RoutingTransaction
-		if err := json.Unmarshal(data, &routingTransaction); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &routingTransaction); err != nil {
+			return nil, err
 		}
-		t = &routingTransaction
+		return routingTransaction, nil
 
 	default:
-		return fmt.Errorf("unknown LightningTransaction type: %s", raw["__typename"])
+		return nil, fmt.Errorf("unknown LightningTransaction type: %s", data["__typename"])
 	}
-
-	unmarshaler.Object = t
-	return nil
 }

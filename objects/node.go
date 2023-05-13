@@ -28,35 +28,31 @@ type Node interface {
 	GetPublicKey() *string
 }
 
-type NodeUnmarshaler struct {
-	Object Node
-}
-
-func (unmarshaler *NodeUnmarshaler) UnmarshalJSON(data []byte) error {
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
+func NodeUnmarshal(data map[string]interface{}) (Node, error) {
+	if data == nil {
+		return nil, nil
 	}
 
-	var t Node
-	switch string(raw["__typename"]) {
-	case `"GraphNode"`:
+	dataJSON, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	switch data["__typename"].(string) {
+	case "GraphNode":
 		var graphNode GraphNode
-		if err := json.Unmarshal(data, &graphNode); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &graphNode); err != nil {
+			return nil, err
 		}
-		t = &graphNode
-	case `"LightsparkNode"`:
+		return graphNode, nil
+	case "LightsparkNode":
 		var lightsparkNode LightsparkNode
-		if err := json.Unmarshal(data, &lightsparkNode); err != nil {
-			return err
+		if err := json.Unmarshal(dataJSON, &lightsparkNode); err != nil {
+			return nil, err
 		}
-		t = &lightsparkNode
+		return lightsparkNode, nil
 
 	default:
-		return fmt.Errorf("unknown Node type: %s", raw["__typename"])
+		return nil, fmt.Errorf("unknown Node type: %s", data["__typename"])
 	}
-
-	unmarshaler.Object = t
-	return nil
 }

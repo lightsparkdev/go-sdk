@@ -1,5 +1,5 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package scripts
-
 
 const DELETE_API_TOKEN_MUTATION = `
 mutation DeleteApiToken(

@@ -1,7 +1,7 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package scripts
 
 import "lightspark/objects"
-
 
 const PAY_INVOICE_MUTATION = `
 mutation PayInvoice(
