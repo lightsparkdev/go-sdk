@@ -2,7 +2,9 @@
 
 # v0.1.1
 
-Fix payment related bugs.
+Fixed payment related bugs.
+ - Fixed time format for sending the signed requests
+ - Fixed random number seed for sending the signed requests
 
 # v0.1.0
 
