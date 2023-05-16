@@ -220,7 +220,10 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 		"encoded_invoice":    encodedInvoice,
 		"timeout_secs":       timeoutSecs,
 		"maximum_fees_msats": maximumFeesMsats,
-		"amount_msats":       amountMsats,
+	}
+
+	if amountMsats != nil {
+		variables["amount_msats"] = amountMsats
 	}
 
 	signingKey, err := client.getNodeSigningKey(nodeId)

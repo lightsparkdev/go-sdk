@@ -39,12 +39,13 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 
 	var nonce uint32
 	if signingKey != nil {
+		rand.Seed(time.Now().UnixNano())
 		nonce = rand.Uint32()
 	}
 
 	var expiresAt string
 	if signingKey != nil {
-		expiresAt = time.Now().UTC().Add(time.Hour).Format("UnixDate")
+		expiresAt = time.Now().UTC().Add(time.Hour).Format(time.RFC3339)
 	}
 
 	payload := map[string]interface{}{
