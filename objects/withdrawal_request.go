@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/lightsparkdev/go-sdk/types"
-
 	"github.com/lightsparkdev/go-sdk/requester"
+	"github.com/lightsparkdev/go-sdk/types"
 )
 
 type WithdrawalRequest struct {

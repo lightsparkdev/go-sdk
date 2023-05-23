@@ -93,6 +93,48 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 	return walletAddress, nil
 }
 
+func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amountMsats int64,
+	memo *string, invoiceType *objects.InvoiceType) (*string, error) {
+
+	variables := map[string]interface{}{
+		"amount_msats": amountMsats,
+		"local_node_id":      localNodeId,
+		"memo":         memo,
+		"invoice_type": invoiceType,
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_INVOICE_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_test_mode_invoice"].(map[string]interface{})
+	encodedInvoice := output["encoded_payment_request"].(string)
+	return &encodedInvoice, nil
+}
+
+func (client *LightsparkClient) CreateTestModePayment(localNodeId string, 
+	encodedInvoice string, amountMsats *int64) (*objects.OutgoingPayment, error) {
+
+	variables := map[string]interface{}{
+		"local_node_id":	localNodeId,
+		"encoded_invoice":	encodedInvoice,
+	}
+	if amountMsats != nil {
+		variables["amount_msats"] = amountMsats
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_PAYMENT_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_test_mode_payment"].(map[string]interface{})
+	var payment objects.OutgoingPayment
+	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	json.Unmarshal(paymentJson, &payment)
+	return &payment, nil
+}
+
 func (client *LightsparkClient) DecodePaymentRequest(encodedPaymentRequest string) (*objects.PaymentRequestData, error) {
 	variables := map[string]interface{}{"encoded_payment_request": encodedPaymentRequest}
 	response, err := client.Requester.ExecuteGraphql(scripts.DECODE_PAYMENT_REQUEST_QUERY, variables, nil)
@@ -221,7 +263,6 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 		"timeout_secs":       timeoutSecs,
 		"maximum_fees_msats": maximumFeesMsats,
 	}
-
 	if amountMsats != nil {
 		variables["amount_msats"] = amountMsats
 	}

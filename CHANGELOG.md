@@ -1,5 +1,10 @@
 # Changelog
 
+# v0.1.3
+Add two functions for test mode.
+- CreateTestModeInvoice for creating an test invoice.
+- CreateTestModePayment for sending a test payment to an invoice.
+
 # v0.1.2
 Add webhook.
 

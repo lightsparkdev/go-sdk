@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/lightsparkdev/go-sdk/requester"
-
 	"github.com/lightsparkdev/go-sdk/types"
 )
 

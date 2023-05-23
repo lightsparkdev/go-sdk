@@ -30,7 +30,7 @@ func TestWebhooks_VerifyAndParse(t *testing.T) {
 	if event.EntityId != entityId {
 		t.Fatalf("entity id not equal: %v vs. %v", event.EntityId, entityId)
 	}
-	if event.Timestamp != timeStamp {
+	if !event.Timestamp.Equal(timeStamp) {
 		t.Fatalf("timestamp not equal: %v vs. %v", event.Timestamp, timeStamp)
 	}
 }

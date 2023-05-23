@@ -6,9 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/lightsparkdev/go-sdk/services"
-
 	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/services"
 )
 
 func main() {
@@ -234,12 +233,42 @@ func main() {
 	}
 	fmt.Printf("Node wallet address created: %v\n", address)
 	fmt.Println()
+	
+	// Recover node signing key
+	fmt.Println("Recoverying node signing key...")
+	_, err = client.RecoverNodeSigningKey(nodeId, nodePassword)
+	if err != nil {
+		fmt.Printf("recovering node signing key failed: %v", err)
+		return
+	}
+	fmt.Println("Signing key recovered.")
+	fmt.Println()
 
-	ampInvoice := "<your encoded invoice>"
+	// Pay an invoice
+	fmt.Println("Paying an invoice...")
+	encodedInvoice := "<your encoded invoice>"
+	// When testing paying invoice in test mode, a test invoice can be generated
+	fmt.Println("Creating a test mode invoice...")
+	testInvoice, err := client.CreateTestModeInvoice(nodeId, 100000, nil, nil)
+	if err != nil {
+		fmt.Printf("create test invoice failed: %v", err)
+		return
+	}
+	encodedInvoice = *testInvoice
+	fmt.Printf("Test invoice created: %v\n", *testInvoice)
+	fmt.Println()
+	
+	outgoingPayment, err := client.PayInvoice(nodeId, encodedInvoice, 1000, 60, nil)
+	if err != nil {
+		fmt.Printf("pay invoice failed: %v", err)
+		return
+	}
+	fmt.Printf("Invoice paid with payment id: %v\n", outgoingPayment.Id)
+	fmt.Println()
 
 	// Decode an encoded invoice
 	fmt.Println("Decoding an encoded invoice...")
-	decodedPaymentRequest, err := client.DecodePaymentRequest(ampInvoice)
+	decodedPaymentRequest, err := client.DecodePaymentRequest(encodedInvoice)
 	if err != nil {
 		fmt.Printf("decode invoice failed: %v", err)
 		return
@@ -255,6 +284,27 @@ func main() {
 	fmt.Printf("    amount: %v %v\n", decodedInvoice.Amount.OriginalValue, decodedInvoice.Amount.OriginalUnit.StringValue())
 	fmt.Println("")
 
+	// Send a payment
+	fmt.Println("Sending a payment...")
+	outgoingPayment, err = client.SendPayment(nodeId, destinationNodePublicKey, 100, 1000, 60)
+	if err != nil {
+		fmt.Printf("send payment failed: %v", err)
+		return
+	}
+	fmt.Printf("Payment sent with payment id: %v\n", outgoingPayment.Id)
+	fmt.Println()
+
+	// Create an invoice
+	fmt.Println("Creating an invoice...")
+	invoice, err := client.CreateInvoice(nodeId, 100000, nil, nil)
+	encodedInvoice = invoice.Data.EncodedPaymentRequest
+	if err != nil {
+		fmt.Printf("create invoice failed: %v", err)
+		return
+	}
+	fmt.Printf("Invoice created: %v\n", invoice.Data.EncodedPaymentRequest)
+	fmt.Println()
+
 	// Get fee estimate for a node
 	fmt.Println("Getting fee estimate for a node...")
 	nodeFeeEstimate, err := client.GetLightningFeeEstimateForNode(nodeId, destinationNodePublicKey, 1000)
@@ -267,27 +317,27 @@ func main() {
 
 	// Get fee estimate for an invoice
 	fmt.Println("Getting fee estimate for an invoice...")
-	invoiceFeeEstimate, err := client.GetLightningFeeEstimateForInvoice(nodeId, ampInvoice, nil)
+	invoiceFeeEstimate, err := client.GetLightningFeeEstimateForInvoice(nodeId, encodedInvoice, nil)
 	if err != nil {
 		fmt.Printf("getting fee estimate for invoice failed: %v", err)
 		return
 	}
 	fmt.Printf("Estimated fee for the invoice: %v %v\n", invoiceFeeEstimate.FeeEstimate.OriginalValue, invoiceFeeEstimate.FeeEstimate.OriginalUnit.StringValue())
 	fmt.Println()
-
-	// Recover node signing key
-	fmt.Println("Recoverying node signing key...")
-	_, err = client.RecoverNodeSigningKey(nodeId, nodePassword)
+	
+	// If the node is in test mode, CreateTestModePayment can simulate a payment to the invoice
+	testPayment, err := client.CreateTestModePayment(nodeId, encodedInvoice, nil)
 	if err != nil {
-		fmt.Printf("recovering node signing key failed: %v", err)
+		fmt.Printf("simulating a test mode payment failed: %v", err)
 		return
 	}
-	fmt.Println("Signing key recovered.")
+	fmt.Printf("Invoice paid with a simulated payment %v\n", testPayment.Id)
 	fmt.Println()
 
 	// Withdraw funds
 	fmt.Println("Withdraw funds...")
-	withdrawalRequest, err := client.RequestWithdrawal(nodeId, 100000, "bcrt1qtay6q35u7y0xtanp5caas3e9umdsmmsa7mdumj", objects.WithdrawalModeWalletThenChannels)
+	bitcoinAddress := "<your bitcoin address for withdrawal>"
+	withdrawalRequest, err := client.RequestWithdrawal(nodeId, 100000, bitcoinAddress, objects.WithdrawalModeWalletThenChannels)
 	if err != nil {
 		fmt.Printf("withdraw failed: %v", err)
 		return
@@ -303,37 +353,6 @@ func main() {
 		return
 	}
 	fmt.Printf("Amount funded: %v %v\n", amountFunded.OriginalValue, amountFunded.OriginalUnit.StringValue())
-	fmt.Println()
-
-	// Pay an invoice
-	fmt.Println("Paying an invoice...")
-	var amount int64 = 10
-	outgoingPayment, err := client.PayInvoice(nodeId, ampInvoice, 1000, 60, &amount)
-	if err != nil {
-		fmt.Printf("pay invoice failed: %v", err)
-		return
-	}
-	fmt.Printf("Invoice paid with payment id: %v\n", outgoingPayment.Id)
-	fmt.Println()
-
-	// Send a payment
-	fmt.Println("Sending a payment...")
-	outgoingPayment, err = client.SendPayment(nodeId, destinationNodePublicKey, 100, 1000, 60)
-	if err != nil {
-		fmt.Printf("send payment failed: %v", err)
-		return
-	}
-	fmt.Printf("Payment sent with payment id: %v\n", outgoingPayment.Id)
-	fmt.Println()
-
-	// Create an invoice
-	fmt.Println("Creating an invoice...")
-	invoice, err := client.CreateInvoice(nodeId, 100000, nil, nil)
-	if err != nil {
-		fmt.Printf("create invoice failed: %v", err)
-		return
-	}
-	fmt.Printf("Invoice created: %v\n", invoice.Data.EncodedPaymentRequest)
 	fmt.Println()
 
 	// Run a custom query
