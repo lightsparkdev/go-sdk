@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.1.4
+Use CSPRNG to generate nonce.
+
 # v0.1.3
 Add two functions for test mode.
 - CreateTestModeInvoice for creating an test invoice.

@@ -3,10 +3,11 @@ package requester
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"regexp"
 	"runtime"
@@ -39,8 +40,11 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 
 	var nonce uint32
 	if signingKey != nil {
-		rand.Seed(time.Now().UnixNano())
-		nonce = rand.Uint32()
+		randomBigInt, err := rand.Int(rand.Reader, big.NewInt(0xFFFFFFFF))
+		if err != nil {
+			return nil, err
+		}
+		nonce = uint32(randomBigInt.Uint64())
 	}
 
 	var expiresAt string
