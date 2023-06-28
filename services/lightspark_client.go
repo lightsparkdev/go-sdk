@@ -80,6 +80,26 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	return &invoice, nil
 }
 
+func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats int64,
+	metadata string) (*objects.Invoice, error) {
+
+	variables := map[string]interface{}{
+		"amount_msats":  amountMsats,
+		"node_id":       nodeId,
+		"metadata_hash": utils.Sha256HexString(metadata),
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_LNURL_INVOICE_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_lnurl_invoice"].(map[string]interface{})
+	var invoice objects.Invoice
+	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	json.Unmarshal(invoiceJson, &invoice)
+	return &invoice, nil
+}
+
 func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, error) {
 	variables := map[string]interface{}{
 		"node_id": nodeId,
@@ -97,10 +117,10 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 	memo *string, invoiceType *objects.InvoiceType) (*string, error) {
 
 	variables := map[string]interface{}{
-		"amount_msats": amountMsats,
-		"local_node_id":      localNodeId,
-		"memo":         memo,
-		"invoice_type": invoiceType,
+		"amount_msats":  amountMsats,
+		"local_node_id": localNodeId,
+		"memo":          memo,
+		"invoice_type":  invoiceType,
 	}
 	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_INVOICE_MUTATION, variables, nil)
 	if err != nil {
@@ -112,12 +132,12 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 	return &encodedInvoice, nil
 }
 
-func (client *LightsparkClient) CreateTestModePayment(localNodeId string, 
+func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
 	encodedInvoice string, amountMsats *int64) (*objects.OutgoingPayment, error) {
 
 	variables := map[string]interface{}{
-		"local_node_id":	localNodeId,
-		"encoded_invoice":	encodedInvoice,
+		"local_node_id":   localNodeId,
+		"encoded_invoice": encodedInvoice,
 	}
 	if amountMsats != nil {
 		variables["amount_msats"] = amountMsats

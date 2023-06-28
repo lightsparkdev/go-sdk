@@ -27,6 +27,9 @@ type Wallet struct {
 
 	// The unique identifier of this wallet, as provided by the Lightspark Customer during login.
 	ThirdPartyIdentifier string `json:"wallet_third_party_identifier"`
+
+	// The status of this wallet.
+	Status WalletStatus `json:"wallet_status"`
 }
 
 const (
@@ -65,6 +68,7 @@ fragment WalletFragment on Wallet {
         }
     }
     wallet_third_party_identifier: third_party_identifier
+    wallet_status: status
 }
 `
 )

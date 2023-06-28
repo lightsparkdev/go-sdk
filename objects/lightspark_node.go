@@ -42,6 +42,9 @@ type LightsparkNode struct {
 	// The account that owns this LightsparkNode.
 	Account types.EntityWrapper `json:"lightspark_node_account"`
 
+	// The owner of this LightsparkNode.
+	Owner types.EntityWrapper `json:"lightspark_node_owner"`
+
 	// The details of the balance of this node on the Bitcoin Network.
 	BlockchainBalance *BlockchainBalance `json:"lightspark_node_blockchain_balance"`
 
@@ -81,6 +84,9 @@ fragment LightsparkNodeFragment on LightsparkNode {
     lightspark_node_display_name: display_name
     lightspark_node_public_key: public_key
     lightspark_node_account: account {
+        id
+    }
+    lightspark_node_owner: owner {
         id
     }
     lightspark_node_blockchain_balance: blockchain_balance {

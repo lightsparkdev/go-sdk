@@ -258,6 +258,9 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
                     lightspark_node_account: account {
                         id
                     }
+                    lightspark_node_owner: owner {
+                        id
+                    }
                     lightspark_node_blockchain_balance: blockchain_balance {
                         __typename
                         blockchain_balance_total_balance: total_balance {
@@ -790,6 +793,9 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                                         lightspark_node_account: account {
                                             id
                                         }
+                                        lightspark_node_owner: owner {
+                                            id
+                                        }
                                         lightspark_node_blockchain_balance: blockchain_balance {
                                             __typename
                                             blockchain_balance_total_balance: total_balance {
@@ -1053,6 +1059,9 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
                                     lightspark_node_account: account {
                                         id
                                     }
+                                    lightspark_node_owner: owner {
+                                        id
+                                    }
                                     lightspark_node_blockchain_balance: blockchain_balance {
                                         __typename
                                         blockchain_balance_total_balance: total_balance {
@@ -1238,6 +1247,7 @@ func (obj Account) GetWallets(requester *requester.Requester, first *int64) (*Ac
                         }
                     }
                     wallet_third_party_identifier: third_party_identifier
+                    wallet_status: status
                 }
             }
         }

@@ -27,6 +27,8 @@ const (
 	PaymentFailureReasonSelfPayment
 
 	PaymentFailureReasonInvoiceExpired
+
+	PaymentFailureReasonRiskScreeningFailed
 )
 
 func (a *PaymentFailureReason) UnmarshalJSON(b []byte) error {
@@ -55,6 +57,8 @@ func (a *PaymentFailureReason) UnmarshalJSON(b []byte) error {
 		*a = PaymentFailureReasonSelfPayment
 	case "INVOICE_EXPIRED":
 		*a = PaymentFailureReasonInvoiceExpired
+	case "RISK_SCREENING_FAILED":
+		*a = PaymentFailureReasonRiskScreeningFailed
 
 	}
 	return nil
@@ -83,6 +87,8 @@ func (a PaymentFailureReason) StringValue() string {
 		s = "SELF_PAYMENT"
 	case PaymentFailureReasonInvoiceExpired:
 		s = "INVOICE_EXPIRED"
+	case PaymentFailureReasonRiskScreeningFailed:
+		s = "RISK_SCREENING_FAILED"
 
 	}
 	return s

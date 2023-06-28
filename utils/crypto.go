@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 
@@ -96,6 +97,11 @@ func DecryptPrivateKey(cipherVersion string, encryptedValue string,
 	} else {
 		return decryptGcm(ciphertext, key, iv)
 	}
+}
+
+func Sha256HexString(str string) string {
+	hash := sha256.Sum256([]byte(str))
+	return hex.EncodeToString(hash[:])
 }
 
 func deriveKey(password []byte, salt []byte, iterations int) []byte {
