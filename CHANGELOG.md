@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.1.5
+Added support for generating invoices for LNURLs.
+
 # v0.1.4
 Use CSPRNG to generate nonce.
 
