@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// LightsparkNodeOwner This is an object representing the owner of a LightsparkNode.
 type LightsparkNodeOwner interface {
 	Entity
 }

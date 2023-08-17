@@ -7,34 +7,34 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// This object represents a specific node that existed on a particular payment route. You can retrieve this object to get information about a node on a particular payment path and all payment-relevant information for that node.
+// Hop This object represents a specific node that existed on a particular payment route. You can retrieve this object to get information about a node on a particular payment path and all payment-relevant information for that node.
 type Hop struct {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"hop_id"`
 
-	// The date and time when the entity was first created.
+	// CreatedAt The date and time when the entity was first created.
 	CreatedAt time.Time `json:"hop_created_at"`
 
-	// The date and time when the entity was last updated.
+	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"hop_updated_at"`
 
-	// The destination node of the hop.
+	// Destination The destination node of the hop.
 	Destination *types.EntityWrapper `json:"hop_destination"`
 
-	// The zero-based index position of this hop in the path
+	// Index The zero-based index position of this hop in the path
 	Index int64 `json:"hop_index"`
 
-	// The public key of the node to which the hop is bound.
+	// PublicKey The public key of the node to which the hop is bound.
 	PublicKey *string `json:"hop_public_key"`
 
-	// The amount that is to be forwarded to the destination node.
+	// AmountToForward The amount that is to be forwarded to the destination node.
 	AmountToForward *CurrencyAmount `json:"hop_amount_to_forward"`
 
-	// The fees to be collected by the source node for forwarding the payment over the hop.
+	// Fee The fees to be collected by the source node for forwarding the payment over the hop.
 	Fee *CurrencyAmount `json:"hop_fee"`
 
-	// The block height at which an unsettled HTLC is considered expired.
+	// ExpiryBlockHeight The block height at which an unsettled HTLC is considered expired.
 	ExpiryBlockHeight *int64 `json:"hop_expiry_block_height"`
 }
 
@@ -71,17 +71,17 @@ fragment HopFragment on Hop {
 `
 )
 
-// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj Hop) GetId() string {
 	return obj.Id
 }
 
-// The date and time when the entity was first created.
+// GetCreatedAt The date and time when the entity was first created.
 func (obj Hop) GetCreatedAt() time.Time {
 	return obj.CreatedAt
 }
 
-// The date and time when the entity was last updated.
+// GetUpdatedAt The date and time when the entity was last updated.
 func (obj Hop) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }

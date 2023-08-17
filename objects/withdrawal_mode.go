@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential modes that your Bitcoin withdrawal can take.
+// WithdrawalMode This is an enum of the potential modes that your Bitcoin withdrawal can take.
 type WithdrawalMode int
 
 const (

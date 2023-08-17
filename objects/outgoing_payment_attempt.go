@@ -9,37 +9,37 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// This object represents an attempted Lightning Network payment sent from a Lightspark Node. You can retrieve this object to receive payment related information about any payment attempt sent from your Lightspark Node on the Lightning Network, including any potential reasons the payment may have failed.
+// OutgoingPaymentAttempt This object represents an attempted Lightning Network payment sent from a Lightspark Node. You can retrieve this object to receive payment related information about any payment attempt sent from your Lightspark Node on the Lightning Network, including any potential reasons the payment may have failed.
 type OutgoingPaymentAttempt struct {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"outgoing_payment_attempt_id"`
 
-	// The date and time when the attempt was initiated.
+	// CreatedAt The date and time when the attempt was initiated.
 	CreatedAt time.Time `json:"outgoing_payment_attempt_created_at"`
 
-	// The date and time when the entity was last updated.
+	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"outgoing_payment_attempt_updated_at"`
 
-	// The status of an outgoing payment attempt.
+	// Status The status of an outgoing payment attempt.
 	Status OutgoingPaymentAttemptStatus `json:"outgoing_payment_attempt_status"`
 
-	// If the payment attempt failed, then this contains the Bolt #4 failure code.
+	// FailureCode If the payment attempt failed, then this contains the Bolt #4 failure code.
 	FailureCode *HtlcAttemptFailureCode `json:"outgoing_payment_attempt_failure_code"`
 
-	// If the payment attempt failed, then this contains the index of the hop at which the problem occurred.
+	// FailureSourceIndex If the payment attempt failed, then this contains the index of the hop at which the problem occurred.
 	FailureSourceIndex *int64 `json:"outgoing_payment_attempt_failure_source_index"`
 
-	// The time the outgoing payment attempt failed or succeeded.
+	// ResolvedAt The time the outgoing payment attempt failed or succeeded.
 	ResolvedAt *time.Time `json:"outgoing_payment_attempt_resolved_at"`
 
-	// The total amount of funds required to complete a payment over this route. This value includes the cumulative fees for each hop. As a result, the attempt extended to the first-hop in the route will need to have at least this much value, otherwise the route will fail at an intermediate node due to an insufficient amount.
+	// Amount The total amount of funds required to complete a payment over this route. This value includes the cumulative fees for each hop. As a result, the attempt extended to the first-hop in the route will need to have at least this much value, otherwise the route will fail at an intermediate node due to an insufficient amount.
 	Amount *CurrencyAmount `json:"outgoing_payment_attempt_amount"`
 
-	// The sum of the fees paid at each hop within the route of this attempt. In the case of a one-hop payment, this value will be zero as we don't need to pay a fee to ourselves.
+	// Fees The sum of the fees paid at each hop within the route of this attempt. In the case of a one-hop payment, this value will be zero as we don't need to pay a fee to ourselves.
 	Fees *CurrencyAmount `json:"outgoing_payment_attempt_fees"`
 
-	// The outgoing payment for this attempt.
+	// OutgoingPayment The outgoing payment for this attempt.
 	OutgoingPayment types.EntityWrapper `json:"outgoing_payment_attempt_outgoing_payment"`
 }
 
@@ -77,17 +77,17 @@ fragment OutgoingPaymentAttemptFragment on OutgoingPaymentAttempt {
 `
 )
 
-// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj OutgoingPaymentAttempt) GetId() string {
 	return obj.Id
 }
 
-// The date and time when the entity was first created.
+// GetCreatedAt The date and time when the entity was first created.
 func (obj OutgoingPaymentAttempt) GetCreatedAt() time.Time {
 	return obj.CreatedAt
 }
 
-// The date and time when the entity was last updated.
+// GetUpdatedAt The date and time when the entity was last updated.
 func (obj OutgoingPaymentAttempt) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
@@ -144,7 +144,7 @@ func (obj OutgoingPaymentAttempt) GetHops(requester *requester.Requester, first 
 		"after":     after,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
+	response, err := requester.ExecuteGraphql(query, variables)
 	if err != nil {
 		return nil, err
 	}

@@ -5,23 +5,23 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential statuses a transaction associated with your Lightspark Node can take.
+// TransactionStatus This is an enum of the potential statuses a transaction associated with your Lightspark Node can take.
 type TransactionStatus int
 
 const (
 	TransactionStatusUndefined TransactionStatus = iota
 
-	// Transaction succeeded..
+	// TransactionStatusSuccess Transaction succeeded..
 	TransactionStatusSuccess
-	// Transaction failed.
+	// TransactionStatusFailed Transaction failed.
 	TransactionStatusFailed
-	// Transaction has been initiated and is currently in-flight.
+	// TransactionStatusPending Transaction has been initiated and is currently in-flight.
 	TransactionStatusPending
-	// For transaction type PAYMENT_REQUEST only. No payments have been made to a payment request.
+	// TransactionStatusNotStarted For transaction type PAYMENT_REQUEST only. No payments have been made to a payment request.
 	TransactionStatusNotStarted
-	// For transaction type PAYMENT_REQUEST only. A payment request has expired.
+	// TransactionStatusExpired For transaction type PAYMENT_REQUEST only. A payment request has expired.
 	TransactionStatusExpired
-	// For transaction type PAYMENT_REQUEST only.
+	// TransactionStatusCancelled For transaction type PAYMENT_REQUEST only.
 	TransactionStatusCancelled
 )
 

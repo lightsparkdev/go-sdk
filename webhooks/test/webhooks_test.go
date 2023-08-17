@@ -1,11 +1,13 @@
 package webhooks_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/webhooks"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebhooks_VerifyAndParse(t *testing.T) {
@@ -64,4 +66,17 @@ func TestWebhooks_VerifyAndParseWithWallet(t *testing.T) {
 	if *event.WalletId != walletId {
 		t.Fatalf("wallet id not equal: %v vs. %v", *event.WalletId, walletId)
 	}
+}
+
+func TestWebhooks_ParseNumber(t *testing.T) {
+	data := `{"event_type": "REMOTE_SIGNING", "event_id": "8be9c360a68e420b9126b43ff6007a32", "timestamp": "2023-08-10T02:14:27.559234+00:00", "entity_id": "node_with_server_signing:0189d6bc-558d-88df-0000-502f04e71816", "data": {"sub_event_type": "GET_PER_COMMITMENT_POINT", "bitcoin_network": "TESTNET", "derivation_path": "m/3/2104864975", "per_commitment_point_idx": 281474976710654}}`
+	parsed, err := webhooks.Parse([]byte(data))
+	require.NoError(t, err)
+	require.NotNil(t, parsed)
+
+	perCommitmentPoint := (*parsed.Data)["per_commitment_point_idx"]
+	perCommitmentPointIdx, err := perCommitmentPoint.(json.Number).Int64()
+	require.NoError(t, err)
+	require.Equal(t, int64(281474976710654), perCommitmentPointIdx)
+
 }

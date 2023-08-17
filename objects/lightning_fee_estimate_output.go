@@ -3,7 +3,7 @@ package objects
 
 type LightningFeeEstimateOutput struct {
 
-	// The estimated fees for the payment.
+	// FeeEstimate The estimated fees for the payment.
 	FeeEstimate CurrencyAmount `json:"lightning_fee_estimate_output_fee_estimate"`
 }
 

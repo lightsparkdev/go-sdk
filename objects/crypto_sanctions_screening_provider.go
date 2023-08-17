@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum identifying a type of crypto sanctions screening provider.
+// CryptoSanctionsScreeningProvider This is an enum identifying a type of crypto sanctions screening provider.
 type CryptoSanctionsScreeningProvider int
 
 const (

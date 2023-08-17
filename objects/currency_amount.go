@@ -1,22 +1,22 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-// This object represents the value and unit for an amount of currency.
+// CurrencyAmount This object represents the value and unit for an amount of currency.
 type CurrencyAmount struct {
 
-	// The original numeric value for this CurrencyAmount.
+	// OriginalValue The original numeric value for this CurrencyAmount.
 	OriginalValue int64 `json:"currency_amount_original_value"`
 
-	// The original unit of currency for this CurrencyAmount.
+	// OriginalUnit The original unit of currency for this CurrencyAmount.
 	OriginalUnit CurrencyUnit `json:"currency_amount_original_unit"`
 
-	// The unit of user's preferred currency.
+	// PreferredCurrencyUnit The unit of user's preferred currency.
 	PreferredCurrencyUnit CurrencyUnit `json:"currency_amount_preferred_currency_unit"`
 
-	// The rounded numeric value for this CurrencyAmount in the very base level of user's preferred currency. For example, for USD, the value will be in cents.
+	// PreferredCurrencyValueRounded The rounded numeric value for this CurrencyAmount in the very base level of user's preferred currency. For example, for USD, the value will be in cents.
 	PreferredCurrencyValueRounded int64 `json:"currency_amount_preferred_currency_value_rounded"`
 
-	// The approximate float value for this CurrencyAmount in the very base level of user's preferred currency. For example, for USD, the value will be in cents.
+	// PreferredCurrencyValueApprox The approximate float value for this CurrencyAmount in the very base level of user's preferred currency. For example, for USD, the value will be in cents.
 	PreferredCurrencyValueApprox float64 `json:"currency_amount_preferred_currency_value_approx"`
 }
 

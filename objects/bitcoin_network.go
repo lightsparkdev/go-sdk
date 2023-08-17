@@ -5,19 +5,19 @@ import (
 	"encoding/json"
 )
 
-// This is an enum identifying a particular Bitcoin Network.
+// BitcoinNetwork This is an enum identifying a particular Bitcoin Network.
 type BitcoinNetwork int
 
 const (
 	BitcoinNetworkUndefined BitcoinNetwork = iota
 
-	// The production version of the Bitcoin Blockchain.
+	// BitcoinNetworkMainnet The production version of the Bitcoin Blockchain.
 	BitcoinNetworkMainnet
-	// A test version of the Bitcoin Blockchain, maintained by Lightspark.
+	// BitcoinNetworkRegtest A test version of the Bitcoin Blockchain, maintained by Lightspark.
 	BitcoinNetworkRegtest
-	// A test version of the Bitcoin Blockchain, maintained by a centralized organization. Not in use at Lightspark.
+	// BitcoinNetworkSignet A test version of the Bitcoin Blockchain, maintained by a centralized organization. Not in use at Lightspark.
 	BitcoinNetworkSignet
-	// A test version of the Bitcoin Blockchain, publicly available.
+	// BitcoinNetworkTestnet A test version of the Bitcoin Blockchain, publicly available.
 	BitcoinNetworkTestnet
 )
 

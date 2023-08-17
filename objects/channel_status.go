@@ -5,25 +5,25 @@ import (
 	"encoding/json"
 )
 
-// This is an enum representing the status of a channel on the Lightning Network.
+// ChannelStatus This is an enum representing the status of a channel on the Lightning Network.
 type ChannelStatus int
 
 const (
 	ChannelStatusUndefined ChannelStatus = iota
 
-	// The channel is online and ready to send and receive funds.
+	// ChannelStatusOk The channel is online and ready to send and receive funds.
 	ChannelStatusOk
-	// The channel has been created, but the Bitcoin transaction that initiates it still needs to be confirmed on the Bitcoin blockchain.
+	// ChannelStatusPending The channel has been created, but the Bitcoin transaction that initiates it still needs to be confirmed on the Bitcoin blockchain.
 	ChannelStatusPending
-	// The channel is not available, likely because the peer is not online.
+	// ChannelStatusOffline The channel is not available, likely because the peer is not online.
 	ChannelStatusOffline
-	// The channel is behaving properly, but its remote balance is much higher than its local balance so it is not balanced properly for sending funds out.
+	// ChannelStatusUnbalancedForSend The channel is behaving properly, but its remote balance is much higher than its local balance so it is not balanced properly for sending funds out.
 	ChannelStatusUnbalancedForSend
-	// The channel is behaving properly, but its remote balance is much lower than its local balance so it is not balanced properly for receiving funds.
+	// ChannelStatusUnbalancedForReceive The channel is behaving properly, but its remote balance is much lower than its local balance so it is not balanced properly for receiving funds.
 	ChannelStatusUnbalancedForReceive
-	// The channel has been closed. Information about the channel is still available for historical purposes but the channel cannot be used anymore.
+	// ChannelStatusClosed The channel has been closed. Information about the channel is still available for historical purposes but the channel cannot be used anymore.
 	ChannelStatusClosed
-	// Something unexpected happened and we cannot determine the status of this channel. Please try again later or contact the support.
+	// ChannelStatusError Something unexpected happened and we cannot determine the status of this channel. Please try again later or contact the support.
 	ChannelStatusError
 )
 

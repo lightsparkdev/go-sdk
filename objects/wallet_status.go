@@ -5,29 +5,29 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential statuses that your Lightspark wallet can take.
+// WalletStatus This is an enum of the potential statuses that your Lightspark wallet can take.
 type WalletStatus int
 
 const (
 	WalletStatusUndefined WalletStatus = iota
 
-	// The wallet has not been set up yet and is ready to be deployed. This is the default status after the first login.
+	// WalletStatusNotSetup The wallet has not been set up yet and is ready to be deployed. This is the default status after the first login.
 	WalletStatusNotSetup
-	// The wallet is currently being deployed in the Lightspark infrastructure.
+	// WalletStatusDeploying The wallet is currently being deployed in the Lightspark infrastructure.
 	WalletStatusDeploying
-	// The wallet has been deployed in the Lightspark infrastructure and is ready to be initialized.
+	// WalletStatusDeployed The wallet has been deployed in the Lightspark infrastructure and is ready to be initialized.
 	WalletStatusDeployed
-	// The wallet is currently being initialized.
+	// WalletStatusInitializing The wallet is currently being initialized.
 	WalletStatusInitializing
-	// The wallet is available and ready to be used.
+	// WalletStatusReady The wallet is available and ready to be used.
 	WalletStatusReady
-	// The wallet is temporarily available, due to a transient issue or a scheduled maintenance.
+	// WalletStatusUnavailable The wallet is temporarily available, due to a transient issue or a scheduled maintenance.
 	WalletStatusUnavailable
-	// The wallet had an unrecoverable failure. This status is not expected to happend and will be investigated by the Lightspark team.
+	// WalletStatusFailed The wallet had an unrecoverable failure. This status is not expected to happend and will be investigated by the Lightspark team.
 	WalletStatusFailed
-	// The wallet is being terminated.
+	// WalletStatusTerminating The wallet is being terminated.
 	WalletStatusTerminating
-	// The wallet has been terminated and is not available in the Lightspark infrastructure anymore. It is not connected to the Lightning network and its funds can only be accessed using the Funds Recovery flow.
+	// WalletStatusTerminated The wallet has been terminated and is not available in the Lightspark infrastructure anymore. It is not connected to the Lightning network and its funds can only be accessed using the Funds Recovery flow.
 	WalletStatusTerminated
 )
 

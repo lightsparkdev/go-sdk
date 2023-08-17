@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum representing a particular reason why an htlc sent over the Lightning Network may have failed.
+// HtlcAttemptFailureCode This is an enum representing a particular reason why an htlc sent over the Lightning Network may have failed.
 type HtlcAttemptFailureCode int
 
 const (

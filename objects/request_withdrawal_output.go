@@ -5,7 +5,7 @@ import "github.com/lightsparkdev/go-sdk/types"
 
 type RequestWithdrawalOutput struct {
 
-	// The request that is created for this withdrawal.
+	// Request The request that is created for this withdrawal.
 	Request types.EntityWrapper `json:"request_withdrawal_output_request"`
 }
 

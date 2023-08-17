@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 )
 
-// This is an enum for potential invoice types.
+// InvoiceType This is an enum for potential invoice types.
 type InvoiceType int
 
 const (
 	InvoiceTypeUndefined InvoiceType = iota
 
-	// A standard Bolt 11 invoice.
+	// InvoiceTypeStandard A standard Bolt 11 invoice.
 	InvoiceTypeStandard
-	// An AMP (Atomic Multi-path Payment) invoice.
+	// InvoiceTypeAmp An AMP (Atomic Multi-path Payment) invoice.
 	InvoiceTypeAmp
 )
 

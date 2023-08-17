@@ -1,7 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-// This represents the fee policies set for a channel on the Lightning Network.
+// ChannelFees This represents the fee policies set for a channel on the Lightning Network.
 type ChannelFees struct {
 	BaseFee *CurrencyAmount `json:"channel_fees_base_fee"`
 

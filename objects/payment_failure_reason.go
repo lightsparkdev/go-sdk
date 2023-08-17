@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential reasons why an OutgoingPayment sent from a Lightspark Node may have failed.
+// PaymentFailureReason This is an enum of the potential reasons why an OutgoingPayment sent from a Lightspark Node may have failed.
 type PaymentFailureReason int
 
 const (

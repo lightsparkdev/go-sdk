@@ -1,25 +1,25 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-// This is an object representing a detailed breakdown of the balance for a Lightspark Node.
+// BlockchainBalance This is an object representing a detailed breakdown of the balance for a Lightspark Node.
 type BlockchainBalance struct {
 
-	// The total wallet balance, including unconfirmed UTXOs.
+	// TotalBalance The total wallet balance, including unconfirmed UTXOs.
 	TotalBalance *CurrencyAmount `json:"blockchain_balance_total_balance"`
 
-	// The balance of confirmed UTXOs in the wallet.
+	// ConfirmedBalance The balance of confirmed UTXOs in the wallet.
 	ConfirmedBalance *CurrencyAmount `json:"blockchain_balance_confirmed_balance"`
 
-	// The balance of unconfirmed UTXOs in the wallet.
+	// UnconfirmedBalance The balance of unconfirmed UTXOs in the wallet.
 	UnconfirmedBalance *CurrencyAmount `json:"blockchain_balance_unconfirmed_balance"`
 
-	// The balance that's locked by an on-chain transaction.
+	// LockedBalance The balance that's locked by an on-chain transaction.
 	LockedBalance *CurrencyAmount `json:"blockchain_balance_locked_balance"`
 
-	// Funds required to be held in reserve for channel bumping.
+	// RequiredReserve Funds required to be held in reserve for channel bumping.
 	RequiredReserve *CurrencyAmount `json:"blockchain_balance_required_reserve"`
 
-	// Funds available for creating channels or withdrawing.
+	// AvailableBalance Funds available for creating channels or withdrawing.
 	AvailableBalance *CurrencyAmount `json:"blockchain_balance_available_balance"`
 }
 

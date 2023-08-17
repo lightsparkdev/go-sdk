@@ -2,6 +2,7 @@
 package webhooks
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -21,9 +22,10 @@ type WebhookEvent struct {
 	Timestamp time.Time
 	EntityId  string
 	WalletId  *string
+	Data      *map[string]interface{}
 }
 
-// Verifies the signature and parses the message into a WebhookEvent object.
+// VerifyAndParse Verifies the signature and parses the message into a WebhookEvent object.
 //
 // Args:
 //
@@ -40,15 +42,17 @@ func VerifyAndParse(data []byte, hexdigest string, webhookSecret string) (*Webho
 	return Parse(data)
 }
 
-// Parses the message into a WebhookEvent object.
+// Parse Parses the message into a WebhookEvent object.
 //
 // Args:
 //
 //	data: the POST message body received by the webhook.
 func Parse(data []byte) (*WebhookEvent, error) {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+
 	var eventJSON map[string]interface{}
-	err := json.Unmarshal(data, &eventJSON)
-	if err != nil {
+	if err := dec.Decode(&eventJSON); err != nil {
 		return nil, err
 	}
 
@@ -69,11 +73,18 @@ func Parse(data []byte) (*WebhookEvent, error) {
 		*walletId = eventJSON["wallet_id"].(string)
 	}
 
+	var additionalData *map[string]interface{} = nil
+	if eventJSON["data"] != nil {
+		additionalData = new(map[string]interface{})
+		*additionalData = eventJSON["data"].(map[string]interface{})
+	}
+
 	return &WebhookEvent{
 		EventType: eventType,
 		EventId:   eventJSON["event_id"].(string),
 		Timestamp: timestamp,
 		EntityId:  eventJSON["entity_id"].(string),
 		WalletId:  walletId,
+		Data:      additionalData,
 	}, nil
 }

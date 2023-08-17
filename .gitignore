@@ -1,1 +1,9 @@
 .idea/
+go.work
+go.work.sum
+
+# Example binaries
+lnurl-server
+!lnurl-server/
+remote-signing-server
+!remote-signing-server/

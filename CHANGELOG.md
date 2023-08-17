@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.2.0
+Breaking change! Migrating to remote signing.
+
 # v0.1.5
 Added support for generating invoices for LNURLs.
 

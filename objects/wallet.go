@@ -8,28 +8,28 @@ import (
 	"github.com/lightsparkdev/go-sdk/requester"
 )
 
-// This object represents a Lightspark Wallet, tied to your Lightspark account. Wallets can be used to send or receive funds over the Lightning Network. You can retrieve this object to receive information about a specific wallet tied to your Lightspark account.
+// Wallet This object represents a Lightspark Wallet, tied to your Lightspark account. Wallets can be used to send or receive funds over the Lightning Network. You can retrieve this object to receive information about a specific wallet tied to your Lightspark account.
 type Wallet struct {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"wallet_id"`
 
-	// The date and time when the entity was first created.
+	// CreatedAt The date and time when the entity was first created.
 	CreatedAt time.Time `json:"wallet_created_at"`
 
-	// The date and time when the entity was last updated.
+	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"wallet_updated_at"`
 
-	// The date and time when the wallet user last logged in.
+	// LastLoginAt The date and time when the wallet user last logged in.
 	LastLoginAt *time.Time `json:"wallet_last_login_at"`
 
-	// The balances that describe the funds in this wallet.
+	// Balances The balances that describe the funds in this wallet.
 	Balances *Balances `json:"wallet_balances"`
 
-	// The unique identifier of this wallet, as provided by the Lightspark Customer during login.
+	// ThirdPartyIdentifier The unique identifier of this wallet, as provided by the Lightspark Customer during login.
 	ThirdPartyIdentifier string `json:"wallet_third_party_identifier"`
 
-	// The status of this wallet.
+	// Status The status of this wallet.
 	Status WalletStatus `json:"wallet_status"`
 }
 
@@ -74,17 +74,17 @@ fragment WalletFragment on Wallet {
 `
 )
 
-// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj Wallet) GetId() string {
 	return obj.Id
 }
 
-// The date and time when the entity was first created.
+// GetCreatedAt The date and time when the entity was first created.
 func (obj Wallet) GetCreatedAt() time.Time {
 	return obj.CreatedAt
 }
 
-// The date and time when the entity was last updated.
+// GetUpdatedAt The date and time when the entity was last updated.
 func (obj Wallet) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
@@ -110,7 +110,7 @@ func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, created
 		"created_before_date": createdBeforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
+	response, err := requester.ExecuteGraphql(query, variables)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, createdAfte
 		"created_before_date": createdBeforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
+	response, err := requester.ExecuteGraphql(query, variables)
 	if err != nil {
 		return nil, err
 	}

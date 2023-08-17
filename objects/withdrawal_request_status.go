@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential statuses that a Withdrawal can take.
+// WithdrawalRequestStatus This is an enum of the potential statuses that a Withdrawal can take.
 type WithdrawalRequestStatus int
 
 const (

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum that enumerates all potential statuses for an incoming payment attempt.
+// IncomingPaymentAttemptStatus This is an enum that enumerates all potential statuses for an incoming payment attempt.
 type IncomingPaymentAttemptStatus int
 
 const (

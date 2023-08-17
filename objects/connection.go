@@ -8,10 +8,10 @@ import (
 
 type Connection interface {
 
-	// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	// GetCount The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 	GetCount() int64
 
-	// An object that holds pagination information about the objects in this connection.
+	// GetPageInfo An object that holds pagination information about the objects in this connection.
 	GetPageInfo() PageInfo
 }
 

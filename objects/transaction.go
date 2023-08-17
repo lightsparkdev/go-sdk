@@ -7,19 +7,20 @@ import (
 	"time"
 )
 
+// Transaction This object represents a payment transaction. The transaction can occur either on a Bitcoin Network, or over the Lightning Network. You can retrieve this object to receive specific information about a particular transaction tied to your Lightspark Node.
 type Transaction interface {
 	Entity
 
-	// The current status of this transaction.
+	// GetStatus The current status of this transaction.
 	GetStatus() TransactionStatus
 
-	// The date and time when this transaction was completed or failed.
+	// GetResolvedAt The date and time when this transaction was completed or failed.
 	GetResolvedAt() *time.Time
 
-	// The amount of money involved in this transaction.
+	// GetAmount The amount of money involved in this transaction.
 	GetAmount() CurrencyAmount
 
-	// The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+	// GetTransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 	GetTransactionHash() *string
 }
 

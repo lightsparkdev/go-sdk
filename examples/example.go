@@ -24,7 +24,6 @@ func main() {
 	client := services.NewLightsparkClient(apiClientID, apiToken, &baseUrl)
 
 	nodeId := os.Getenv("LIGHTSPARK_TEST_NODE_ID")
-	nodePassword := os.Getenv("LIGHTSPARK_TEST_NODE_PASSWORD")
 
 	// Get current account
 	fmt.Println("Getting current account...")
@@ -70,7 +69,7 @@ func main() {
 	}
 	fmt.Printf("You have %v nodes in total.\n", nodesConnection.Count)
 	for i, node := range nodesConnection.Entities {
-		fmt.Printf("#%v: %v with id %v\n", i, node.DisplayName, node.Id)
+		fmt.Printf("#%v: %v with id %v\n", i, node.GetDisplayName(), node.GetId())
 	}
 	fmt.Println()
 
@@ -234,16 +233,6 @@ func main() {
 	fmt.Printf("Node wallet address created: %v\n", address)
 	fmt.Println()
 
-	// Recover node signing key
-	fmt.Println("Recoverying node signing key...")
-	_, err = client.RecoverNodeSigningKey(nodeId, nodePassword)
-	if err != nil {
-		fmt.Printf("recovering node signing key failed: %v", err)
-		return
-	}
-	fmt.Println("Signing key recovered.")
-	fmt.Println()
-
 	// Pay an invoice
 	fmt.Println("Paying an invoice...")
 	encodedInvoice := "<your encoded invoice>"
@@ -296,7 +285,7 @@ func main() {
 
 	// Create an invoice
 	fmt.Println("Creating an invoice...")
-	invoice, err := client.CreateInvoice(nodeId, 100000, nil, nil, nil)
+	invoice, err := client.CreateInvoice(nodeId, nil, 100000, nil, nil, nil)
 	encodedInvoice = invoice.Data.EncodedPaymentRequest
 	if err != nil {
 		fmt.Printf("create invoice failed: %v", err)
