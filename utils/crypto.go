@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -160,4 +161,13 @@ func pkcs7Unpad(data []byte) ([]byte, error) {
 		}
 	}
 	return data[:len(data)-paddingLength], nil
+}
+
+func DerivePublicKey(seedHexString string, derivationPath string) (string, error) {
+	seedBytes, err := hex.DecodeString(seedHexString)
+	if err != nil {
+		return "", err
+	}
+
+	return lightspark_crypto.DerivePublicKey(seedBytes, derivationPath)
 }

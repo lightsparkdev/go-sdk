@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum of potential purposes set by a user for a Lightspark node.
 type LightsparkNodePurpose int
 
 const (

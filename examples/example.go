@@ -63,7 +63,7 @@ func main() {
 
 	// Check your nodes on REGTEST
 	var count int64 = 50
-	nodesConnection, err := account.GetNodes(client.Requester, &count, &networks, nil)
+	nodesConnection, err := account.GetNodes(client.Requester, &count, &networks, nil, nil)
 	if err != nil {
 		fmt.Printf("get nodes failed: %v", err)
 		return
@@ -165,7 +165,7 @@ func main() {
 	fmt.Printf("We had %v transactions in the past 24 hours.", transactionsConnection.Count)
 	fmt.Println()
 
-	apiTokenConnection, err := account.GetApiTokens(client.Requester, nil)
+	apiTokenConnection, err := account.GetApiTokens(client.Requester, nil, nil)
 	if err != nil {
 		fmt.Printf("get api tokens failed: %v", err)
 		return
@@ -187,7 +187,7 @@ func main() {
 	fmt.Printf("Your API secret: %v\n", apiTokenOutput.ClientSecret)
 	fmt.Println()
 
-	apiTokenConnection, err = account.GetApiTokens(client.Requester, nil)
+	apiTokenConnection, err = account.GetApiTokens(client.Requester, nil, nil)
 	if err != nil {
 		fmt.Printf("get api tokens failed: %v", err)
 		return
@@ -205,7 +205,7 @@ func main() {
 	fmt.Println("API token deleted.")
 	fmt.Println()
 
-	apiTokenConnection, err = account.GetApiTokens(client.Requester, nil)
+	apiTokenConnection, err = account.GetApiTokens(client.Requester, nil, nil)
 	if err != nil {
 		fmt.Printf("get api tokens failed: %v", err)
 		return
@@ -233,7 +233,7 @@ func main() {
 	}
 	fmt.Printf("Node wallet address created: %v\n", address)
 	fmt.Println()
-	
+
 	// Recover node signing key
 	fmt.Println("Recoverying node signing key...")
 	_, err = client.RecoverNodeSigningKey(nodeId, nodePassword)
@@ -257,7 +257,7 @@ func main() {
 	encodedInvoice = *testInvoice
 	fmt.Printf("Test invoice created: %v\n", *testInvoice)
 	fmt.Println()
-	
+
 	outgoingPayment, err := client.PayInvoice(nodeId, encodedInvoice, 1000, 60, nil)
 	if err != nil {
 		fmt.Printf("pay invoice failed: %v", err)
@@ -296,7 +296,7 @@ func main() {
 
 	// Create an invoice
 	fmt.Println("Creating an invoice...")
-	invoice, err := client.CreateInvoice(nodeId, 100000, nil, nil)
+	invoice, err := client.CreateInvoice(nodeId, 100000, nil, nil, nil)
 	encodedInvoice = invoice.Data.EncodedPaymentRequest
 	if err != nil {
 		fmt.Printf("create invoice failed: %v", err)
@@ -324,7 +324,7 @@ func main() {
 	}
 	fmt.Printf("Estimated fee for the invoice: %v %v\n", invoiceFeeEstimate.FeeEstimate.OriginalValue, invoiceFeeEstimate.FeeEstimate.OriginalUnit.StringValue())
 	fmt.Println()
-	
+
 	// If the node is in test mode, CreateTestModePayment can simulate a payment to the invoice
 	testPayment, err := client.CreateTestModePayment(nodeId, encodedInvoice, nil)
 	if err != nil {
@@ -353,6 +353,18 @@ func main() {
 		return
 	}
 	fmt.Printf("Amount funded: %v %v\n", amountFunded.OriginalValue, amountFunded.OriginalUnit.StringValue())
+	fmt.Println()
+
+	// Screen bitcoin addresses
+	fmt.Println("Screening bitcoin addresses...")
+	provider := objects.CryptoSanctionsScreeningProviderChainalysis
+	addresses := []string{"bc1qj4mfcgej3wxp8eundzq7sq8f80wps02kk38sgadrer39mr5l7ncqrgmp89"}
+	ratings, err := client.ScreenBitcoinAddresses(provider, addresses)
+	if err != nil {
+		fmt.Printf("screening bitcoin addresses failed: %v", err)
+		return
+	}
+	fmt.Printf("The risk ratings are %v.\n", *ratings)
 	fmt.Println()
 
 	// Run a custom query

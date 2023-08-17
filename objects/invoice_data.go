@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// This object represents the BOLT #11 invoice protocol for Lightning Payments. See https://github.com/lightning/bolts/blob/master/11-payment-encoding.md.
+// This object represents the data associated with a BOLT #11 invoice. You can retrieve this object to receive the relevant data associated with a specific invoice.
 type InvoiceData struct {
 	EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
 

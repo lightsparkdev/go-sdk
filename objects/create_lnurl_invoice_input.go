@@ -11,4 +11,11 @@ type CreateLnurlInvoiceInput struct {
 
 	// The SHA256 hash of the LNURL metadata payload. This will be present in the h-tag (SHA256 purpose of payment) of the resulting Bolt 11 invoice.
 	MetadataHash string `json:"create_lnurl_invoice_input_metadata_hash"`
+
+	// The expiry of the invoice in seconds. Default value is 86400 (1 day).
+	ExpirySecs *int64 `json:"create_lnurl_invoice_input_expiry_secs"`
+
+	PaymentHash *string `json:"create_lnurl_invoice_input_payment_hash"`
+
+	PreimageNonce *string `json:"create_lnurl_invoice_input_preimage_nonce"`
 }

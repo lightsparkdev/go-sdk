@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum identifying a particular Bitcoin Network.
 type BitcoinNetwork int
 
 const (
@@ -16,7 +17,7 @@ const (
 	BitcoinNetworkRegtest
 	// A test version of the Bitcoin Blockchain, maintained by a centralized organization. Not in use at Lightspark.
 	BitcoinNetworkSignet
-	// A test version of the Bitcoin Blockchain, publically available.
+	// A test version of the Bitcoin Blockchain, publicly available.
 	BitcoinNetworkTestnet
 )
 

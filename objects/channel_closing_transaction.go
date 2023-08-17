@@ -7,7 +7,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// The transaction on Bitcoin blockchain to close a channel on Lightning Network where the balances are allocated back to local and remote nodes.
+// This is an object representing a transaction which closes a channel on the Lightning Network. This operation allocates balances back to the local and remote nodes.
 type ChannelClosingTransaction struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

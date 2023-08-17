@@ -9,7 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// An object that represents a payment channel between two nodes in the Lightning Network.
+// This is an object representing a channel on the Lightning Network. You can retrieve this object to get detailed information on a specific Lightning Network channel.
 type Channel struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

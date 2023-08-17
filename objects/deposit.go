@@ -7,7 +7,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// The transaction on Bitcoin blockchain to fund the Lightspark node's wallet.
+// This object represents a Deposit made to a Lightspark node wallet. This operation occurs for any L1 funding transaction to the wallet. You can retrieve this object to receive detailed information about the deposit.
 type Deposit struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

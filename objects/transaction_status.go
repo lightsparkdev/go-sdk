@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum of the potential statuses a transaction associated with your Lightspark Node can take.
 type TransactionStatus int
 
 const (

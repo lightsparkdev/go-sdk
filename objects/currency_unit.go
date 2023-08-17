@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This enum identifies the unit of currency associated with a CurrencyAmount.
 type CurrencyUnit int
 
 const (

@@ -9,7 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// An attempt for a payment over a route from sender node to recipient node.
+// This object represents an attempted Lightning Network payment sent from a Lightspark Node. You can retrieve this object to receive payment related information about any payment attempt sent from your Lightspark Node on the Lightning Network, including any potential reasons the payment may have failed.
 type OutgoingPaymentAttempt struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
@@ -92,13 +92,20 @@ func (obj OutgoingPaymentAttempt) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
-func (obj OutgoingPaymentAttempt) GetHops(requester *requester.Requester, first *int64) (*OutgoingPaymentAttemptToHopsConnection, error) {
-	query := `query FetchOutgoingPaymentAttemptToHopsConnection($entity_id: ID!, $first: Int) {
+func (obj OutgoingPaymentAttempt) GetHops(requester *requester.Requester, first *int64, after *string) (*OutgoingPaymentAttemptToHopsConnection, error) {
+	query := `query FetchOutgoingPaymentAttemptToHopsConnection($entity_id: ID!, $first: Int, $after: String) {
     entity(id: $entity_id) {
         ... on OutgoingPaymentAttempt {
-            hops(, first: $first) {
+            hops(, first: $first, after: $after) {
                 __typename
                 outgoing_payment_attempt_to_hops_connection_count: count
+                outgoing_payment_attempt_to_hops_connection_page_info: page_info {
+                    __typename
+                    page_info_has_next_page: has_next_page
+                    page_info_has_previous_page: has_previous_page
+                    page_info_start_cursor: start_cursor
+                    page_info_end_cursor: end_cursor
+                }
                 outgoing_payment_attempt_to_hops_connection_entities: entities {
                     __typename
                     hop_id: id
@@ -134,6 +141,7 @@ func (obj OutgoingPaymentAttempt) GetHops(requester *requester.Requester, first 
 	variables := map[string]interface{}{
 		"entity_id": obj.Id,
 		"first":     first,
+		"after":     after,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

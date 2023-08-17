@@ -8,6 +8,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/requester"
 )
 
+// This is an object representing the connected Lightspark account. You can retrieve this object to see your account information and objects tied to your account.
 type Account struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
@@ -50,12 +51,13 @@ func (obj Account) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
-func (obj Account) GetApiTokens(requester *requester.Requester, first *int64) (*AccountToApiTokensConnection, error) {
-	query := `query FetchAccountToApiTokensConnection($entity_id: ID!, $first: Int) {
+func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, after *string) (*AccountToApiTokensConnection, error) {
+	query := `query FetchAccountToApiTokensConnection($entity_id: ID!, $first: Int, $after: String) {
     entity(id: $entity_id) {
         ... on Account {
-            api_tokens(, first: $first) {
+            api_tokens(, first: $first, after: $after) {
                 __typename
+                account_to_api_tokens_connection_count: count
                 account_to_api_tokens_connection_page_info: page_info {
                     __typename
                     page_info_has_next_page: has_next_page
@@ -63,7 +65,6 @@ func (obj Account) GetApiTokens(requester *requester.Requester, first *int64) (*
                     page_info_start_cursor: start_cursor
                     page_info_end_cursor: end_cursor
                 }
-                account_to_api_tokens_connection_count: count
                 account_to_api_tokens_connection_entities: entities {
                     __typename
                     api_token_id: id
@@ -80,6 +81,7 @@ func (obj Account) GetApiTokens(requester *requester.Requester, first *int64) (*
 	variables := map[string]interface{}{
 		"entity_id": obj.Id,
 		"first":     first,
+		"after":     after,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -229,12 +231,13 @@ func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoinNetwor
 	return result, nil
 }
 
-func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*AccountToNodesConnection, error) {
-	query := `query FetchAccountToNodesConnection($entity_id: ID!, $first: Int, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
+func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string, after *string) (*AccountToNodesConnection, error) {
+	query := `query FetchAccountToNodesConnection($entity_id: ID!, $first: Int, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!], $after: String) {
     entity(id: $entity_id) {
         ... on Account {
-            nodes(, first: $first, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids) {
+            nodes(, first: $first, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids, after: $after) {
                 __typename
+                account_to_nodes_connection_count: count
                 account_to_nodes_connection_page_info: page_info {
                     __typename
                     page_info_has_next_page: has_next_page
@@ -242,7 +245,6 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
                     page_info_start_cursor: start_cursor
                     page_info_end_cursor: end_cursor
                 }
-                account_to_nodes_connection_count: count
                 account_to_nodes_connection_purpose: purpose
                 account_to_nodes_connection_entities: entities {
                     __typename
@@ -361,6 +363,7 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
 		"first":            first,
 		"bitcoin_networks": bitcoinNetworks,
 		"node_ids":         nodeIds,
+		"after":            after,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -568,6 +571,14 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
         ... on Account {
             transactions(, first: $first, after: $after, types: $types, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id, statuses: $statuses, exclude_failures: $exclude_failures) {
                 __typename
+                account_to_transactions_connection_count: count
+                account_to_transactions_connection_page_info: page_info {
+                    __typename
+                    page_info_has_next_page: has_next_page
+                    page_info_has_previous_page: has_previous_page
+                    page_info_start_cursor: start_cursor
+                    page_info_end_cursor: end_cursor
+                }
                 account_to_transactions_connection_profit_loss: profit_loss {
                     __typename
                     currency_amount_original_value: original_value
@@ -584,7 +595,6 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                     currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
                     currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                 }
-                account_to_transactions_connection_count: count
                 account_to_transactions_connection_total_amount_transacted: total_amount_transacted {
                     __typename
                     currency_amount_original_value: original_value
@@ -965,13 +975,6 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                         }
                     }
                 }
-                account_to_transactions_connection_page_info: page_info {
-                    __typename
-                    page_info_has_next_page: has_next_page
-                    page_info_has_previous_page: has_previous_page
-                    page_info_start_cursor: start_cursor
-                    page_info_end_cursor: end_cursor
-                }
             }
         }
     }
@@ -1008,6 +1011,13 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
             payment_requests(, first: $first, after: $after, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id) {
                 __typename
                 account_to_payment_requests_connection_count: count
+                account_to_payment_requests_connection_page_info: page_info {
+                    __typename
+                    page_info_has_next_page: has_next_page
+                    page_info_has_previous_page: has_previous_page
+                    page_info_start_cursor: start_cursor
+                    page_info_end_cursor: end_cursor
+                }
                 account_to_payment_requests_connection_entities: entities {
                     __typename
                     ... on Invoice {
@@ -1166,13 +1176,6 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
                         }
                     }
                 }
-                account_to_payment_requests_connection_page_info: page_info {
-                    __typename
-                    page_info_has_next_page: has_next_page
-                    page_info_has_previous_page: has_previous_page
-                    page_info_start_cursor: start_cursor
-                    page_info_end_cursor: end_cursor
-                }
             }
         }
     }
@@ -1199,12 +1202,13 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 	return result, nil
 }
 
-func (obj Account) GetWallets(requester *requester.Requester, first *int64) (*AccountToWalletsConnection, error) {
-	query := `query FetchAccountToWalletsConnection($entity_id: ID!, $first: Int) {
+func (obj Account) GetWallets(requester *requester.Requester, first *int64, after *string, thirdPartyIds *[]string) (*AccountToWalletsConnection, error) {
+	query := `query FetchAccountToWalletsConnection($entity_id: ID!, $first: Int, $after: String, $third_party_ids: [String!]) {
     entity(id: $entity_id) {
         ... on Account {
-            wallets(, first: $first) {
+            wallets(, first: $first, after: $after, third_party_ids: $third_party_ids) {
                 __typename
+                account_to_wallets_connection_count: count
                 account_to_wallets_connection_page_info: page_info {
                     __typename
                     page_info_has_next_page: has_next_page
@@ -1212,7 +1216,6 @@ func (obj Account) GetWallets(requester *requester.Requester, first *int64) (*Ac
                     page_info_start_cursor: start_cursor
                     page_info_end_cursor: end_cursor
                 }
-                account_to_wallets_connection_count: count
                 account_to_wallets_connection_entities: entities {
                     __typename
                     wallet_id: id
@@ -1254,8 +1257,10 @@ func (obj Account) GetWallets(requester *requester.Requester, first *int64) (*Ac
     }
 }`
 	variables := map[string]interface{}{
-		"entity_id": obj.Id,
-		"first":     first,
+		"entity_id":       obj.Id,
+		"first":           first,
+		"after":           after,
+		"third_party_ids": thirdPartyIds,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

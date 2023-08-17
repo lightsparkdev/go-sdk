@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum of the potential types of transactions that can be associated with your Lightspark Node.
 type TransactionType int
 
 const (

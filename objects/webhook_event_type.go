@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum of the potential event types that can be associated with your Lightspark wallets.
 type WebhookEventType int
 
 const (
@@ -23,6 +24,8 @@ const (
 	WebhookEventTypeWalletWithdrawalFinished
 
 	WebhookEventTypeWalletFundsReceived
+
+	WebhookEventTypeRemoteSigning
 )
 
 func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
@@ -47,6 +50,8 @@ func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
 		*a = WebhookEventTypeWalletWithdrawalFinished
 	case "WALLET_FUNDS_RECEIVED":
 		*a = WebhookEventTypeWalletFundsReceived
+	case "REMOTE_SIGNING":
+		*a = WebhookEventTypeRemoteSigning
 
 	}
 	return nil
@@ -71,6 +76,8 @@ func (a WebhookEventType) StringValue() string {
 		s = "WALLET_WITHDRAWAL_FINISHED"
 	case WebhookEventTypeWalletFundsReceived:
 		s = "WALLET_FUNDS_RECEIVED"
+	case WebhookEventTypeRemoteSigning:
+		s = "REMOTE_SIGNING"
 
 	}
 	return s

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum for potential invoice types.
 type InvoiceType int
 
 const (

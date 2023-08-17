@@ -7,7 +7,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// A transaction that was forwarded through a Lightspark node on the Lightning Network.
+// This object represents a transaction that was forwarded through a Lightspark node on the Lightning Network, i.e., a routed transaction. You can retrieve this object to receive information about any transaction routed through your Lightspark Node.
 type RoutingTransaction struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

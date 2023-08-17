@@ -262,12 +262,13 @@ func (obj LightsparkNode) GetAddresses(requester *requester.Requester, first *in
 	return result, nil
 }
 
-func (obj LightsparkNode) GetChannels(requester *requester.Requester, first *int64, statuses *[]ChannelStatus) (*LightsparkNodeToChannelsConnection, error) {
-	query := `query FetchLightsparkNodeToChannelsConnection($entity_id: ID!, $first: Int, $statuses: [ChannelStatus!]) {
+func (obj LightsparkNode) GetChannels(requester *requester.Requester, first *int64, statuses *[]ChannelStatus, after *string) (*LightsparkNodeToChannelsConnection, error) {
+	query := `query FetchLightsparkNodeToChannelsConnection($entity_id: ID!, $first: Int, $statuses: [ChannelStatus!], $after: String) {
     entity(id: $entity_id) {
         ... on LightsparkNode {
-            channels(, first: $first, statuses: $statuses) {
+            channels(, first: $first, statuses: $statuses, after: $after) {
                 __typename
+                lightspark_node_to_channels_connection_count: count
                 lightspark_node_to_channels_connection_page_info: page_info {
                     __typename
                     page_info_has_next_page: has_next_page
@@ -275,7 +276,6 @@ func (obj LightsparkNode) GetChannels(requester *requester.Requester, first *int
                     page_info_start_cursor: start_cursor
                     page_info_end_cursor: end_cursor
                 }
-                lightspark_node_to_channels_connection_count: count
                 lightspark_node_to_channels_connection_entities: entities {
                     __typename
                     channel_id: id
@@ -378,6 +378,7 @@ func (obj LightsparkNode) GetChannels(requester *requester.Requester, first *int
 		"entity_id": obj.Id,
 		"first":     first,
 		"statuses":  statuses,
+		"after":     after,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

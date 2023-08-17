@@ -7,7 +7,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// The transaction on Bitcoin blockchain to open a channel on Lightning Network funded by the local Lightspark node.
+// This is an object representing a transaction which opens a channel on the Lightning Network. This object occurs only for channels funded by the local Lightspark node.
 type ChannelOpeningTransaction struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

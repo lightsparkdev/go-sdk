@@ -1,7 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-// This object provides a detailed breakdown of a `LightsparkNode`'s current balance on the Bitcoin Network.
+// This is an object representing a detailed breakdown of the balance for a Lightspark Node.
 type BlockchainBalance struct {
 
 	// The total wallet balance, including unconfirmed UTXOs.

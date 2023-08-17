@@ -104,7 +104,7 @@ func handleLnurlPayreq(context *gin.Context, config *LnurlConfig) {
 	}
 
 	lsClient := services.NewLightsparkClient(config.ApiClientID, config.ApiClientSecret, nil)
-	lsInvoice, err := lsClient.CreateLnurlInvoice(config.NodeUUID, int64(amount_msats), metadata)
+	lsInvoice, err := lsClient.CreateLnurlInvoice(config.NodeUUID, int64(amount_msats), metadata, nil)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{

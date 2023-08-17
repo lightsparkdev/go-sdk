@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum of the potential statuses that your Lightspark wallet can take.
 type WalletStatus int
 
 const (

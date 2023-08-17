@@ -1,7 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-// Represents the value and unit for an amount of currency.
+// This object represents the value and unit for an amount of currency.
 type CurrencyAmount struct {
 
 	// The original numeric value for this CurrencyAmount.

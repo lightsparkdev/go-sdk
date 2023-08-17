@@ -9,6 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
+// This object represents a request made for an L1 withdrawal from your Lightspark Node to any Bitcoin wallet. You can retrieve this object to receive detailed information about any withdrawal request made from your Lightspark account.
 type WithdrawalRequest struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

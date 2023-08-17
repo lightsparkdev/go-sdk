@@ -7,7 +7,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// One hop signifies a payment moving one node ahead on a payment route; a list of sequential hops defines the path from sender node to recipient node for a payment attempt.
+// This object represents a specific node that existed on a particular payment route. You can retrieve this object to get information about a node on a particular payment path and all payment-relevant information for that node.
 type Hop struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

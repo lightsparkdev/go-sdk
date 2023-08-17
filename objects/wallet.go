@@ -8,6 +8,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/requester"
 )
 
+// This object represents a Lightspark Wallet, tied to your Lightspark account. Wallets can be used to send or receive funds over the Lightning Network. You can retrieve this object to receive information about a specific wallet tied to your Lightspark account.
 type Wallet struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

@@ -8,7 +8,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/requester"
 )
 
-// This is a node on the Lightning Network, managed by a third party. The information about this node is public data that has been obtained by observing the Lightning Network.
+// This object represents a node that exists on the Lightning Network, including nodes not managed by Lightspark. You can retrieve this object to get publicly available information about any node on the Lightning Network.
 type GraphNode struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.

@@ -16,6 +16,13 @@ type LightsparkClient struct {
 	nodeKeys  map[string][]byte
 }
 
+// NewLightsparkClient creates a new LightsparkClient instance
+//
+// Args:
+//
+//	apiTokenClientId: the client id of the API token
+//	apiTokenClientSecret: the client secret of the API token
+//	baseUrl: the base url of the Lightspark API
 func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
 	baseUrl *string) *LightsparkClient {
 
@@ -27,6 +34,14 @@ func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
 	return &LightsparkClient{Requester: requester, nodeKeys: map[string][]byte{}}
 }
 
+// CreateApiToken creates a new API token that can be used to authenticate requests
+// for this account when using the Lightspark APIs and SDKs.
+//
+// Args:
+//
+//	name: the name of the API token
+//	transact: whether the API token should be able to used to initiate transactions
+//	testMode: whether the API token should be created for test mode or Mainnet mode
 func (client *LightsparkClient) CreateApiToken(name string, transact bool,
 	testMode bool) (*scripts.CreateApiTokenOutput, error) {
 
@@ -55,18 +70,34 @@ func (client *LightsparkClient) CreateApiToken(name string, transact bool,
 	output := response["create_api_token"].(map[string]interface{})
 	var apiToken objects.ApiToken
 	apiTokenJson, err := json.Marshal(output["api_token"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing api token")
+	}
 	json.Unmarshal(apiTokenJson, &apiToken)
 	return &scripts.CreateApiTokenOutput{ApiToken: &apiToken, ClientSecret: output["client_secret"].(string)}, nil
 }
 
+// CreateInvoice generates a Lightning Invoice (follows the Bolt 11 specification)
+// to request a payment from another Lightning Node.
+//
+// Args:
+//
+//	nodeId: the id of the node that should be paid
+//	amountMsats: the amount of the invoice in millisatoshis
+//	memo: the memo of the invoice
+//	invoiceType: the type of the invoice
+//	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day).
 func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
-	memo *string, invoiceType *objects.InvoiceType) (*objects.Invoice, error) {
+	memo *string, invoiceType *objects.InvoiceType, expirySecs *int32) (*objects.Invoice, error) {
 
 	variables := map[string]interface{}{
 		"amount_msats": amountMsats,
 		"node_id":      nodeId,
 		"memo":         memo,
 		"invoice_type": invoiceType,
+	}
+	if expirySecs != nil {
+		variables["expiry_secs"] = expirySecs
 	}
 	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_INVOICE_MUTATION, variables, nil)
 	if err != nil {
@@ -76,17 +107,34 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	output := response["create_invoice"].(map[string]interface{})
 	var invoice objects.Invoice
 	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invoice")
+	}
 	json.Unmarshal(invoiceJson, &invoice)
 	return &invoice, nil
 }
 
+// CreateLnurlInvoice creates a new LNURL invoice. The metadata is hashed and included in the invoice.
+// This API generates a Lightning Invoice (follows the Bolt 11 specification) to request a payment
+// from another Lightning Node. This should only be used for generating invoices
+// for LNURLs, with `create_invoice` preferred in the general case.
+//
+// Args:
+//
+//	nodeId: the id of the node that should be paid
+//	amountMsats: the amount of the invoice in millisatoshis
+//	metadata: the metadata to include with the invoice
+//	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day).
 func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats int64,
-	metadata string) (*objects.Invoice, error) {
+	metadata string, expirySecs *int32) (*objects.Invoice, error) {
 
 	variables := map[string]interface{}{
 		"amount_msats":  amountMsats,
 		"node_id":       nodeId,
 		"metadata_hash": utils.Sha256HexString(metadata),
+	}
+	if expirySecs != nil {
+		variables["expiry_secs"] = expirySecs
 	}
 	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_LNURL_INVOICE_MUTATION, variables, nil)
 	if err != nil {
@@ -96,10 +144,17 @@ func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats in
 	output := response["create_lnurl_invoice"].(map[string]interface{})
 	var invoice objects.Invoice
 	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invoice")
+	}
 	json.Unmarshal(invoiceJson, &invoice)
 	return &invoice, nil
 }
 
+// CreateNodeWalletAddress creates a Bitcoin address for the wallet associated with
+// your Lightning Node. You can use this address to send funds to your node. It is
+// a best practice to generate a new wallet address every time you need to send money.
+// You can generate as many wallet addresses as you want.
 func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, error) {
 	variables := map[string]interface{}{
 		"node_id": nodeId,
@@ -113,6 +168,15 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 	return walletAddress, nil
 }
 
+// In test mode, CreateTestModeInvoice generates a Lightning Invoice which can be paid by a local node.
+// This is useful for testing your integration with Lightspark.
+//
+// Args:
+//
+//	localNodeId: the id of the node that should be paid
+//	amountMsats: the amount of the invoice in millisatoshis
+//	memo: the memo of the invoice
+//	invoiceType: the type of the invoice
 func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amountMsats int64,
 	memo *string, invoiceType *objects.InvoiceType) (*string, error) {
 
@@ -132,6 +196,15 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 	return &encodedInvoice, nil
 }
 
+// In test mode, CreateTestModePayment simulates a payment from other node to an invoice.
+// This is useful for testing your integration with Lightspark.
+//
+// Args:
+//
+//	localNodeId: The node to where you want to send the payment.
+//	encodedInvoice: The invoice you want to be paid (as defined by the BOLT11 standard).
+//	amountMsats: The amount you will be paid for this invoice, expressed in msats.
+//		It should ONLY be set when the invoice amount is zero.
 func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
 	encodedInvoice string, amountMsats *int64) (*objects.OutgoingPayment, error) {
 
@@ -151,10 +224,19 @@ func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
 	output := response["create_test_mode_payment"].(map[string]interface{})
 	var payment objects.OutgoingPayment
 	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing payment")
+	}
 	json.Unmarshal(paymentJson, &payment)
 	return &payment, nil
 }
 
+// DecodePaymentRequest decodes the content of an encoded payment request into
+// structured data that can be used by the client.
+//
+// Args:
+//
+//	encodedPaymentRequest: The encoded payment request.
 func (client *LightsparkClient) DecodePaymentRequest(encodedPaymentRequest string) (*objects.PaymentRequestData, error) {
 	variables := map[string]interface{}{"encoded_payment_request": encodedPaymentRequest}
 	response, err := client.Requester.ExecuteGraphql(scripts.DECODE_PAYMENT_REQUEST_QUERY, variables, nil)
@@ -170,6 +252,11 @@ func (client *LightsparkClient) DecodePaymentRequest(encodedPaymentRequest strin
 	return &paymentRequest, nil
 }
 
+// DeleteApiToken deletes an existing API token from this account.
+//
+// Args:
+//
+//	apiTokenId: The id of the API token to delete.
 func (client *LightsparkClient) DeleteApiToken(apiTokenId string) error {
 	variables := map[string]interface{}{
 		"api_token_id": apiTokenId,
@@ -178,6 +265,15 @@ func (client *LightsparkClient) DeleteApiToken(apiTokenId string) error {
 	return err
 }
 
+// FundNode adds funds to a Lightspark node on the REGTEST network.
+// If the amount is not specified, 10,000,000 SATOSHI will be added.
+// This API only functions for nodes created on the REGTEST network
+// and will return an error when called for any non-REGTEST node.
+//
+// Args:
+//
+//	nodeId: The id of the node to fund.
+//	amountSats: The amount of funds to add to the node, in SATOSHI.
 func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 	*objects.CurrencyAmount, error) {
 
@@ -200,10 +296,18 @@ func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 	output := response["fund_node"].(map[string]interface{})
 	var amount objects.CurrencyAmount
 	amountJson, err := json.Marshal(output["amount"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing amount")
+	}
 	json.Unmarshal(amountJson, &amount)
 	return &amount, nil
 }
 
+// GetBitcoinFeeEstimate returns an estimate of the fees of a transaction on the Bitcoin Network.
+//
+// Args:
+//
+//	bitcoinNetwork: The Bitcoin network to use for the estimate.
 func (client *LightsparkClient) GetBitcoinFeeEstimate(
 	bitcoinNetwork objects.BitcoinNetwork) (*objects.FeeEstimate, error) {
 
@@ -216,10 +320,14 @@ func (client *LightsparkClient) GetBitcoinFeeEstimate(
 	output := response["bitcoin_fee_estimate"].(map[string]interface{})
 	var feeEstimate objects.FeeEstimate
 	feeEstimateJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing fee estimate")
+	}
 	json.Unmarshal(feeEstimateJson, &feeEstimate)
 	return &feeEstimate, nil
 }
 
+// GetCurrentAccount returns the current connected account.
 func (client *LightsparkClient) GetCurrentAccount() (*objects.Account, error) {
 	variables := map[string]interface{}{}
 	response, err := client.Requester.ExecuteGraphql(scripts.CURRENT_ACCOUNT_QUERY, variables, nil)
@@ -230,10 +338,22 @@ func (client *LightsparkClient) GetCurrentAccount() (*objects.Account, error) {
 	output := response["current_account"].(map[string]interface{})
 	var account objects.Account
 	accountJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing account")
+	}
 	json.Unmarshal(accountJson, &account)
 	return &account, nil
 }
 
+// GetLightningFeeEstimateForInvoice returns an estimate of the fees that
+// will be paid for a Lightning invoice.
+//
+// Args:
+//
+//	nodeId: The node from where you want to send the payment
+//	encodedInvoice: The invoice you want to pay (as defined by the BOLT11 standard).
+//	amountMsats: If the invoice does not specify a payment amount,
+//		then the amount that you wish to pay, expressed in msats.
 func (client *LightsparkClient) GetLightningFeeEstimateForInvoice(nodeId string,
 	encodedInvoice string, amountMsats *int64) (*objects.LightningFeeEstimateOutput, error) {
 
@@ -250,10 +370,21 @@ func (client *LightsparkClient) GetLightningFeeEstimateForInvoice(nodeId string,
 	output := response["lightning_fee_estimate_for_invoice"].(map[string]interface{})
 	var feeEstimate objects.LightningFeeEstimateOutput
 	feeEstimateJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing fee estimate")
+	}
 	json.Unmarshal(feeEstimateJson, &feeEstimate)
 	return &feeEstimate, nil
 }
 
+// GetLightningFeeEstimateForNode returns an estimate of the fees that will be
+// paid to send a payment to another Lightning node.
+//
+// Args:
+//
+//	nodeId: The node from where you want to send the payment.
+//	destinationNodePublicKey: The public key of the node that you want to pay.
+//	amountMsats: The amount that you wish to pay, expressed in msats.
 func (client *LightsparkClient) GetLightningFeeEstimateForNode(nodeId string,
 	destinationNodePublicKey string, amountMsats int64) (*objects.LightningFeeEstimateOutput, error) {
 
@@ -270,10 +401,25 @@ func (client *LightsparkClient) GetLightningFeeEstimateForNode(nodeId string,
 	output := response["lightning_fee_estimate_for_node"].(map[string]interface{})
 	var feeEstimate objects.LightningFeeEstimateOutput
 	feeEstimateJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing fee estimate")
+	}
 	json.Unmarshal(feeEstimateJson, &feeEstimate)
 	return &feeEstimate, nil
 }
 
+// PayInvoice sends a payment to a node on the Lightning Network, based on the invoice
+// (as defined by the BOLT11 specification) that you provide.
+// If you are in test mode, the invoice has to be generated by create_test_mode_invoice mutation.
+//
+// Args:
+//
+//	nodeId: The node from where you want to send the payment.
+//	encodedInvoice: The invoice you want to pay (as defined by the BOLT11 standard).
+//	timeoutSecs: The number of seconds that you are willing to wait for the payment to complete.
+//	maximumFeesMsats: The maximum amount of fees that you are willing to pay for this payment, expressed in mSATs.
+//	amountMsats: The amount you will pay for this invoice, expressed in msats.
+//		It should ONLY be set when the invoice amount is zero.
 func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 	timeoutSecs int, maximumFeesMsats int64, amountMsats *int64) (*objects.OutgoingPayment, error) {
 
@@ -301,10 +447,19 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 	output := response["pay_invoice"].(map[string]interface{})
 	var payment objects.OutgoingPayment
 	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing payment")
+	}
 	json.Unmarshal(paymentJson, &payment)
 	return &payment, nil
 }
 
+// RecoverNodeSigningKey recovers the signing key of a node, given its node id and password.
+//
+// Args:
+//
+//	nodeId: The node id of the node whose signing key you want to recover.
+//	nodePassword: The password of the node whose signing key you want to recover.
 func (client *LightsparkClient) RecoverNodeSigningKey(nodeId string,
 	nodePassword string) ([]byte, error) {
 
@@ -322,11 +477,29 @@ func (client *LightsparkClient) RecoverNodeSigningKey(nodeId string,
 	cipher := encryptedKeyOutput["cipher"].(string)
 
 	signingKey, err := utils.DecryptPrivateKey(cipher, encryptedKey, nodePassword)
+	if err != nil {
+		return nil, err
+	}
 	client.LoadNodeSigningKey(nodeId, signingKey)
 
 	return signingKey, nil
 }
 
+// RequestWithdrawal withdraws funds from the account and sends it to the requested
+// bitcoin address. Depending on the chosen mode, it will first take the funds from
+// the wallet, and if applicable, close channels appropriately to recover enough
+// funds.
+// The process is asynchronous and may take up to a few minutes.
+// You can check the progress by polling the `WithdrawalRequest`
+// that is created, or by subscribing to a webhook.
+//
+// Args:
+//
+//	nodeId: The node from which you'd like to make the withdrawal.
+//	amountSats: The amount you want to withdraw from this node in Satoshis.
+//		Use the special value -1 to withdrawal all funds from this node.
+//	bitcoinAddress: The bitcoin address where you want to receive the funds.
+//	withdrawalMode: The mode that will be used to withdraw the funds.
 func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int64,
 	bitcoinAddress string, withdrawalMode objects.WithdrawalMode) (*objects.WithdrawalRequest, error) {
 
@@ -351,10 +524,23 @@ func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int6
 	output := response["request_withdrawal"].(map[string]interface{})
 	var withdrawalRequest objects.WithdrawalRequest
 	withdrawalRequestJson, err := json.Marshal(output["request"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing withdrawal request")
+	}
 	json.Unmarshal(withdrawalRequestJson, &withdrawalRequest)
 	return &withdrawalRequest, nil
 }
 
+// SendPayment sends a payment directly to a node on the Lightning Network
+// through the public key of the node without an invoice.
+//
+// Args:
+//
+//	nodeId: The node from where you want to send the payment.
+//	destinationPublicKey: The public key of the node that will receive the payment.
+//	amountMsats: The amount you will pay for this invoice, expressed in msats.
+//	timeoutSecs: The number of seconds that you are willing to wait for the payment to complete.
+//	maximumFeesMsats: The maximum amount of fees that you are willing to pay for this payment, expressed in mSATs.
 func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey string,
 	amountMsats int64, timeoutSecs int, maximumFeesMsats int64) (*objects.OutgoingPayment, error) {
 
@@ -380,10 +566,43 @@ func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey 
 	output := response["send_payment"].(map[string]interface{})
 	var payment objects.OutgoingPayment
 	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing payment")
+	}
 	json.Unmarshal(paymentJson, &payment)
 	return &payment, nil
 }
 
+// ScreenBitcoinAddresses screens a list of bitcoin addresses against a given provider.
+//
+// Args:
+//
+//	provider: The provider that you want to use to screen the addresses.
+//	addresses: The list of addresses that you want to screen.
+func (client *LightsparkClient) ScreenBitcoinAddresses(
+	provider objects.CryptoSanctionsScreeningProvider, addresses []string) (*[]objects.RiskRating, error) {
+
+	variables := map[string]interface{}{"provider": provider, "addresses": addresses}
+	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_BITCOIN_ADDRESSES_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["screen_bitcoin_addresses"].(map[string]interface{})
+	var ratings []objects.RiskRating
+	ratingsJson, err := json.Marshal(output["ratings"].([]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing ratings")
+	}
+	json.Unmarshal(ratingsJson, &ratings)
+	return &ratings, nil
+}
+
+// GetEntity returns any `Entity`, identified by its unique ID.
+//
+// Args:
+//
+//	id: The unique ID of the entity.
 func (client *LightsparkClient) GetEntity(id string) (*objects.Entity, error) {
 	variables := map[string]interface{}{
 		"id": id,
@@ -401,16 +620,33 @@ func (client *LightsparkClient) GetEntity(id string) (*objects.Entity, error) {
 	return &entity, nil
 }
 
+// ExecuteGraphqlRequest executes a GraphQL request.
+//
+// Args:
+//
+//	document: The GraphQL document that you want to execute.
+//	variables: The variables that you want to pass to the GraphQL document.
 func (client *LightsparkClient) ExecuteGraphqlRequest(document string,
 	variables map[string]interface{}) (map[string]interface{}, error) {
 
 	return client.Requester.ExecuteGraphql(document, variables, nil)
 }
 
+// LoadNodeSigningKey loads the signing key of a node into the client.
+//
+// Args:
+//
+//	nodeId: The ID of the node.
+//	signingKey: The signing key of the node.
 func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, signingKey []byte) {
 	client.nodeKeys[nodeId] = signingKey
 }
 
+// getNodeSigningKey returns the signing key of a node.
+//
+// Args:
+//
+//	nodeId: The ID of the node.
 func (client *LightsparkClient) getNodeSigningKey(nodeId string) ([]byte, error) {
 	nodeKey, ok := client.nodeKeys[nodeId]
 	if !ok {

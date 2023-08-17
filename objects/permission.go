@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum of the potential permissions that a Lightspark user can have in regards to account management.
 type Permission int
 
 const (

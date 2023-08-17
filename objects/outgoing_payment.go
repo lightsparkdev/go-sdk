@@ -9,7 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// A transaction that was sent from a Lightspark node on the Lightning Network.
+// This object represents a Lightning Network payment sent from a Lightspark Node. You can retrieve this object to receive payment related information about any payment sent from your Lightspark Node on the Lightning Network.
 type OutgoingPayment struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
@@ -271,13 +271,20 @@ func (obj OutgoingPayment) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
-func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *int64) (*OutgoingPaymentToAttemptsConnection, error) {
-	query := `query FetchOutgoingPaymentToAttemptsConnection($entity_id: ID!, $first: Int) {
+func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *int64, after *string) (*OutgoingPaymentToAttemptsConnection, error) {
+	query := `query FetchOutgoingPaymentToAttemptsConnection($entity_id: ID!, $first: Int, $after: String) {
     entity(id: $entity_id) {
         ... on OutgoingPayment {
-            attempts(, first: $first) {
+            attempts(, first: $first, after: $after) {
                 __typename
                 outgoing_payment_to_attempts_connection_count: count
+                outgoing_payment_to_attempts_connection_page_info: page_info {
+                    __typename
+                    page_info_has_next_page: has_next_page
+                    page_info_has_previous_page: has_previous_page
+                    page_info_start_cursor: start_cursor
+                    page_info_end_cursor: end_cursor
+                }
                 outgoing_payment_to_attempts_connection_entities: entities {
                     __typename
                     outgoing_payment_attempt_id: id
@@ -314,6 +321,7 @@ func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *in
 	variables := map[string]interface{}{
 		"entity_id": obj.Id,
 		"first":     first,
+		"after":     after,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

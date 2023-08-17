@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 )
 
+// This is an enum representing the status of a channel on the Lightning Network.
 type ChannelStatus int
 
 const (

@@ -9,7 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// A transaction that was sent to a Lightspark node on the Lightning Network.
+// This object represents any payment sent to a Lightspark node on the Lightning Network. You can retrieve this object to receive payment related information about a specific payment received by a Lightspark node.
 type IncomingPayment struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
@@ -109,13 +109,20 @@ func (obj IncomingPayment) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
-func (obj IncomingPayment) GetAttempts(requester *requester.Requester, first *int64, statuses *[]IncomingPaymentAttemptStatus) (*IncomingPaymentToAttemptsConnection, error) {
-	query := `query FetchIncomingPaymentToAttemptsConnection($entity_id: ID!, $first: Int, $statuses: [IncomingPaymentAttemptStatus!]) {
+func (obj IncomingPayment) GetAttempts(requester *requester.Requester, first *int64, statuses *[]IncomingPaymentAttemptStatus, after *string) (*IncomingPaymentToAttemptsConnection, error) {
+	query := `query FetchIncomingPaymentToAttemptsConnection($entity_id: ID!, $first: Int, $statuses: [IncomingPaymentAttemptStatus!], $after: String) {
     entity(id: $entity_id) {
         ... on IncomingPayment {
-            attempts(, first: $first, statuses: $statuses) {
+            attempts(, first: $first, statuses: $statuses, after: $after) {
                 __typename
                 incoming_payment_to_attempts_connection_count: count
+                incoming_payment_to_attempts_connection_page_info: page_info {
+                    __typename
+                    page_info_has_next_page: has_next_page
+                    page_info_has_previous_page: has_previous_page
+                    page_info_start_cursor: start_cursor
+                    page_info_end_cursor: end_cursor
+                }
                 incoming_payment_to_attempts_connection_entities: entities {
                     __typename
                     incoming_payment_attempt_id: id
@@ -143,6 +150,7 @@ func (obj IncomingPayment) GetAttempts(requester *requester.Requester, first *in
 		"entity_id": obj.Id,
 		"first":     first,
 		"statuses":  statuses,
+		"after":     after,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

@@ -7,7 +7,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// An attempt for a payment over a route from sender node to recipient node.
+// This object represents any attempted payment sent to a Lightspark node on the Lightning Network. You can retrieve this object to receive payment related information about a specific incoming payment attempt.
 type IncomingPaymentAttempt struct {
 
 	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
