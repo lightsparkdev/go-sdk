@@ -268,6 +268,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		"amount":         invoiceData.Amount,
 		"conversionRate": payreqResponse.PaymentInfo.Multiplier,
 		"currencyCode":   payreqResponse.PaymentInfo.CurrencyCode,
+		"expiresAt":      invoiceData.ExpiresAt.Unix(),
 	})
 }
 

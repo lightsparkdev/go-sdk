@@ -309,7 +309,7 @@ func ParseLnurlpResponse(bytes []byte) (*LnurlpResponse, error) {
 //	payerName: the name of the sender (optional).
 //	payerEmail: the email of the sender (optional).
 //	trInfo: the travel rule information. This will be encrypted before sending to the receiver.
-//	isPayerKYCd: whether the sender is a financial institution that requires travel rule information.
+//	isPayerKYCd: whether the sender is a KYC'd customer of the sending VASP.
 //	payerUtxos: the list of UTXOs of the sender's channels that might be used to fund the payment.
 //	utxoCallback: the URL that the receiver will call to send UTXOs of the channel that the receiver used to receive the payment once it completes.
 func GetPayRequest(
@@ -426,7 +426,12 @@ type LnurlInvoiceCreator interface {
 //	 	nodeMasterSeedBytes: the master seed bytes of the receiver.
 //		metadata: the metadata that will be added to the invoice's metadata hash field
 //		currencyCode: the code of the currency that the receiver will receive for this payment.
-//		conversionRate: milli-satoshis per the smallest unit of the specified currency. This rate is committed to by the receiving VASP until the invoice expires.
+//		conversionRate: milli-satoshis per the smallest unit of the specified currency. This rate is committed to by the
+//	    	receiving VASP until the invoice expires.
+//		expirySecs: the number of seconds until the invoice expires.
+//		receiverChannelUtxos: the list of UTXOs of the receiver's channels that might be used to fund the payment.
+//		utxoCallback: the URL that the receiving VASP will call to send UTXOs of the channel that the receiver used to
+//	    	receive the payment once it completes.
 func GetPayReqResponse(
 	query *PayRequest,
 	invoiceCreator LnurlInvoiceCreator,
@@ -436,7 +441,7 @@ func GetPayReqResponse(
 	currencyCode string,
 	conversionRate int64,
 	expirySecs int32,
-	senderChannelUtxos []string,
+	receiverChannelUtxos []string,
 	utxoCallback string,
 ) (*PayReqResponse, error) {
 	msatsAmount := query.Amount * conversionRate
@@ -452,7 +457,7 @@ func GetPayReqResponse(
 		EncodedInvoice: encodedInvoice.Data.EncodedPaymentRequest,
 		Routes:         []Route{},
 		Compliance: PayReqResponseCompliance{
-			Utxos:        senderChannelUtxos,
+			Utxos:        receiverChannelUtxos,
 			UtxoCallback: utxoCallback,
 		},
 		PaymentInfo: PayReqResponsePaymentInfo{
