@@ -460,6 +460,8 @@ func (l LightsparkClientLnurlInvoiceCreator) CreateLnurlInvoice(amountMsats int6
 //		currencyCode: the code of the currency that the receiver will receive for this payment.
 //		conversionRate: milli-satoshis per the smallest unit of the specified currency. This rate is committed to by the
 //	    	receiving VASP until the invoice expires.
+//		receiverFeesMillisats: the fees charged (in millisats) by the receiving VASP to convert to the target currency.
+//		    This is separate from the conversion rate.
 //		receiverChannelUtxos: the list of UTXOs of the receiver's channels that might be used to fund the payment.
 //		receiverNodePubKey: If known, the public key of the receiver's node. If supported by the sending VASP's compliance provider,
 //	        this will be used to pre-screen the receiver's UTXOs for compliance purposes.
@@ -471,6 +473,7 @@ func GetPayReqResponse(
 	metadata string,
 	currencyCode string,
 	conversionRate int64,
+	receiverFeesMillisats int64,
 	receiverChannelUtxos []string,
 	receiverNodePubKey *string,
 	utxoCallback string,
@@ -493,8 +496,9 @@ func GetPayReqResponse(
 			UtxoCallback: utxoCallback,
 		},
 		PaymentInfo: PayReqResponsePaymentInfo{
-			CurrencyCode: currencyCode,
-			Multiplier:   conversionRate,
+			CurrencyCode:             currencyCode,
+			Multiplier:               conversionRate,
+			ExchangeFeesMillisatoshi: receiverFeesMillisats,
 		},
 	}, nil
 }

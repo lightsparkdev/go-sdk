@@ -228,6 +228,7 @@ func TestPayReqResponseAndParsing(t *testing.T) {
 		metadata,
 		"USD",
 		34_150,
+		100_000,
 		[]string{"abcdef12345"},
 		nil,
 		"/api/lnurl/utxocallback?txid=1234",

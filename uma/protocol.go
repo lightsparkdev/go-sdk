@@ -96,7 +96,7 @@ func (r *LnurlpResponse) signablePayload() []byte {
 
 // PayRequest is the request sent by the sender to the receiver to retrieve an invoice.
 type PayRequest struct {
-	// CurrencyCode is the currency code that the receiver will receive for this payment.
+	// CurrencyCode is the ISO 3-digit currency code that the receiver will receive for this payment.
 	CurrencyCode string `json:"currency"`
 	// Amount is the amount that the receiver will receive for this payment in the smallest unit of the specified currency (i.e. cents for USD).
 	Amount int64 `json:"amount"`
@@ -146,10 +146,13 @@ type PayReqResponseCompliance struct {
 }
 
 type PayReqResponsePaymentInfo struct {
-	// CurrencyCode is the currency code that the receiver will receive for this payment.
+	// CurrencyCode is the ISO 3-digit currency code that the receiver will receive for this payment.
 	CurrencyCode string `json:"currencyCode"`
 	// Multiplier is the conversion rate. It is the number of millisatoshis that the receiver will receive for 1 unit of the specified currency.
 	Multiplier int64 `json:"multiplier"`
+	// ExchangeFeesMillisatoshi is the fees charged (in millisats) by the receiving VASP for this transaction. This is
+	// separate from the Multiplier.
+	ExchangeFeesMillisatoshi int64 `json:"exchangeFeesMillisatoshi"`
 }
 
 // PubKeyResponse is sent from a VASP to another VASP to provide its public keys.

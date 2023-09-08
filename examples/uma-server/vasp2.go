@@ -315,14 +315,16 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		ExpirySecs:          &expirySecs,
 	}
 
-	conversionRate := 34_150
+	conversionRate := int64(34_150)
+	exchangeFees := int64(100_000)
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	response, err := uma.GetPayReqResponse(
 		request,
 		invoiceCreator,
 		metadata,
 		"USD",
-		int64(conversionRate),
+		conversionRate,
+		exchangeFees,
 		// TODO: Actually get the UTXOs from the request.
 		[]string{"abcdef12345"},
 		nil,
