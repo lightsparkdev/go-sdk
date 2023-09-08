@@ -344,17 +344,30 @@ func main() {
 	fmt.Printf("Amount funded: %v %v\n", amountFunded.OriginalValue, amountFunded.OriginalUnit.StringValue())
 	fmt.Println()
 
-	// Screen bitcoin addresses
-	fmt.Println("Screening bitcoin addresses...")
-	provider := objects.CryptoSanctionsScreeningProviderChainalysis
-	addresses := []string{"bc1qj4mfcgej3wxp8eundzq7sq8f80wps02kk38sgadrer39mr5l7ncqrgmp89"}
-	ratings, err := client.ScreenBitcoinAddresses(provider, addresses)
+	// Screen a lightning node
+	fmt.Println("Screening lightning node...")
+	provider := objects.ComplianceProviderChainalysis
+	nodePubkey := "bc1qj4mfcgej3wxp8eundzq7sq8f80wps02kk38sgadrer39mr5l7ncqrgmp89"
+	rating, err := client.ScreenNode(provider, nodePubkey)
 	if err != nil {
-		fmt.Printf("screening bitcoin addresses failed: %v", err)
+		fmt.Printf("screening lightning node failed: %v", err)
 		return
 	}
-	fmt.Printf("The risk ratings are %v.\n", *ratings)
+	fmt.Printf("The risk rating is %v.\n", *rating)
 	fmt.Println()
+
+	// Register a successful payment
+	fmt.Println("Registering a successful payment...")
+	provider = objects.ComplianceProviderChainalysis
+	nodePubkey = "bc1qj4mfcgej3wxp8eundzq7sq8f80wps02kk38sgadrer39mr5l7ncqrgmp89"
+	paymentId := "<Your outgoing payment id>"
+	direction := objects.PaymentDirectionSent
+	err = client.RegisterPayment(provider, paymentId, nodePubkey, direction)
+	if err != nil {
+		fmt.Printf("Registering payment failed: %v", err)
+		return
+	}
+	fmt.Printf("Payment was successfully registered.\n")
 
 	// Run a custom query
 	fmt.Println("Run a custom query...")

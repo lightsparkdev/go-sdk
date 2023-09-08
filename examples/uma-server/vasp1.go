@@ -105,16 +105,24 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 
 	callbackUuid := v.requestCache.SaveLnurlpResponseData(*lnurlpResponse, receiverId, receiverVasp)
 
-	// In practice a VASP might want to check lnurlpResponse.Compliance for info on trStatus, kyc state, etc. We don't
+	// In practice a VASP might want to check lnurlpResponse.Compliance for info on travel rule status, kyc state, etc. We don't
 	// have anything to do with that data in this demo, though.
 
 	context.JSON(http.StatusOK, gin.H{
-		"currencies":     lnurlpResponse.Currencies,
-		"minSendSats":    lnurlpResponse.MinSendable,
-		"maxSendSats":    lnurlpResponse.MaxSendable,
-		"callbackUuid":   callbackUuid,
-		"isReceiverKYCd": lnurlpResponse.Compliance.IsKYCd, // You might not actually send this to a client in practice.
+		"currencies":        lnurlpResponse.Currencies,
+		"minSendSats":       lnurlpResponse.MinSendable,
+		"maxSendSats":       lnurlpResponse.MaxSendable,
+		"callbackUuid":      callbackUuid,
+		"receiverKYCStatus": lnurlpResponse.Compliance.KycStatus, // You might not actually send this to a client in practice.
 	})
+}
+
+func (v *Vasp1) getUtxoCallback(context *gin.Context, txId string) string {
+	scheme := "https://"
+	if strings.HasPrefix(context.Request.Host, "localhost:") {
+		scheme = "http://"
+	}
+	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
 }
 
 func (v *Vasp1) handleClientPayReq(context *gin.Context) {
@@ -175,7 +183,9 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	payerInfo := getPayerInfo(initialRequestData.lnurlpResponse.RequiredPayerData)
 	trInfo := "Here is some fake travel rule info. It's up to you to actually implement this."
 	senderUtxos := []string{"abcdef12345"} // TODO: Actually implement this
-	utxoCallback := "/api/lnurl/utxocallback?txid=1234"
+	// This is the node pub key of the sender's node. In practice, you'd want to get this from the sender's node.
+	senderNodePubKey := "abcdef12345"
+	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	payReq, err := uma.GetPayRequest(
 		vasp2PubKeys.EncryptionPubKey,
 		umaSigningPrivateKey,
@@ -185,9 +195,10 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		payerInfo.Name,
 		payerInfo.Email,
 		&trInfo,
-		true,
+		uma.KycStatusVerified,
 		&senderUtxos,
-		utxoCallback,
+		&senderNodePubKey,
+		v.getUtxoCallback(context, txID),
 	)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -233,8 +244,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 
-	var payreqResponse uma.PayReqResponse
-	err = json.Unmarshal(payreqResultBytes, &payreqResponse)
+	payreqResponse, err := uma.ParsePayReqResponse(payreqResultBytes)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -318,6 +328,14 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 
 	log.Printf("Payment %s completed: %s", payment.Id, payment.Status.StringValue())
 
+	// In practice, you'd want to send the UTXOs to the receiver's UTXO callback URL here.
+	// For this demo, we'll just log them.
+	var utxos []string
+	for _, htlc := range *payment.OutgoingHtlcs {
+		utxos = append(utxos, htlc.Utxo)
+	}
+	log.Printf("Sending UTXOs to %s: %s", payReqData.utxoCallback, strings.Join(utxos, ", "))
+
 	context.JSON(http.StatusOK, gin.H{
 		"didSucceed": payment.Status == objects.TransactionStatusSuccess,
 		"paymentId":  payment.Id,
@@ -392,11 +410,11 @@ func getPayerInfo(options uma.PayerDataOptions) PayerInfo {
 	}
 	var email string
 	if options.EmailRequired {
-		email = "alice@vasp1.com"
+		email = "$alice@vasp1.com"
 	}
 	return PayerInfo{
 		Name:       &name,
 		Email:      &email,
-		Identifier: "alice",
+		Identifier: "$alice@vasp1.com",
 	}
 }

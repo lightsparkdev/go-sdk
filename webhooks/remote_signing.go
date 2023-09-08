@@ -213,6 +213,7 @@ func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, 
 	variables := map[string]interface{}{
 		"channel_id":            channelId,
 		"per_commitment_secret": hex.EncodeToString(perCommitmentSecret),
+		"per_commitment_index":  perCommitmentPointIdx,
 	}
 
 	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_CHANNEL_PER_COMMITMENT_SECRET_MUTATION, variables)

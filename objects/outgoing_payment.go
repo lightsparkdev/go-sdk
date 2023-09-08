@@ -50,6 +50,9 @@ type OutgoingPayment struct {
 
 	// FailureMessage If applicable, user-facing error message describing why the payment failed.
 	FailureMessage *RichText `json:"outgoing_payment_failure_message"`
+
+	// OutgoingHtlcs The outgoing htlcs initiated from the sender node which can be used in KYT payment registration.
+	OutgoingHtlcs *[]Htlc `json:"outgoing_payment_outgoing_htlcs"`
 }
 
 const (
@@ -327,6 +330,18 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
         __typename
         rich_text_text: text
     }
+    outgoing_payment_outgoing_htlcs: outgoing_htlcs {
+        __typename
+        htlc_utxo: utxo
+        htlc_amount: amount {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+    }
 }
 `
 )
@@ -471,6 +486,9 @@ type OutgoingPaymentJSON struct {
 
 	// FailureMessage If applicable, user-facing error message describing why the payment failed.
 	FailureMessage *RichText `json:"outgoing_payment_failure_message"`
+
+	// OutgoingHtlcs The outgoing htlcs initiated from the sender node which can be used in KYT payment registration.
+	OutgoingHtlcs *[]Htlc `json:"outgoing_payment_outgoing_htlcs"`
 }
 
 func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
@@ -508,6 +526,8 @@ func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
 	data.FailureReason = temp.FailureReason
 
 	data.FailureMessage = temp.FailureMessage
+
+	data.OutgoingHtlcs = temp.OutgoingHtlcs
 
 	return nil
 }

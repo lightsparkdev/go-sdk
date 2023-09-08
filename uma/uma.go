@@ -10,7 +10,7 @@ import (
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
 	eciesgo "github.com/ecies/go/v2"
-	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/services"
 	"io"
 	"math/big"
 	"net/http"
@@ -142,23 +142,23 @@ func verifySignature(hashedPayload [32]byte, signature string, otherVaspPubKey [
 //	signingPrivateKey: the private key of the VASP that is sending the payment. This will be used to sign the request.
 //	receiverAddress: the address of the receiver of the payment (i.e. $bob@vasp2).
 //	senderVaspDomain: the domain of the VASP that is sending the payment. It will be used by the receiver to fetch the public keys of the sender.
-//	trStatus: whether the sending VASP is a financial institution that requires travel rule information.
+//	isSubjectToTravelRule: whether the sending VASP is a financial institution that requires travel rule information.
 func GetSignedLnurlpRequestUrl(
 	signingPrivateKey []byte,
 	receiverAddress string,
 	senderVaspDomain string,
-	trStatus bool,
+	isSubjectToTravelRule bool,
 ) (*url.URL, error) {
 	nonce, err := GenerateNonce()
 	if err != nil {
 		return nil, err
 	}
 	unsignedRequest := LnurlpRequest{
-		ReceiverAddress: receiverAddress,
-		TrStatus:        trStatus,
-		VaspDomain:      senderVaspDomain,
-		Timestamp:       time.Now(),
-		Nonce:           *nonce,
+		ReceiverAddress:       receiverAddress,
+		IsSubjectToTravelRule: isSubjectToTravelRule,
+		VaspDomain:            senderVaspDomain,
+		Timestamp:             time.Now(),
+		Nonce:                 *nonce,
 	}
 	signature, err := signPayload(unsignedRequest.signablePayload(), signingPrivateKey)
 	if err != nil {
@@ -184,7 +184,7 @@ func ParseLnurlpRequest(url url.URL) (*LnurlpRequest, error) {
 	signature := query.Get("signature")
 	vaspDomain := query.Get("vaspDomain")
 	nonce := query.Get("nonce")
-	trStatus := query.Get("trStatus")
+	isSubjectToTravelRule := query.Get("isSubjectToTravelRule")
 	timestamp := query.Get("timestamp")
 	timestampAsString, dateErr := strconv.ParseInt(timestamp, 10, 64)
 	if dateErr != nil {
@@ -203,12 +203,12 @@ func ParseLnurlpRequest(url url.URL) (*LnurlpRequest, error) {
 	receiverAddress := pathParts[3] + "@" + url.Host
 
 	return &LnurlpRequest{
-		VaspDomain:      vaspDomain,
-		Signature:       signature,
-		ReceiverAddress: receiverAddress,
-		Nonce:           nonce,
-		Timestamp:       timestampAsTime,
-		TrStatus:        strings.ToLower(trStatus) == "true",
+		VaspDomain:            vaspDomain,
+		Signature:             signature,
+		ReceiverAddress:       receiverAddress,
+		Nonce:                 nonce,
+		Timestamp:             timestampAsTime,
+		IsSubjectToTravelRule: strings.ToLower(isSubjectToTravelRule) == "true",
 	}, nil
 }
 
@@ -233,9 +233,9 @@ func GetLnurlpResponse(
 	maxSendableSats int64,
 	payerDataOptions PayerDataOptions,
 	currencyOptions []Currency,
-	isReceiverKYCd bool,
+	receiverKycStatus KycStatus,
 ) (*LnurlpResponse, error) {
-	complianceResponse, err := getSignedLnurlpComplianceResponse(query, privateKeyBytes, requiresTravelRuleInfo, isReceiverKYCd)
+	complianceResponse, err := getSignedLnurlpComplianceResponse(query, privateKeyBytes, requiresTravelRuleInfo, receiverKycStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -254,8 +254,8 @@ func GetLnurlpResponse(
 func getSignedLnurlpComplianceResponse(
 	query *LnurlpRequest,
 	privateKeyBytes []byte,
-	trStatus bool,
-	isReceiverKYCd bool,
+	isSubjectToTravelRule bool,
+	receiverKycStatus KycStatus,
 ) (*LnurlComplianceResponse, error) {
 	timestamp := time.Now().Unix()
 	nonce, err := GenerateNonce()
@@ -268,12 +268,12 @@ func getSignedLnurlpComplianceResponse(
 		return nil, err
 	}
 	return &LnurlComplianceResponse{
-		IsKYCd:             isReceiverKYCd,
-		Signature:          *signature,
-		Nonce:              *nonce,
-		Timestamp:          timestamp,
-		TrStatus:           trStatus,
-		ReceiverIdentifier: query.ReceiverAddress,
+		KycStatus:             receiverKycStatus,
+		Signature:             *signature,
+		Nonce:                 *nonce,
+		Timestamp:             timestamp,
+		IsSubjectToTravelRule: isSubjectToTravelRule,
+		ReceiverIdentifier:    query.ReceiverAddress,
 	}, nil
 }
 
@@ -297,21 +297,32 @@ func ParseLnurlpResponse(bytes []byte) (*LnurlpResponse, error) {
 	return &response, nil
 }
 
+// GetVaspDomainFromUmaAddress Gets the domain of the VASP from an uma address.
+func GetVaspDomainFromUmaAddress(umaAddress string) (string, error) {
+	addressParts := strings.Split(umaAddress, "@")
+	if len(addressParts) != 2 {
+		return "", errors.New("invalid uma address")
+	}
+	return addressParts[1], nil
+}
+
 // GetPayRequest Creates a signed uma pay request.
 //
 // Args:
 //
-//	receiverEncryptionPubKey: the public key of the receiver that will be used to encrypt the travel rule information.
-//	sendingVaspPrivateKey: the private key of the VASP that is sending the payment. This will be used to sign the request.
-//	currencyCode: the code of the currency that the receiver will receive for this payment.
-//	amount: the amount of the payment in the smallest unit of the specified currency (i.e. cents for USD).
-//	payerIdentifier: the identifier of the sender. For example, $alice@vasp1.com
-//	payerName: the name of the sender (optional).
-//	payerEmail: the email of the sender (optional).
-//	trInfo: the travel rule information. This will be encrypted before sending to the receiver.
-//	isPayerKYCd: whether the sender is a KYC'd customer of the sending VASP.
-//	payerUtxos: the list of UTXOs of the sender's channels that might be used to fund the payment.
-//	utxoCallback: the URL that the receiver will call to send UTXOs of the channel that the receiver used to receive the payment once it completes.
+//		receiverEncryptionPubKey: the public key of the receiver that will be used to encrypt the travel rule information.
+//		sendingVaspPrivateKey: the private key of the VASP that is sending the payment. This will be used to sign the request.
+//		currencyCode: the code of the currency that the receiver will receive for this payment.
+//		amount: the amount of the payment in the smallest unit of the specified currency (i.e. cents for USD).
+//		payerIdentifier: the identifier of the sender. For example, $alice@vasp1.com
+//		payerName: the name of the sender (optional).
+//		payerEmail: the email of the sender (optional).
+//		trInfo: the travel rule information. This will be encrypted before sending to the receiver.
+//		isPayerKYCd: whether the sender is a KYC'd customer of the sending VASP.
+//		payerUtxos: the list of UTXOs of the sender's channels that might be used to fund the payment.
+//	 	payerNodePubKey: If known, the public key of the sender's node. If supported by the receiving VASP's compliance provider,
+//	        this will be used to pre-screen the sender's UTXOs for compliance purposes.
+//		utxoCallback: the URL that the receiver will call to send UTXOs of the channel that the receiver used to receive the payment once it completes.
 func GetPayRequest(
 	receiverEncryptionPubKey []byte,
 	sendingVaspPrivateKey []byte,
@@ -321,8 +332,9 @@ func GetPayRequest(
 	payerName *string,
 	payerEmail *string,
 	trInfo *string,
-	isPayerKYCd bool,
+	payerKycStatus KycStatus,
 	payerUtxos *[]string,
+	payerNodePubKey *string,
 	utxoCallback string,
 ) (*PayRequest, error) {
 	complianceData, err := getSignedCompliancePayerData(
@@ -330,8 +342,9 @@ func GetPayRequest(
 		sendingVaspPrivateKey,
 		payerIdentifier,
 		trInfo,
-		isPayerKYCd,
+		payerKycStatus,
 		payerUtxos,
+		payerNodePubKey,
 		utxoCallback,
 	)
 	if err != nil {
@@ -355,8 +368,9 @@ func getSignedCompliancePayerData(
 	sendingVaspPrivateKeyBytes []byte,
 	payerIdentifier string,
 	trInfo *string,
-	isPayerKYCd bool,
+	payerKycStatus KycStatus,
 	payerUtxos *[]string,
+	payerNodePubKey *string,
 	utxoCallback string,
 ) (*CompliancePayerData, error) {
 	timestamp := time.Now().Unix()
@@ -378,13 +392,14 @@ func getSignedCompliancePayerData(
 	}
 
 	return &CompliancePayerData{
-		TrInfo:             encryptedTrInfo,
-		IsKYCd:             isPayerKYCd,
-		Utxos:              payerUtxos,
-		UtxoCallback:       utxoCallback,
-		SignatureNonce:     *nonce,
-		SignatureTimestamp: timestamp,
-		Signature:          *signature,
+		EncryptedTravelRuleInfo: encryptedTrInfo,
+		KycStatus:               payerKycStatus,
+		Utxos:                   payerUtxos,
+		NodePubKey:              payerNodePubKey,
+		UtxoCallback:            utxoCallback,
+		SignatureNonce:          *nonce,
+		SignatureTimestamp:      timestamp,
+		Signature:               *signature,
 	}, nil
 }
 
@@ -413,7 +428,25 @@ func ParsePayRequest(bytes []byte) (*PayRequest, error) {
 }
 
 type LnurlInvoiceCreator interface {
-	CreateLnurlInvoice(nodeId string, masterSeedBytes *[]byte, amountMsats int64, metadata string, expirySecs *int32) (*objects.Invoice, error)
+	CreateLnurlInvoice(amountMsats int64, metadata string) (*string, error)
+}
+
+type LightsparkClientLnurlInvoiceCreator struct {
+	LightsparkClient services.LightsparkClient
+	// NodeId: the node ID of the receiver.
+	NodeId string
+	// NodeMasterSeedBytes: the master seed of the receiver's node.
+	NodeMasterSeedBytes *[]byte
+	// ExpirySecs: the number of seconds until the invoice expires.
+	ExpirySecs *int32
+}
+
+func (l LightsparkClientLnurlInvoiceCreator) CreateLnurlInvoice(amountMsats int64, metadata string) (*string, error) {
+	invoice, err := l.LightsparkClient.CreateLnurlInvoice(l.NodeId, l.NodeMasterSeedBytes, amountMsats, metadata, l.ExpirySecs)
+	if err != nil {
+		return nil, err
+	}
+	return &invoice.Data.EncodedPaymentRequest, nil
 }
 
 // GetPayReqResponse Creates an uma pay request response with an encoded invoice.
@@ -422,26 +455,24 @@ type LnurlInvoiceCreator interface {
 //
 //		query: the uma pay request.
 //		invoiceCreator: the object that will create the invoice. In practice, this is usually a `services.LightsparkClient`.
-//		nodeId: the node ID of the receiver.
-//	 	nodeMasterSeedBytes: the master seed bytes of the receiver.
-//		metadata: the metadata that will be added to the invoice's metadata hash field
+//		metadata: the metadata that will be added to the invoice's metadata hash field. Note that this should not include
+//		    the extra payer data. That will be appended automatically.
 //		currencyCode: the code of the currency that the receiver will receive for this payment.
 //		conversionRate: milli-satoshis per the smallest unit of the specified currency. This rate is committed to by the
 //	    	receiving VASP until the invoice expires.
-//		expirySecs: the number of seconds until the invoice expires.
 //		receiverChannelUtxos: the list of UTXOs of the receiver's channels that might be used to fund the payment.
+//		receiverNodePubKey: If known, the public key of the receiver's node. If supported by the sending VASP's compliance provider,
+//	        this will be used to pre-screen the receiver's UTXOs for compliance purposes.
 //		utxoCallback: the URL that the receiving VASP will call to send UTXOs of the channel that the receiver used to
 //	    	receive the payment once it completes.
 func GetPayReqResponse(
 	query *PayRequest,
 	invoiceCreator LnurlInvoiceCreator,
-	nodeId string,
-	nodeMasterSeedBytes *[]byte,
 	metadata string,
 	currencyCode string,
 	conversionRate int64,
-	expirySecs int32,
 	receiverChannelUtxos []string,
+	receiverNodePubKey *string,
 	utxoCallback string,
 ) (*PayReqResponse, error) {
 	msatsAmount := query.Amount * conversionRate
@@ -449,15 +480,16 @@ func GetPayReqResponse(
 	if err != nil {
 		return nil, err
 	}
-	encodedInvoice, err := invoiceCreator.CreateLnurlInvoice(nodeId, nodeMasterSeedBytes, msatsAmount, metadata+"{"+string(encodedPayerData)+"}", &expirySecs)
+	encodedInvoice, err := invoiceCreator.CreateLnurlInvoice(msatsAmount, metadata+"{"+string(encodedPayerData)+"}")
 	if err != nil {
 		return nil, err
 	}
 	return &PayReqResponse{
-		EncodedInvoice: encodedInvoice.Data.EncodedPaymentRequest,
+		EncodedInvoice: *encodedInvoice,
 		Routes:         []Route{},
 		Compliance: PayReqResponseCompliance{
 			Utxos:        receiverChannelUtxos,
+			NodePubKey:   receiverNodePubKey,
 			UtxoCallback: utxoCallback,
 		},
 		PaymentInfo: PayReqResponsePaymentInfo{
@@ -467,6 +499,7 @@ func GetPayReqResponse(
 	}, nil
 }
 
+// ParsePayReqResponse Parses the uma pay request response from a raw response body.
 func ParsePayReqResponse(bytes []byte) (*PayReqResponse, error) {
 	var response PayReqResponse
 	err := json.Unmarshal(bytes, &response)
@@ -475,16 +508,3 @@ func ParsePayReqResponse(bytes []byte) (*PayReqResponse, error) {
 	}
 	return &response, nil
 }
-
-// Protocol TODO list:
-// VASP1: EncodeLnurlpRequest   x
-// VASP2: ParseLnurlpRequest    x
-// VASP2: GetLnurlpResponse     x
-// VASP1: ParseLnurlpResponse   x
-// VASP1: EncodePayRequest      x -- TODO: Need to update signature
-// VASP2: ParsePayRequest       x
-// VASP2: GetPayReqResponse     x
-// VASP1: ParsePayReqResponse   x
-// Both: handlePubKeyRequest	x // only in example
-
-// Post-transaction hooks

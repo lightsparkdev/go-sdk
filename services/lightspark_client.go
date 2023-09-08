@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 
 	"github.com/lightsparkdev/go-sdk/objects"
@@ -539,29 +540,57 @@ func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey 
 	return &payment, nil
 }
 
-// ScreenBitcoinAddresses screens a list of bitcoin addresses against a given provider.
+// ScreenNode performs sanction screening on a lightning node against a given provider.
+// It should only be called if you have a Chainalysis API Key in settings.
 //
 // Args:
 //
-//	provider: The provider that you want to use to screen the addresses.
-//	addresses: The list of addresses that you want to screen.
-func (client *LightsparkClient) ScreenBitcoinAddresses(
-	provider objects.CryptoSanctionsScreeningProvider, addresses []string) (*[]objects.RiskRating, error) {
+//	provider: The provider that you want to use to perform the screening.
+//	nodePubkey: The public key of the node that needs to be screened.
+func (client *LightsparkClient) ScreenNode(
+	provider objects.ComplianceProvider, nodePubkey string) (*objects.RiskRating, error) {
 
-	variables := map[string]interface{}{"provider": provider, "addresses": addresses}
-	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_BITCOIN_ADDRESSES_MUTATION, variables)
+	variables := map[string]interface{}{"provider": provider, "node_pubkey": nodePubkey}
+	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_NODE_MUTATION, variables)
 	if err != nil {
 		return nil, err
 	}
 
-	output := response["screen_bitcoin_addresses"].(map[string]interface{})
-	var ratings []objects.RiskRating
-	ratingsJson, err := json.Marshal(output["ratings"].([]interface{}))
+	output := response["screen_node"].(map[string]interface{})
+	ratingJson, err := json.Marshal(output["rating"].(string))
 	if err != nil {
-		return nil, errors.New("error parsing ratings")
+		return nil, errors.New("error parsing rating")
 	}
-	json.Unmarshal(ratingsJson, &ratings)
-	return &ratings, nil
+	var rating objects.RiskRating
+	json.Unmarshal(ratingJson, &rating)
+	return &rating, nil
+}
+
+// RegisterPayment registers a succeeded payment with a compliance provider.
+// It should only be called if you have a Chainalysis API Key in settings.
+//
+// Args:
+//
+//	provider: The provider that you want to use to register the payment.
+//	paymentId: The unique id of the payment.
+//	nodePubkey: The public key of the counterparty node which is the recipient 
+//	            node if the payment is an outgoing payment and the sender node
+//	            if the payment is an incoming payment.
+func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvider, 
+	paymentId string, nodePubkey string, direction objects.PaymentDirection) error {
+
+	variables := map[string]interface{}{
+		"provider": provider, 
+		"payment_id": paymentId, 
+		"node_pubkey": nodePubkey, 
+		"direction": direction, 
+	}
+	_, err := client.Requester.ExecuteGraphql(scripts.REGISTER_PAYMENT_MUTATION, variables)
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
 }
 
 // GetEntity returns any `Entity`, identified by its unique ID.

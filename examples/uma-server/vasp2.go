@@ -18,12 +18,20 @@ type Vasp2 struct {
 	pubKeyCache uma.PublicKeyCache
 }
 
-func (v *Vasp2) getCallback(context *gin.Context) string {
+func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 	scheme := "https://"
 	if strings.HasPrefix(context.Request.Host, "localhost:") {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/payreq/%s", scheme, context.Request.Host, v.config.UserID)
+}
+
+func (v *Vasp2) getUtxoCallback(context *gin.Context, txId string) string {
+	scheme := "https://"
+	if strings.HasPrefix(context.Request.Host, "localhost:") {
+		scheme = "http://"
+	}
+	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
 }
 
 func (v *Vasp2) getMetadata() (string, error) {
@@ -62,7 +70,7 @@ func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 		return
 	}
 
-	callback := v.getCallback(context)
+	callback := v.getLnurlpCallback(context)
 	metadata, err := v.getMetadata()
 
 	if err != nil {
@@ -133,7 +141,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		query,
 		umaPrivateKey,
 		true,
-		v.getCallback(context),
+		v.getLnurlpCallback(context),
 		metadata,
 		1,
 		10_000_000,
@@ -152,7 +160,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 				MaxSendable:         10_000_000,
 			},
 		},
-		true,
+		uma.KycStatusVerified,
 	)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -255,18 +263,33 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	metadata, err := v.getMetadata()
+	sendingVaspDomain, err := uma.GetVaspDomainFromUmaAddress(request.PayerData.Identifier)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Invalid sender indentifier. UMA address required in the format $alice@vasp.com: %v", err),
+		})
+		return
+	}
+
+	pubKey, err := uma.FetchPublicKeyForVasp(sendingVaspDomain, v.pubKeyCache)
+	if err != nil || pubKey == nil {
+		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
 		})
 		return
 	}
 
-	conversionRate := 34_150
-	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
+	if err := uma.VerifyPayReqSignature(request, pubKey.SigningPubKey); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
 
+	metadata, err := v.getMetadata()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -282,18 +305,28 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 			"reason": "Invalid master seed",
 		})
 	}
+
+	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
+	expirySecs := int32(600) // Expire in 10 minutes
+	invoiceCreator := uma.LightsparkClientLnurlInvoiceCreator{
+		LightsparkClient:    *lsClient,
+		NodeId:              v.config.NodeUUID,
+		NodeMasterSeedBytes: &masterSeedBytes,
+		ExpirySecs:          &expirySecs,
+	}
+
+	conversionRate := 34_150
+	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	response, err := uma.GetPayReqResponse(
 		request,
-		lsClient,
-		v.config.NodeUUID,
-		&masterSeedBytes,
+		invoiceCreator,
 		metadata,
 		"USD",
 		int64(conversionRate),
-		int32(time.Hour.Seconds()),
 		// TODO: Actually get the UTXOs from the request.
 		[]string{"abcdef12345"},
-		"/api/lnurl/utxocallback?txid=1234",
+		nil,
+		v.getUtxoCallback(context, txID),
 	)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{

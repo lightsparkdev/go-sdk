@@ -38,6 +38,9 @@ type IncomingPayment struct {
 
 	// PaymentRequest The optional payment request for this incoming payment, which will be null if the payment is sent through keysend.
 	PaymentRequest *types.EntityWrapper `json:"incoming_payment_payment_request"`
+
+	// IncomingHtlcs The incoming htlcs to the destination node which can be used in KYT payment registration.
+	IncomingHtlcs *[]Htlc `json:"incoming_payment_incoming_htlcs"`
 }
 
 const (
@@ -63,6 +66,18 @@ fragment IncomingPaymentFragment on IncomingPayment {
     }
     incoming_payment_payment_request: payment_request {
         id
+    }
+    incoming_payment_incoming_htlcs: incoming_htlcs {
+        __typename
+        htlc_utxo: utxo
+        htlc_amount: amount {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
     }
 }
 `

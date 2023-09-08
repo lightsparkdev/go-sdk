@@ -27,10 +27,12 @@ type PayerData struct {
 type CompliancePayerData struct {
 	// Utxos is the list of UTXOs of the sender's channels that might be used to fund the payment.
 	Utxos *[]string `json:"utxos"`
-	// IsKYCd indicates whether VASP1 has KYC information about the sender.
-	IsKYCd bool `json:"isKYCd"`
-	// TrInfo is the travel rule information of the sender. This is encrypted with the receiver's public encryption key.
-	TrInfo *string `json:"trInfo"`
+	// NodePubKey is the public key of the sender's node if known.
+	NodePubKey *string `json:"nodePubKey"`
+	// KycStatus indicates whether VASP1 has KYC information about the sender.
+	KycStatus KycStatus `json:"kycStatus"`
+	// EncryptedTravelRuleInfo is the travel rule information of the sender. This is encrypted with the receiver's public encryption key.
+	EncryptedTravelRuleInfo *string `json:"encryptedTravelRuleInfo"`
 	// Signature is the base64-encoded signature of sha256(ReceiverAddress|Nonce|Timestamp).
 	Signature          string `json:"signature"`
 	SignatureNonce     string `json:"signatureNonce"`

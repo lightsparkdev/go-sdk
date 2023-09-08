@@ -820,6 +820,18 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                         incoming_payment_payment_request: payment_request {
                             id
                         }
+                        incoming_payment_incoming_htlcs: incoming_htlcs {
+                            __typename
+                            htlc_utxo: utxo
+                            htlc_amount: amount {
+                                __typename
+                                currency_amount_original_value: original_value
+                                currency_amount_original_unit: original_unit
+                                currency_amount_preferred_currency_unit: preferred_currency_unit
+                                currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                                currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                            }
+                        }
                     }
                     ... on OutgoingPayment {
                         __typename
@@ -1093,6 +1105,18 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                         outgoing_payment_failure_message: failure_message {
                             __typename
                             rich_text_text: text
+                        }
+                        outgoing_payment_outgoing_htlcs: outgoing_htlcs {
+                            __typename
+                            htlc_utxo: utxo
+                            htlc_amount: amount {
+                                __typename
+                                currency_amount_original_value: original_value
+                                currency_amount_original_unit: original_unit
+                                currency_amount_preferred_currency_unit: preferred_currency_unit
+                                currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                                currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                            }
                         }
                     }
                     ... on RoutingTransaction {
@@ -1534,6 +1558,9 @@ func (obj Account) GetWallets(requester *requester.Requester, first *int64, afte
                         }
                     }
                     wallet_third_party_identifier: third_party_identifier
+                    wallet_account: account {
+                        id
+                    }
                     wallet_status: status
                 }
             }

@@ -19,8 +19,8 @@ type LnurlpRequest struct {
 	Nonce string
 	// Signature is the base64-encoded signature of sha256(ReceiverAddress|Nonce|Timestamp).
 	Signature string
-	// TrStatus indicates VASP1 is a financial institution that requires travel rule information.
-	TrStatus bool
+	// IsSubjectToTravelRule indicates VASP1 is a financial institution that requires travel rule information.
+	IsSubjectToTravelRule bool
 	// VaspDomain is the domain of the VASP that is sending the payment. It will be used by VASP2 to fetch the public keys of VASP1.
 	VaspDomain string
 	// Timestamp is the unix timestamp of when the request was sent. Used in the signature.
@@ -45,7 +45,7 @@ func (q *LnurlpRequest) EncodeToUrl() (*url.URL, error) {
 	queryParams.Add("signature", q.Signature)
 	queryParams.Add("vaspDomain", q.VaspDomain)
 	queryParams.Add("nonce", q.Nonce)
-	queryParams.Add("trStatus", strconv.FormatBool(q.TrStatus))
+	queryParams.Add("isSubjectToTravelRule", strconv.FormatBool(q.IsSubjectToTravelRule))
 	queryParams.Add("timestamp", strconv.FormatInt(q.Timestamp.Unix(), 10))
 	lnurlpUrl.RawQuery = queryParams.Encode()
 	return &lnurlpUrl, nil
@@ -71,16 +71,16 @@ type LnurlpResponse struct {
 
 // LnurlComplianceResponse is the `compliance` field  of the LnurlpResponse.
 type LnurlComplianceResponse struct {
-	// IsKYCd indicates whether VASP2 has KYC information about the receiver.
-	IsKYCd bool `json:"isKYCd"`
+	// KycStatus indicates whether VASP2 has KYC information about the receiver.
+	KycStatus KycStatus `json:"kycStatus"`
 	// Signature is the base64-encoded signature of sha256(ReceiverAddress|Nonce|Timestamp).
 	Signature string `json:"signature"`
 	// Nonce is a random string that is used to prevent replay attacks.
 	Nonce string `json:"signatureNonce"`
 	// Timestamp is the unix timestamp of when the request was sent. Used in the signature.
 	Timestamp int64 `json:"signatureTimestamp"`
-	// TrStatus indicates whether VASP2 is a financial institution that requires travel rule information.
-	TrStatus bool `json:"trStatus"`
+	// IsSubjectToTravelRule indicates whether VASP2 is a financial institution that requires travel rule information.
+	IsSubjectToTravelRule bool `json:"isSubjectToTravelRule"`
 	// ReceiverIdentifier is the identifier of the receiver at VASP2.
 	ReceiverIdentifier string `json:"receiverIdentifier"`
 }
@@ -137,6 +137,8 @@ type Route struct {
 }
 
 type PayReqResponseCompliance struct {
+	// NodePubKey is the public key of the receiver's node if known.
+	NodePubKey *string `json:"nodePubKey"`
 	// Utxos is a list of UTXOs of channels over which the receiver will likely receive the payment.
 	Utxos []string `json:"utxos"`
 	// UtxoCallback is the URL that the sender VASP will call to send UTXOs of the channel that the sender used to send the payment once it completes.

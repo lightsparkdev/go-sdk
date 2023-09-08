@@ -8,6 +8,9 @@ type CreateTestModePaymentoutput struct {
 
 	// Payment The payment that has been sent.
 	Payment types.EntityWrapper `json:"create_test_mode_paymentoutput_payment"`
+
+	// IncomingPayment The payment that has been received.
+	IncomingPayment types.EntityWrapper `json:"create_test_mode_paymentoutput_incoming_payment"`
 }
 
 const (
@@ -15,6 +18,9 @@ const (
 fragment CreateTestModePaymentoutputFragment on CreateTestModePaymentoutput {
     __typename
     create_test_mode_paymentoutput_payment: payment {
+        id
+    }
+    create_test_mode_paymentoutput_incoming_payment: incoming_payment {
         id
     }
 }
