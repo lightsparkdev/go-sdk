@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/lightsparkdev/go-sdk/services"
@@ -95,6 +96,16 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 	requestUrl.Host = context.Request.Host
 	query, err := uma.ParseLnurlpRequest(*requestUrl)
 	if err != nil {
+		var unsupportedVersionErr *uma.UnsupportedVersionError
+		if errors.As(err, &unsupportedVersionErr) {
+			context.JSON(http.StatusPreconditionFailed, gin.H{
+				"status":                 "ERROR",
+				"reason":                 fmt.Sprintf("Unsupported version: %s", unsupportedVersionErr.UnsupportedVersion),
+				"supportedMajorVersions": unsupportedVersionErr.SupportedMajorVersions,
+				"unsupportedVersion":     unsupportedVersionErr.UnsupportedVersion,
+			})
+			return nil, true
+		}
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -293,7 +304,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 
 	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
 	expirySecs := int32(600) // Expire in 10 minutes
-	invoiceCreator := uma.LightsparkClientLnurlInvoiceCreator{
+	invoiceCreator := uma.LightsparkClientUmaInvoiceCreator{
 		LightsparkClient: *lsClient,
 		NodeId:           v.config.NodeUUID,
 		ExpirySecs:       &expirySecs,

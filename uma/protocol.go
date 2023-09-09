@@ -25,6 +25,9 @@ type LnurlpRequest struct {
 	VaspDomain string
 	// Timestamp is the unix timestamp of when the request was sent. Used in the signature.
 	Timestamp time.Time
+	// UmaVersion is the version of the UMA protocol that VASP1 prefers to use for this transaction. For the version
+	// negotiation flow, see https://static.swimlanes.io/87f5d188e080cb8e0494e46f80f2ae74.png
+	UmaVersion string
 }
 
 func (q *LnurlpRequest) EncodeToUrl() (*url.URL, error) {
@@ -47,6 +50,7 @@ func (q *LnurlpRequest) EncodeToUrl() (*url.URL, error) {
 	queryParams.Add("nonce", q.Nonce)
 	queryParams.Add("isSubjectToTravelRule", strconv.FormatBool(q.IsSubjectToTravelRule))
 	queryParams.Add("timestamp", strconv.FormatInt(q.Timestamp.Unix(), 10))
+	queryParams.Add("umaVersion", q.UmaVersion)
 	lnurlpUrl.RawQuery = queryParams.Encode()
 	return &lnurlpUrl, nil
 }
@@ -67,6 +71,10 @@ type LnurlpResponse struct {
 	Currencies        []Currency              `json:"currencies"`
 	RequiredPayerData PayerDataOptions        `json:"payerData"`
 	Compliance        LnurlComplianceResponse `json:"compliance"`
+	// UmaVersion is the version of the UMA protocol that VASP2 has chosen for this transaction based on its own support
+	// and VASP1's specified preference in the LnurlpRequest. For the version negotiation flow, see
+	// https://static.swimlanes.io/87f5d188e080cb8e0494e46f80f2ae74.png
+	UmaVersion string `json:"umaVersion"`
 }
 
 // LnurlComplianceResponse is the `compliance` field  of the LnurlpResponse.

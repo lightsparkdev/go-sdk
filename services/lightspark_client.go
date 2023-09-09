@@ -150,6 +150,43 @@ func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats in
 	return &invoice, nil
 }
 
+// CreateUmaInvoice creates a new invoice for the UMA protocol. The metadata is hashed and included in the invoice.
+// This API generates a Lightning Invoice (follows the Bolt 11 specification) to request a payment
+// from another Lightning Node. This should only be used for generating invoices for UMA, with `create_invoice`
+// preferred in the general case.
+//
+// Args:
+//
+//		nodeId: the id of the node that should be paid
+//		amountMsats: the amount of the invoice in millisatoshis
+//		metadata: the metadata to include with the invoice
+//	 	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day)
+func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int64,
+	metadata string, expirySecs *int32) (*objects.Invoice, error) {
+
+	variables := map[string]interface{}{
+		"amount_msats":  amountMsats,
+		"node_id":       nodeId,
+		"metadata_hash": utils.Sha256HexString(metadata),
+	}
+	if expirySecs != nil {
+		variables["expiry_secs"] = expirySecs
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_UMA_INVOICE_MUTATION, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_uma_invoice"].(map[string]interface{})
+	var invoice objects.Invoice
+	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invoice")
+	}
+	json.Unmarshal(invoiceJson, &invoice)
+	return &invoice, nil
+}
+
 // CreateNodeWalletAddress creates a Bitcoin address for the wallet associated with
 // your Lightning Node. You can use this address to send funds to your node. It is
 // a best practice to generate a new wallet address every time you need to send money.
@@ -432,6 +469,46 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 	}
 
 	output := response["pay_invoice"].(map[string]interface{})
+	var payment objects.OutgoingPayment
+	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing payment")
+	}
+	json.Unmarshal(paymentJson, &payment)
+	return &payment, nil
+}
+
+// PayUmaInvoice sends an UMA payment to a node on the Lightning Network, based on the invoice
+// (as defined by the BOLT11 specification) that you provide.
+// This should only be used for paying UMA invoices, with `pay_invoice` preferred in the general case.
+//
+// Args:
+//
+//	nodeId: The node from where you want to send the payment.
+//	encodedInvoice: The invoice you want to pay (as defined by the BOLT11 standard).
+//	timeoutSecs: The number of seconds that you are willing to wait for the payment to complete.
+//	maximumFeesMsats: The maximum amount of fees that you are willing to pay for this payment, expressed in mSATs.
+//	amountMsats: The amount you will pay for this invoice, expressed in msats.
+//		It should ONLY be set when the invoice amount is zero.
+func (client *LightsparkClient) PayUmaInvoice(nodeId string, encodedInvoice string,
+	timeoutSecs int, maximumFeesMsats int64, amountMsats *int64) (*objects.OutgoingPayment, error) {
+
+	variables := map[string]interface{}{
+		"node_id":            nodeId,
+		"encoded_invoice":    encodedInvoice,
+		"timeout_secs":       timeoutSecs,
+		"maximum_fees_msats": maximumFeesMsats,
+	}
+	if amountMsats != nil {
+		variables["amount_msats"] = amountMsats
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.PAY_UMA_INVOICE_MUTATION, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["pay_uma_invoice"].(map[string]interface{})
 	var payment objects.OutgoingPayment
 	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
 	if err != nil {

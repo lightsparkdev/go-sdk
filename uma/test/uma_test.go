@@ -25,8 +25,9 @@ func TestParse(t *testing.T) {
 		Nonce:                 "12345",
 		Timestamp:             expectedTime,
 		VaspDomain:            "vasp1.com",
+		UmaVersion:            "0.1",
 	}
-	urlString := "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=" + strconv.FormatInt(timeSec, 10)
+	urlString := "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=" + strconv.FormatInt(timeSec, 10)
 	urlObj, _ := url.Parse(urlString)
 	query, err := uma.ParseLnurlpRequest(*urlObj)
 	if err != nil || query == nil {
@@ -36,30 +37,34 @@ func TestParse(t *testing.T) {
 }
 
 func TestIsUmaQueryValid(t *testing.T) {
-	urlString := "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString := "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ := url.Parse(urlString)
 	assert.True(t, uma.IsUmaLnurlpQuery(*urlObj))
 }
 
 func TestIsUmaQueryMissingParams(t *testing.T) {
-	urlString := "https://vasp2.com/.well-known/lnurlp/bob?nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString := "https://vasp2.com/.well-known/lnurlp/bob?nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ := url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 
-	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ = url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 
-	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ = url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 
-	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&timestamp=12345678"
+	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&umaVersion=0.1&nonce=12345&isSubjectToTravelRule=true&timestamp=12345678"
+	urlObj, _ = url.Parse(urlString)
+	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
+
+	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&umaVersion=0.1&nonce=12345&vaspDomain=vasp1.com&timestamp=12345678"
 	urlObj, _ = url.Parse(urlString)
 	// IsSubjectToTravelRule is optional
 	assert.True(t, uma.IsUmaLnurlpQuery(*urlObj))
 
-	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true"
+	urlString = "https://vasp2.com/.well-known/lnurlp/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true"
 	urlObj, _ = url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 
@@ -69,15 +74,15 @@ func TestIsUmaQueryMissingParams(t *testing.T) {
 }
 
 func TestIsUmaQueryInvalidPath(t *testing.T) {
-	urlString := "https://vasp2.com/.well-known/lnurla/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString := "https://vasp2.com/.well-known/lnurla/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ := url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 
-	urlString = "https://vasp2.com/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString = "https://vasp2.com/bob?signature=signature&nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ = url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 
-	urlString = "https://vasp2.com/?signature=signature&nonce=12345&vaspDomain=vasp1.com&isSubjectToTravelRule=true&timestamp=12345678"
+	urlString = "https://vasp2.com/?signature=signature&nonce=12345&vaspDomain=vasp1.com&umaVersion=0.1&isSubjectToTravelRule=true&timestamp=12345678"
 	urlObj, _ = url.Parse(urlString)
 	assert.False(t, uma.IsUmaLnurlpQuery(*urlObj))
 }
@@ -85,10 +90,11 @@ func TestIsUmaQueryInvalidPath(t *testing.T) {
 func TestSignAndVerifyLnurlpRequest(t *testing.T) {
 	privateKey, err := secp256k1.GeneratePrivateKey()
 	require.NoError(t, err)
-	queryUrl, err := uma.GetSignedLnurlpRequestUrl(privateKey.Serialize(), "$bob@vasp2.com", "vasp1.com", true)
+	queryUrl, err := uma.GetSignedLnurlpRequestUrl(privateKey.Serialize(), "$bob@vasp2.com", "vasp1.com", true, nil)
 	require.NoError(t, err)
 	query, err := uma.ParseLnurlpRequest(*queryUrl)
 	require.NoError(t, err)
+	assert.Equal(t, query.UmaVersion, uma.UmaProtocolVersion)
 	err = uma.VerifyUmaLnurlpQuerySignature(query, privateKey.PubKey().SerializeUncompressed())
 	require.NoError(t, err)
 }
@@ -96,7 +102,7 @@ func TestSignAndVerifyLnurlpRequest(t *testing.T) {
 func TestSignAndVerifyLnurlpRequestInvalidSignature(t *testing.T) {
 	privateKey, err := secp256k1.GeneratePrivateKey()
 	require.NoError(t, err)
-	queryUrl, err := uma.GetSignedLnurlpRequestUrl(privateKey.Serialize(), "$bob@vasp2.com", "vasp1.com", true)
+	queryUrl, err := uma.GetSignedLnurlpRequestUrl(privateKey.Serialize(), "$bob@vasp2.com", "vasp1.com", true, nil)
 	require.NoError(t, err)
 	query, err := uma.ParseLnurlpRequest(*queryUrl)
 	require.NoError(t, err)
@@ -192,7 +198,7 @@ func TestPayReqCreationAndParsing(t *testing.T) {
 
 type FakeInvoiceCreator struct{}
 
-func (f *FakeInvoiceCreator) CreateLnurlInvoice(int64, string) (*string, error) {
+func (f *FakeInvoiceCreator) CreateUmaInvoice(int64, string) (*string, error) {
 	encodedInvoice := "lnbcrt100n1p0z9j"
 	return &encodedInvoice, nil
 }
@@ -243,7 +249,7 @@ func TestPayReqResponseAndParsing(t *testing.T) {
 }
 
 func createLnurlpRequest(t *testing.T, signingPrivateKey []byte) *uma.LnurlpRequest {
-	queryUrl, err := uma.GetSignedLnurlpRequestUrl(signingPrivateKey, "$bob@vasp2.com", "vasp1.com", true)
+	queryUrl, err := uma.GetSignedLnurlpRequestUrl(signingPrivateKey, "$bob@vasp2.com", "vasp1.com", true, nil)
 	require.NoError(t, err)
 	query, err := uma.ParseLnurlpRequest(*queryUrl)
 	require.NoError(t, err)

@@ -143,15 +143,21 @@ func verifySignature(hashedPayload [32]byte, signature string, otherVaspPubKey [
 //	receiverAddress: the address of the receiver of the payment (i.e. $bob@vasp2).
 //	senderVaspDomain: the domain of the VASP that is sending the payment. It will be used by the receiver to fetch the public keys of the sender.
 //	isSubjectToTravelRule: whether the sending VASP is a financial institution that requires travel rule information.
+//	umaVersionOverride: the version of the UMA protocol to use. If not specified, the latest version will be used.
 func GetSignedLnurlpRequestUrl(
 	signingPrivateKey []byte,
 	receiverAddress string,
 	senderVaspDomain string,
 	isSubjectToTravelRule bool,
+	umaVersionOverride *string,
 ) (*url.URL, error) {
 	nonce, err := GenerateNonce()
 	if err != nil {
 		return nil, err
+	}
+	umaVersion := UmaProtocolVersion
+	if umaVersionOverride != nil {
+		umaVersion = *umaVersionOverride
 	}
 	unsignedRequest := LnurlpRequest{
 		ReceiverAddress:       receiverAddress,
@@ -159,6 +165,7 @@ func GetSignedLnurlpRequestUrl(
 		VaspDomain:            senderVaspDomain,
 		Timestamp:             time.Now(),
 		Nonce:                 *nonce,
+		UmaVersion:            umaVersion,
 	}
 	signature, err := signPayload(unsignedRequest.signablePayload(), signingPrivateKey)
 	if err != nil {
@@ -185,6 +192,7 @@ func ParseLnurlpRequest(url url.URL) (*LnurlpRequest, error) {
 	vaspDomain := query.Get("vaspDomain")
 	nonce := query.Get("nonce")
 	isSubjectToTravelRule := query.Get("isSubjectToTravelRule")
+	umaVersion := query.Get("umaVersion")
 	timestamp := query.Get("timestamp")
 	timestampAsString, dateErr := strconv.ParseInt(timestamp, 10, 64)
 	if dateErr != nil {
@@ -192,8 +200,8 @@ func ParseLnurlpRequest(url url.URL) (*LnurlpRequest, error) {
 	}
 	timestampAsTime := time.Unix(timestampAsString, 0)
 
-	if vaspDomain == "" || signature == "" || nonce == "" || timestamp == "" {
-		return nil, errors.New("missing uma query parameters. vaspDomain, signature, nonce, and timestamp are required")
+	if vaspDomain == "" || signature == "" || nonce == "" || timestamp == "" || umaVersion == "" {
+		return nil, errors.New("missing uma query parameters. vaspDomain, umaVersion, signature, nonce, and timestamp are required")
 	}
 
 	pathParts := strings.Split(url.Path, "/")
@@ -202,8 +210,13 @@ func ParseLnurlpRequest(url url.URL) (*LnurlpRequest, error) {
 	}
 	receiverAddress := pathParts[3] + "@" + url.Host
 
+	if !IsVersionSupported(umaVersion) {
+		return nil, UnsupportedVersionError{}
+	}
+
 	return &LnurlpRequest{
 		VaspDomain:            vaspDomain,
+		UmaVersion:            umaVersion,
 		Signature:             signature,
 		ReceiverAddress:       receiverAddress,
 		Nonce:                 nonce,
@@ -224,7 +237,7 @@ func VerifyUmaLnurlpQuerySignature(query *LnurlpRequest, otherVaspSigningPubKey 
 }
 
 func GetLnurlpResponse(
-	query *LnurlpRequest,
+	request *LnurlpRequest,
 	privateKeyBytes []byte,
 	requiresTravelRuleInfo bool,
 	callback string,
@@ -235,10 +248,16 @@ func GetLnurlpResponse(
 	currencyOptions []Currency,
 	receiverKycStatus KycStatus,
 ) (*LnurlpResponse, error) {
-	complianceResponse, err := getSignedLnurlpComplianceResponse(query, privateKeyBytes, requiresTravelRuleInfo, receiverKycStatus)
+	umaVersion, err := SelectLowerVersion(request.UmaVersion, UmaProtocolVersion)
 	if err != nil {
 		return nil, err
 	}
+
+	complianceResponse, err := getSignedLnurlpComplianceResponse(request, privateKeyBytes, requiresTravelRuleInfo, receiverKycStatus)
+	if err != nil {
+		return nil, err
+	}
+
 	return &LnurlpResponse{
 		Tag:               "payRequest",
 		Callback:          callback,
@@ -248,6 +267,7 @@ func GetLnurlpResponse(
 		Currencies:        currencyOptions,
 		RequiredPayerData: payerDataOptions,
 		Compliance:        *complianceResponse,
+		UmaVersion:        *umaVersion,
 	}, nil
 }
 
@@ -427,11 +447,11 @@ func ParsePayRequest(bytes []byte) (*PayRequest, error) {
 	return &response, nil
 }
 
-type LnurlInvoiceCreator interface {
-	CreateLnurlInvoice(amountMsats int64, metadata string) (*string, error)
+type UmaInvoiceCreator interface {
+	CreateUmaInvoice(amountMsats int64, metadata string) (*string, error)
 }
 
-type LightsparkClientLnurlInvoiceCreator struct {
+type LightsparkClientUmaInvoiceCreator struct {
 	LightsparkClient services.LightsparkClient
 	// NodeId: the node ID of the receiver.
 	NodeId string
@@ -439,8 +459,8 @@ type LightsparkClientLnurlInvoiceCreator struct {
 	ExpirySecs *int32
 }
 
-func (l LightsparkClientLnurlInvoiceCreator) CreateLnurlInvoice(amountMsats int64, metadata string) (*string, error) {
-	invoice, err := l.LightsparkClient.CreateLnurlInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
+func (l LightsparkClientUmaInvoiceCreator) CreateUmaInvoice(amountMsats int64, metadata string) (*string, error) {
+	invoice, err := l.LightsparkClient.CreateUmaInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
 	if err != nil {
 		return nil, err
 	}
@@ -467,7 +487,7 @@ func (l LightsparkClientLnurlInvoiceCreator) CreateLnurlInvoice(amountMsats int6
 //	    	receive the payment once it completes.
 func GetPayReqResponse(
 	query *PayRequest,
-	invoiceCreator LnurlInvoiceCreator,
+	invoiceCreator UmaInvoiceCreator,
 	metadata string,
 	currencyCode string,
 	conversionRate int64,
@@ -481,7 +501,7 @@ func GetPayReqResponse(
 	if err != nil {
 		return nil, err
 	}
-	encodedInvoice, err := invoiceCreator.CreateLnurlInvoice(msatsAmount, metadata+"{"+string(encodedPayerData)+"}")
+	encodedInvoice, err := invoiceCreator.CreateUmaInvoice(msatsAmount, metadata+"{"+string(encodedPayerData)+"}")
 	if err != nil {
 		return nil, err
 	}

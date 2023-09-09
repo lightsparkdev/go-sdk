@@ -47,7 +47,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverId := addressParts[0]
 	receiverVasp := addressParts[1]
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
-	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(signingKey, receiverAddress, "localhost:8080", true)
+	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(signingKey, receiverAddress, "localhost:8080", true, nil)
 
 	resp, err := http.Get(lnurlpRequest.String())
 	if err != nil {
@@ -59,6 +59,15 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusPreconditionFailed {
+		retryResp, didSendFailure := v.handleUnsupportedVersionResponse(resp, signingKey, receiverAddress, context)
+		defer retryResp.Body.Close()
+		if didSendFailure {
+			return
+		}
+		resp = retryResp
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		context.JSON(http.StatusBadRequest, gin.H{
@@ -115,6 +124,58 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		"callbackUuid":      callbackUuid,
 		"receiverKYCStatus": lnurlpResponse.Compliance.KycStatus, // You might not actually send this to a client in practice.
 	})
+}
+
+func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signingKey []byte, receiverAddress string, context *gin.Context) (*http.Response, bool) {
+	responseBodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to read lnurlp response from receiver",
+		})
+		return nil, true
+	}
+	supportedMajorVersions, err := uma.GetSupportedMajorVersionsFromErrorResponseBody(responseBodyBytes)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to parse supported major versions from error response",
+		})
+		return nil, true
+	}
+	highestSupportedVersion := uma.SelectHighestSupportedVersion(supportedMajorVersions)
+	if highestSupportedVersion == nil {
+		context.JSON(http.StatusPreconditionFailed, gin.H{
+			"status": "ERROR",
+			"reason": "No compatible UMA version with VASP2",
+		})
+		return nil, true
+	}
+	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(
+		signingKey,
+		receiverAddress,
+		"localhost:8080",
+		true,
+		highestSupportedVersion,
+	)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to generate lnurlp request",
+		})
+		return nil, true
+	}
+
+	retryResponse, err := http.Get(lnurlpRequest.String())
+	if err != nil {
+		// TODO: Maybe this should be a 400 depending on the error?
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to fetch receiver's lnurlp",
+		})
+		return nil, true
+	}
+	return retryResponse, false
 }
 
 func (v *Vasp1) getUtxoCallback(context *gin.Context, txId string) string {
@@ -303,7 +364,7 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		return
 	}
 
-	payment, err := v.client.PayInvoice(
+	payment, err := v.client.PayUmaInvoice(
 		v.config.NodeUUID,
 		payReqData.encodedInvoice,
 		60,
