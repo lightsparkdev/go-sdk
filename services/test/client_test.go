@@ -4,7 +4,6 @@
 package services_test
 
 import (
-	"encoding/hex"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/stretchr/testify/require"
@@ -46,7 +45,7 @@ func NewConfig() TestConfig {
 func TestCreateInvoice(t *testing.T) {
 	env := NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(env, client, env.NodeID, env.MasterSeedHex)
+	invoice, err := createInvoiceForNode(client, env.NodeID, env.MasterSeedHex)
 	require.NoError(t, err)
 	t.Log(invoice)
 }
@@ -69,7 +68,7 @@ func TestCreateTestPaymentNode2(t *testing.T) {
 	// Create and pay invoice 10 times to ensure we get enough funds on node 1
 	// to pay an invoice in the next test.
 	for i := 0; i < 10; i++ {
-		invoice, err := createInvoiceForNode(env, client, env.NodeID2, env.MasterSeedHex2)
+		invoice, err := createInvoiceForNode(client, env.NodeID2, env.MasterSeedHex2)
 		require.NoError(t, err)
 		payment, err := client.CreateTestModePayment(env.NodeID2, invoice.Data.EncodedPaymentRequest, nil)
 		require.NoError(t, err)
@@ -81,7 +80,7 @@ func TestCreateTestPaymentNode2(t *testing.T) {
 func TestPayInvoice(t *testing.T) {
 	env := NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(env, client, env.NodeID, env.MasterSeedHex)
+	invoice, err := createInvoiceForNode(client, env.NodeID, env.MasterSeedHex)
 	require.NoError(t, err)
 
 	t.Log(invoice)
@@ -110,7 +109,7 @@ func TestCreateTestPaymentNode1(t *testing.T) {
 	// Create and pay invoice 10 times to ensure we get enough funds on node 1
 	// to pay an invoice in the next test.
 	for i := 0; i < 10; i++ {
-		invoice, err := createInvoiceForNode(env, client, env.NodeID, env.MasterSeedHex)
+		invoice, err := createInvoiceForNode(client, env.NodeID, env.MasterSeedHex)
 		require.NoError(t, err)
 		payment, err := client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
 		require.NoError(t, err)
@@ -139,6 +138,14 @@ func TestCreateTestInvoice(t *testing.T) {
 	t.Log(payment)
 }
 
+func TestGetChannelUtxos(t *testing.T) {
+	env := NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+	utxos, err := client.GetNodeChannelUtxos(env.NodeID)
+	require.NoError(t, err)
+	t.Log(utxos)
+}
+
 // NOTE: This will only work with MAINNET nodes.
 func TestGetFundingAddress(t *testing.T) {
 	env := NewConfig()
@@ -148,12 +155,8 @@ func TestGetFundingAddress(t *testing.T) {
 	t.Log(address)
 }
 
-func createInvoiceForNode(env TestConfig, client *services.LightsparkClient, nodeID string, masterSeedHex string) (*objects.Invoice, error) {
-	masterSeedBytes, err := hex.DecodeString(masterSeedHex)
-	if err != nil {
-		return nil, err
-	}
-	invoice, err := client.CreateInvoice(nodeID, &masterSeedBytes, 10_000_000, nil, nil, nil)
+func createInvoiceForNode(client *services.LightsparkClient, nodeID string, masterSeedHex string) (*objects.Invoice, error) {
+	invoice, err := client.CreateInvoice(nodeID, 10_000_000, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

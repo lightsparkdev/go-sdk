@@ -647,6 +647,32 @@ func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvi
 	}
 }
 
+// GetNodeChannelUtxos returns the utxos of all channels of a node.
+//
+// Args:
+// nodeId: The id of the node whose utxos will be fetched.
+func (client *LightsparkClient) GetNodeChannelUtxos(nodeId string) ([]string, error) {
+	variables := map[string]interface{}{
+		"node_id": nodeId,
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.NODE_CHANNEL_UTXO_QUERY, variables)
+	if err != nil {
+		return nil, err
+	}
+	nodeEntity, ok := response["entity"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("error parsing node entity")
+	}
+
+	channels := nodeEntity["channels"].(map[string]interface{})["entities"].([]interface{})
+	var utxos []string
+	for _, channel := range channels {
+		fundingTransaction := channel.(map[string]interface{})["funding_transaction"].(map[string]interface{})
+		utxos = append(utxos, fundingTransaction["transaction_hash"].(string))
+	}
+	return utxos, nil
+}
+
 // GetEntity returns any `Entity`, identified by its unique ID.
 //
 // Args:
