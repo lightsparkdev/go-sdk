@@ -1,4 +1,4 @@
-package webhooks
+package remotesigning
 
 import (
 	"encoding/hex"
@@ -13,6 +13,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/scripts"
 	"github.com/lightsparkdev/go-sdk/services"
+	"github.com/lightsparkdev/go-sdk/webhooks"
 )
 
 // HandleRemoteSigningWebhook handles a webhook event that is related to remote signing.
@@ -22,9 +23,16 @@ import (
 //
 // Args:
 //
-//	webhook: The webhook event that you want to handle.
-//	seedBytes: The bytes of the master seed that you want to use to sign messages or derive keys.
-func HandleRemoteSigningWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+//		client: The LightsparkClient used to respond to webhook events.
+//	    validator: A validator for deciding whether to sign events.
+//		webhook: The webhook event that you want to handle.
+//		seedBytes: The bytes of the master seed that you want to use to sign messages or derive keys.
+func HandleRemoteSigningWebhook(
+	client *services.LightsparkClient,
+	validator Validator,
+	webhook webhooks.WebhookEvent,
+	seedBytes []byte,
+) (string, error) {
 	if webhook.EventType != objects.WebhookEventTypeRemoteSigning {
 		return "", errors.New("webhook event is not for remote signing")
 	}
@@ -36,7 +44,11 @@ func HandleRemoteSigningWebhook(client *services.LightsparkClient, webhook Webho
 	log.Printf("Received remote signing webhook with sub_event_type %s", subEventTypeStr)
 	err := subtype.UnmarshalJSON([]byte(`"` + subEventTypeStr + `"`))
 	if err != nil {
-		return "", errors.New("webhook data is missing")
+		return "", errors.New("invalid remote signing sub_event_type")
+	}
+
+	if !validator.ShouldSign(webhook) {
+		return DeclineToSignMessages(client, webhook)
 	}
 
 	switch subtype {
@@ -59,7 +71,53 @@ func HandleRemoteSigningWebhook(client *services.LightsparkClient, webhook Webho
 	}
 }
 
-func HandleEcdhWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func DeclineToSignMessages(client *services.LightsparkClient, event webhooks.WebhookEvent) (string, error) {
+	signingJobsJson := (*event.Data)["signing_jobs"]
+	if signingJobsJson == nil {
+		return "", errors.New("missing signing_jobs in webhook")
+	}
+	signingJobsJsonString, err := json.Marshal(signingJobsJson.([]interface{}))
+	if err != nil {
+		return "", err
+	}
+
+	var signingJobs []SigningJob
+	err = json.Unmarshal(signingJobsJsonString, &signingJobs)
+	if err != nil {
+		return "", err
+	}
+
+	var payloadIds []string
+	for _, signingJob := range signingJobs {
+		payloadIds = append(payloadIds, signingJob.Id)
+	}
+
+	variables := map[string]interface{}{
+		"payload_ids": payloadIds,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.DECLINE_TO_SIGN_MESSAGES_MUTATION, variables)
+	if err != nil {
+		return "", err
+	}
+
+	output := response["decline_to_sign_messages"].(map[string]interface{})
+	var responseObj objects.DeclineToSignMessagesOutput
+	outputJson, err := json.Marshal(output)
+	if err != nil {
+		return "", err
+	}
+
+	// This is just to validate the response.
+	err = json.Unmarshal(outputJson, &responseObj)
+	if err != nil {
+		return "", err
+	}
+
+	return "rejected signing", nil
+}
+
+func HandleEcdhWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling ECDH webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")
@@ -109,7 +167,7 @@ func HandleEcdhWebhook(client *services.LightsparkClient, webhook WebhookEvent, 
 	return string(outputJson), nil
 }
 
-func HandleGetPerCommitmentPointWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func HandleGetPerCommitmentPointWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling GET_PER_COMMITMENT_POINT webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")
@@ -174,7 +232,7 @@ func HandleGetPerCommitmentPointWebhook(client *services.LightsparkClient, webho
 	return string(outputJson), nil
 }
 
-func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling RELEASE_PER_COMMITMENT_SECRET webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")
@@ -239,7 +297,7 @@ func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, 
 	return string(outputJson), nil
 }
 
-func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling REQUEST_INVOICE_PAYMENT_HASH webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")
@@ -294,7 +352,7 @@ func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, w
 	return string(outputJson), nil
 }
 
-func HandleSignInvoiceWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func HandleSignInvoiceWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling SIGN_INVOICE webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")
@@ -361,7 +419,7 @@ func HandleSignInvoiceWebhook(client *services.LightsparkClient, webhook Webhook
 	return string(outputJson), nil
 }
 
-func HandleReleaseInvoicePreimageWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func HandleReleaseInvoicePreimageWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling RELEASE_PAYMENT_PREIMAGE webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")
@@ -447,7 +505,7 @@ type signatureResponse struct {
 	Signature string `json:"signature"`
 }
 
-func HandleDeriveKeyAndSignWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+func HandleDeriveKeyAndSignWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
 	log.Println("Handling DERIVE_KEY_AND_SIGN webhook")
 	if webhook.Data == nil {
 		return "", errors.New("missing data in webhook")

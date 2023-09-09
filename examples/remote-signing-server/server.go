@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/remotesigning"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/lightsparkdev/go-sdk/webhooks"
 )
@@ -60,7 +61,8 @@ func main() {
 
 		switch event.EventType {
 		case objects.WebhookEventTypeRemoteSigning:
-			resp, err := webhooks.HandleRemoteSigningWebhook(lsClient, *event, config.MasterSeed)
+			resp, err := remotesigning.HandleRemoteSigningWebhook(
+				lsClient, remotesigning.PositiveValidator{}, *event, config.MasterSeed)
 			if err != nil {
 				log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
 				c.AbortWithStatus(http.StatusInternalServerError)
