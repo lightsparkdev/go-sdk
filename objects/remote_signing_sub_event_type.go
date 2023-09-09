@@ -22,6 +22,8 @@ const (
 	RemoteSigningSubEventTypeDeriveKeyAndSign
 
 	RemoteSigningSubEventTypeReleasePaymentPreimage
+
+	RemoteSigningSubEventTypeRequestInvoicePaymentHash
 )
 
 func (a *RemoteSigningSubEventType) UnmarshalJSON(b []byte) error {
@@ -44,6 +46,8 @@ func (a *RemoteSigningSubEventType) UnmarshalJSON(b []byte) error {
 		*a = RemoteSigningSubEventTypeDeriveKeyAndSign
 	case "RELEASE_PAYMENT_PREIMAGE":
 		*a = RemoteSigningSubEventTypeReleasePaymentPreimage
+	case "REQUEST_INVOICE_PAYMENT_HASH":
+		*a = RemoteSigningSubEventTypeRequestInvoicePaymentHash
 
 	}
 	return nil
@@ -66,6 +70,8 @@ func (a RemoteSigningSubEventType) StringValue() string {
 		s = "DERIVE_KEY_AND_SIGN"
 	case RemoteSigningSubEventTypeReleasePaymentPreimage:
 		s = "RELEASE_PAYMENT_PREIMAGE"
+	case RemoteSigningSubEventTypeRequestInvoicePaymentHash:
+		s = "REQUEST_INVOICE_PAYMENT_HASH"
 
 	}
 	return s

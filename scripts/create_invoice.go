@@ -9,8 +9,6 @@ mutation CreateInvoice(
     $amount_msats: Long!
     $memo: String
     $invoice_type: InvoiceType
-    $payment_hash: String
-    $preimage_nonce: String
 	$expiry_secs: Int
 ) {
     create_invoice(input: {
@@ -18,8 +16,6 @@ mutation CreateInvoice(
         amount_msats: $amount_msats
         memo: $memo
         invoice_type: $invoice_type
-		payment_hash: $payment_hash
-		preimage_nonce: $preimage_nonce
 		expiry_secs: $expiry_secs
     }) {
         invoice {

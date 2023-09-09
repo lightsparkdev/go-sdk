@@ -14,8 +14,4 @@ type CreateLnurlInvoiceInput struct {
 
 	// ExpirySecs The expiry of the invoice in seconds. Default value is 86400 (1 day).
 	ExpirySecs *int64 `json:"create_lnurl_invoice_input_expiry_secs"`
-
-	PaymentHash *string `json:"create_lnurl_invoice_input_payment_hash"`
-
-	PreimageNonce *string `json:"create_lnurl_invoice_input_preimage_nonce"`
 }

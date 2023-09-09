@@ -48,6 +48,8 @@ func HandleRemoteSigningWebhook(client *services.LightsparkClient, webhook Webho
 		return HandleReleasePerCommitmentSecretWebhook(client, webhook, seedBytes)
 	case objects.RemoteSigningSubEventTypeDeriveKeyAndSign:
 		return HandleDeriveKeyAndSignWebhook(client, webhook, seedBytes)
+	case objects.RemoteSigningSubEventTypeRequestInvoicePaymentHash:
+		return HandleRequestInvoicePaymentHashWebhook(client, webhook, seedBytes)
 	case objects.RemoteSigningSubEventTypeSignInvoice:
 		return HandleSignInvoiceWebhook(client, webhook, seedBytes)
 	case objects.RemoteSigningSubEventTypeReleasePaymentPreimage:
@@ -223,6 +225,61 @@ func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, 
 
 	output := response["release_channel_per_commitment_secret"].(map[string]interface{})
 	var responseObj objects.ReleaseChannelPerCommitmentSecretOutput
+	outputJson, err := json.Marshal(output)
+	if err != nil {
+		return "", err
+	}
+
+	// This is just to validate the response.
+	err = json.Unmarshal(outputJson, &responseObj)
+	if err != nil {
+		return "", err
+	}
+
+	return string(outputJson), nil
+}
+
+func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, webhook WebhookEvent, seedBytes []byte) (string, error) {
+	log.Println("Handling REQUEST_INVOICE_PAYMENT_HASH webhook")
+	if webhook.Data == nil {
+		return "", errors.New("missing data in webhook")
+	}
+	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeRequestInvoicePaymentHash.StringValue() {
+		return "", errors.New("sub_event_type is not REQUEST_INVOICE_PAYMENT_HASH")
+	}
+
+	invoiceId := (*webhook.Data)["invoice_id"]
+	if invoiceId == nil {
+		return "", errors.New("missing invoice_id in webhook")
+	}
+	log.Printf("invoiceId: %v", invoiceId)
+
+	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
+	log.Printf("bitcoinNetwork: %v", bitcoinNetwork)
+	if err != nil {
+		log.Fatalf("Error getting bitcoin network: %v", err)
+		return "", err
+	}
+
+	nonce := lightspark_crypto.GeneratePreimageNonce(seedBytes)
+	paymentHash, err := lightspark_crypto.GeneratePreimageHash(seedBytes, nonce)
+	if err != nil {
+		return "", err
+	}
+
+	variables := map[string]interface{}{
+		"invoice_id":     invoiceId,
+		"payment_hash":   hex.EncodeToString(paymentHash),
+		"preimage_nonce": hex.EncodeToString(nonce),
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.SET_INVOICE_PAYMENT_HASH, variables)
+	if err != nil {
+		return "", err
+	}
+
+	output := response["set_invoice_payment_hash"].(map[string]interface{})
+	var responseObj objects.SetInvoicePaymentHashOutput
 	outputJson, err := json.Marshal(output)
 	if err != nil {
 		return "", err

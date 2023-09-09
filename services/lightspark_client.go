@@ -2,11 +2,8 @@
 package services
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-
-	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
@@ -85,12 +82,11 @@ func (client *LightsparkClient) CreateApiToken(name string, transact bool,
 // Args:
 //
 //	nodeId: the id of the node that should be paid
-//	masterSeedBytes: the master seed bytes of the node that should be paid
 //	amountMsats: the amount of the invoice in millisatoshis
 //	memo: the memo of the invoice
 //	invoiceType: the type of the invoice
 //	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day).
-func (client *LightsparkClient) CreateInvoice(nodeId string, masterSeedBytes *[]byte, amountMsats int64,
+func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	memo *string, invoiceType *objects.InvoiceType, expirySecs *int32) (*objects.Invoice, error) {
 
 	variables := map[string]interface{}{
@@ -101,15 +97,6 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, masterSeedBytes *[]
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
-	}
-	if masterSeedBytes != nil {
-		nonce := lightspark_crypto.GeneratePreimageNonce(*masterSeedBytes)
-		variables["preimage_nonce"] = hex.EncodeToString(nonce)
-		paymentHash, err := lightspark_crypto.GeneratePreimageHash(*masterSeedBytes, nonce)
-		if err != nil {
-			return nil, err
-		}
-		variables["payment_hash"] = hex.EncodeToString(paymentHash)
 	}
 	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_INVOICE_MUTATION, variables)
 	if err != nil {
@@ -134,11 +121,10 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, masterSeedBytes *[]
 // Args:
 //
 //		nodeId: the id of the node that should be paid
-//		masterSeedBytes: the master seed bytes of the node that should be paid
 //		amountMsats: the amount of the invoice in millisatoshis
 //		metadata: the metadata to include with the invoice
 //	 expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day)
-func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, masterSeedBytes *[]byte, amountMsats int64,
+func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats int64,
 	metadata string, expirySecs *int32) (*objects.Invoice, error) {
 
 	variables := map[string]interface{}{
@@ -148,15 +134,6 @@ func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, masterSeedByte
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
-	}
-	if masterSeedBytes != nil {
-		nonce := lightspark_crypto.GeneratePreimageNonce(*masterSeedBytes)
-		variables["preimage_nonce"] = hex.EncodeToString(nonce)
-		paymentHash, err := lightspark_crypto.GeneratePreimageHash(*masterSeedBytes, nonce)
-		if err != nil {
-			return nil, err
-		}
-		variables["payment_hash"] = hex.EncodeToString(paymentHash)
 	}
 	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_LNURL_INVOICE_MUTATION, variables)
 	if err != nil {
@@ -573,17 +550,17 @@ func (client *LightsparkClient) ScreenNode(
 //
 //	provider: The provider that you want to use to register the payment.
 //	paymentId: The unique id of the payment.
-//	nodePubkey: The public key of the counterparty node which is the recipient 
+//	nodePubkey: The public key of the counterparty node which is the recipient
 //	            node if the payment is an outgoing payment and the sender node
 //	            if the payment is an incoming payment.
-func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvider, 
+func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvider,
 	paymentId string, nodePubkey string, direction objects.PaymentDirection) error {
 
 	variables := map[string]interface{}{
-		"provider": provider, 
-		"payment_id": paymentId, 
-		"node_pubkey": nodePubkey, 
-		"direction": direction, 
+		"provider":    provider,
+		"payment_id":  paymentId,
+		"node_pubkey": nodePubkey,
+		"direction":   direction,
 	}
 	_, err := client.Requester.ExecuteGraphql(scripts.REGISTER_PAYMENT_MUTATION, variables)
 	if err != nil {

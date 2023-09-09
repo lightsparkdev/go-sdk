@@ -285,7 +285,7 @@ func main() {
 
 	// Create an invoice
 	fmt.Println("Creating an invoice...")
-	invoice, err := client.CreateInvoice(nodeId, nil, 100000, nil, nil, nil)
+	invoice, err := client.CreateInvoice(nodeId, 100000, nil, nil, nil)
 	encodedInvoice = invoice.Data.EncodedPaymentRequest
 	if err != nil {
 		fmt.Printf("create invoice failed: %v", err)

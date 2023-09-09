@@ -21,6 +21,7 @@ type TestConfig struct {
 	ApiClientSecret2  string
 	NodeID2           string
 	MasterSeedHex     string
+	MasterSeedHex2    string
 }
 
 func NewConfig() TestConfig {
@@ -38,13 +39,14 @@ func NewConfig() TestConfig {
 		ApiClientID2:      os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_ID_2"),
 		ApiClientSecret2:  os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_SECRET_2"),
 		MasterSeedHex:     os.Getenv("LIGHTSPARK_RS_MASTER_SEED"),
+		MasterSeedHex2:    os.Getenv("LIGHTSPARK_RS_MASTER_SEED_2"),
 	}
 }
 
 func TestCreateInvoice(t *testing.T) {
 	env := NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(env, client, env.NodeID)
+	invoice, err := createInvoiceForNode(env, client, env.NodeID, env.MasterSeedHex)
 	require.NoError(t, err)
 	t.Log(invoice)
 }
@@ -67,7 +69,7 @@ func TestCreateTestPaymentNode2(t *testing.T) {
 	// Create and pay invoice 10 times to ensure we get enough funds on node 1
 	// to pay an invoice in the next test.
 	for i := 0; i < 10; i++ {
-		invoice, err := createInvoiceForNode(env, client, env.NodeID2)
+		invoice, err := createInvoiceForNode(env, client, env.NodeID2, env.MasterSeedHex2)
 		require.NoError(t, err)
 		payment, err := client.CreateTestModePayment(env.NodeID2, invoice.Data.EncodedPaymentRequest, nil)
 		require.NoError(t, err)
@@ -79,7 +81,7 @@ func TestCreateTestPaymentNode2(t *testing.T) {
 func TestPayInvoice(t *testing.T) {
 	env := NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(env, client, env.NodeID)
+	invoice, err := createInvoiceForNode(env, client, env.NodeID, env.MasterSeedHex)
 	require.NoError(t, err)
 
 	t.Log(invoice)
@@ -108,7 +110,7 @@ func TestCreateTestPaymentNode1(t *testing.T) {
 	// Create and pay invoice 10 times to ensure we get enough funds on node 1
 	// to pay an invoice in the next test.
 	for i := 0; i < 10; i++ {
-		invoice, err := createInvoiceForNode(env, client, env.NodeID)
+		invoice, err := createInvoiceForNode(env, client, env.NodeID, env.MasterSeedHex)
 		require.NoError(t, err)
 		payment, err := client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
 		require.NoError(t, err)
@@ -146,8 +148,8 @@ func TestGetFundingAddress(t *testing.T) {
 	t.Log(address)
 }
 
-func createInvoiceForNode(env TestConfig, client *services.LightsparkClient, nodeID string) (*objects.Invoice, error) {
-	masterSeedBytes, err := hex.DecodeString(env.MasterSeedHex)
+func createInvoiceForNode(env TestConfig, client *services.LightsparkClient, nodeID string, masterSeedHex string) (*objects.Invoice, error) {
+	masterSeedBytes, err := hex.DecodeString(masterSeedHex)
 	if err != nil {
 		return nil, err
 	}

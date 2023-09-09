@@ -435,14 +435,12 @@ type LightsparkClientLnurlInvoiceCreator struct {
 	LightsparkClient services.LightsparkClient
 	// NodeId: the node ID of the receiver.
 	NodeId string
-	// NodeMasterSeedBytes: the master seed of the receiver's node.
-	NodeMasterSeedBytes *[]byte
 	// ExpirySecs: the number of seconds until the invoice expires.
 	ExpirySecs *int32
 }
 
 func (l LightsparkClientLnurlInvoiceCreator) CreateLnurlInvoice(amountMsats int64, metadata string) (*string, error) {
-	invoice, err := l.LightsparkClient.CreateLnurlInvoice(l.NodeId, l.NodeMasterSeedBytes, amountMsats, metadata, l.ExpirySecs)
+	invoice, err := l.LightsparkClient.CreateLnurlInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
 	if err != nil {
 		return nil, err
 	}

@@ -211,15 +211,8 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 		return
 	}
 
-	masterSeedBytes, err := v.config.NodeMasterSeedBytes()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid master seed",
-		})
-	}
 	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
-	lsInvoice, err := lsClient.CreateLnurlInvoice(v.config.NodeUUID, &masterSeedBytes, int64(amountMsats), metadata, nil)
+	lsInvoice, err := lsClient.CreateLnurlInvoice(v.config.NodeUUID, int64(amountMsats), metadata, nil)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -298,21 +291,12 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	masterSeedBytes, err := v.config.NodeMasterSeedBytes()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid master seed",
-		})
-	}
-
 	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
 	expirySecs := int32(600) // Expire in 10 minutes
 	invoiceCreator := uma.LightsparkClientLnurlInvoiceCreator{
-		LightsparkClient:    *lsClient,
-		NodeId:              v.config.NodeUUID,
-		NodeMasterSeedBytes: &masterSeedBytes,
-		ExpirySecs:          &expirySecs,
+		LightsparkClient: *lsClient,
+		NodeId:           v.config.NodeUUID,
+		ExpirySecs:       &expirySecs,
 	}
 
 	conversionRate := int64(34_150)
@@ -325,7 +309,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		"USD",
 		conversionRate,
 		exchangeFees,
-		// TODO: Actually get the UTXOs from the request.
+		// TODO: Actually get the UTXOs and pubkey of the receiving node.
 		[]string{"abcdef12345"},
 		nil,
 		v.getUtxoCallback(context, txID),

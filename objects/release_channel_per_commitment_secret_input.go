@@ -5,4 +5,6 @@ type ReleaseChannelPerCommitmentSecretInput struct {
 	ChannelId string `json:"release_channel_per_commitment_secret_input_channel_id"`
 
 	PerCommitmentSecret string `json:"release_channel_per_commitment_secret_input_per_commitment_secret"`
+
+	PerCommitmentIndex int64 `json:"release_channel_per_commitment_secret_input_per_commitment_index"`
 }
