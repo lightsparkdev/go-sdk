@@ -313,6 +313,15 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	conversionRate := int64(34_150)
 	exchangeFees := int64(100_000)
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
+	receiverUtxos, err := lsClient.GetNodeChannelUtxos(v.config.NodeUUID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Error getting pre-screening utxos: %v", err),
+		})
+		return
+	}
+
 	response, err := uma.GetPayReqResponse(
 		request,
 		invoiceCreator,
@@ -320,8 +329,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		"USD",
 		conversionRate,
 		exchangeFees,
-		// TODO: Actually get the UTXOs and pubkey of the receiving node.
-		[]string{"abcdef12345"},
+		receiverUtxos,
 		nil,
 		v.getUtxoCallback(context, txID),
 	)

@@ -204,7 +204,7 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 	return walletAddress, nil
 }
 
-// In test mode, CreateTestModeInvoice generates a Lightning Invoice which can be paid by a local node.
+// CreateTestModeInvoice In test mode, generates a Lightning Invoice which can be paid by a local node.
 // This is useful for testing your integration with Lightspark.
 //
 // Args:
@@ -232,7 +232,7 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 	return &encodedInvoice, nil
 }
 
-// In test mode, CreateTestModePayment simulates a payment from other node to an invoice.
+// CreateTestModePayment In test mode, simulates a payment from other node to an invoice.
 // This is useful for testing your integration with Lightspark.
 //
 // Args:
@@ -652,25 +652,20 @@ func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvi
 // Args:
 // nodeId: The id of the node whose utxos will be fetched.
 func (client *LightsparkClient) GetNodeChannelUtxos(nodeId string) ([]string, error) {
-	variables := map[string]interface{}{
-		"node_id": nodeId,
-	}
-	response, err := client.Requester.ExecuteGraphql(scripts.NODE_CHANNEL_UTXO_QUERY, variables)
+	entity, err := client.GetEntity(nodeId)
 	if err != nil {
 		return nil, err
 	}
-	nodeEntity, ok := response["entity"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("error parsing node entity")
+	if entity == nil {
+		return nil, errors.New("node not found")
 	}
 
-	channels := nodeEntity["channels"].(map[string]interface{})["entities"].([]interface{})
-	var utxos []string
-	for _, channel := range channels {
-		fundingTransaction := channel.(map[string]interface{})["funding_transaction"].(map[string]interface{})
-		utxos = append(utxos, fundingTransaction["transaction_hash"].(string))
+	castNode, didCast := (*entity).(objects.LightsparkNode)
+	if !didCast {
+		return nil, errors.New("failed to cast entity to LightsparkNode")
 	}
-	return utxos, nil
+
+	return castNode.GetUmaPrescreeningUtxos(), nil
 }
 
 // GetEntity returns any `Entity`, identified by its unique ID.

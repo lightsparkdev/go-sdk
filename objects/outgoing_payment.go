@@ -51,8 +51,8 @@ type OutgoingPayment struct {
 	// FailureMessage If applicable, user-facing error message describing why the payment failed.
 	FailureMessage *RichText `json:"outgoing_payment_failure_message"`
 
-	// OutgoingHtlcs The outgoing htlcs initiated from the sender node which can be used in KYT payment registration.
-	OutgoingHtlcs *[]Htlc `json:"outgoing_payment_outgoing_htlcs"`
+	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
+	UmaPostTransactionData *[]PostTransactionData `json:"outgoing_payment_uma_post_transaction_data"`
 }
 
 const (
@@ -217,6 +217,7 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
                             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                         }
                     }
+                    lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
                     lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
                         __typename
                         secret_encrypted_value: encrypted_value
@@ -321,6 +322,7 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
                             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                         }
                     }
+                    lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
                 }
             }
         }
@@ -330,10 +332,10 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
         __typename
         rich_text_text: text
     }
-    outgoing_payment_outgoing_htlcs: outgoing_htlcs {
+    outgoing_payment_uma_post_transaction_data: uma_post_transaction_data {
         __typename
-        htlc_utxo: utxo
-        htlc_amount: amount {
+        post_transaction_data_utxo: utxo
+        post_transaction_data_amount: amount {
             __typename
             currency_amount_original_value: original_value
             currency_amount_original_unit: original_unit
@@ -487,8 +489,8 @@ type OutgoingPaymentJSON struct {
 	// FailureMessage If applicable, user-facing error message describing why the payment failed.
 	FailureMessage *RichText `json:"outgoing_payment_failure_message"`
 
-	// OutgoingHtlcs The outgoing htlcs initiated from the sender node which can be used in KYT payment registration.
-	OutgoingHtlcs *[]Htlc `json:"outgoing_payment_outgoing_htlcs"`
+	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
+	UmaPostTransactionData *[]PostTransactionData `json:"outgoing_payment_uma_post_transaction_data"`
 }
 
 func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
@@ -527,7 +529,7 @@ func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
 
 	data.FailureMessage = temp.FailureMessage
 
-	data.OutgoingHtlcs = temp.OutgoingHtlcs
+	data.UmaPostTransactionData = temp.UmaPostTransactionData
 
 	return nil
 }

@@ -60,6 +60,9 @@ type LightsparkNodeWithOSK struct {
 	// BlockchainBalance The details of the balance of this node on the Bitcoin Network.
 	BlockchainBalance *BlockchainBalance `json:"lightspark_node_with_o_s_k_blockchain_balance"`
 
+	// UmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
+	UmaPrescreeningUtxos []string `json:"lightspark_node_with_o_s_k_uma_prescreening_utxos"`
+
 	// EncryptedSigningPrivateKey The private key client is using to sign a GraphQL request which will be verified at server side.
 	EncryptedSigningPrivateKey *Secret `json:"lightspark_node_with_o_s_k_encrypted_signing_private_key"`
 }
@@ -164,6 +167,7 @@ fragment LightsparkNodeWithOSKFragment on LightsparkNodeWithOSK {
             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
         }
     }
+    lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
     lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
         __typename
         secret_encrypted_value: encrypted_value
@@ -206,6 +210,11 @@ func (obj LightsparkNodeWithOSK) GetRemoteBalance() *CurrencyAmount {
 // GetBlockchainBalance The details of the balance of this node on the Bitcoin Network.
 func (obj LightsparkNodeWithOSK) GetBlockchainBalance() *BlockchainBalance {
 	return obj.BlockchainBalance
+}
+
+// GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
+func (obj LightsparkNodeWithOSK) GetUmaPrescreeningUtxos() []string {
+	return obj.UmaPrescreeningUtxos
 }
 
 // GetAlias A name that identifies the node. It has no importance in terms of operating the node, it is just a way to identify and search for commercial services or popular nodes. This alias can be changed at any time by the node operator.

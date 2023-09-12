@@ -160,6 +160,7 @@ fragment InvoiceFragment on Invoice {
                         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                     }
                 }
+                lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
                 lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
                     __typename
                     secret_encrypted_value: encrypted_value
@@ -264,6 +265,7 @@ fragment InvoiceFragment on Invoice {
                         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                     }
                 }
+                lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
             }
         }
     }

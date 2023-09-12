@@ -39,8 +39,8 @@ type IncomingPayment struct {
 	// PaymentRequest The optional payment request for this incoming payment, which will be null if the payment is sent through keysend.
 	PaymentRequest *types.EntityWrapper `json:"incoming_payment_payment_request"`
 
-	// IncomingHtlcs The incoming htlcs to the destination node which can be used in KYT payment registration.
-	IncomingHtlcs *[]Htlc `json:"incoming_payment_incoming_htlcs"`
+	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
+	UmaPostTransactionData *[]PostTransactionData `json:"incoming_payment_uma_post_transaction_data"`
 }
 
 const (
@@ -67,10 +67,10 @@ fragment IncomingPaymentFragment on IncomingPayment {
     incoming_payment_payment_request: payment_request {
         id
     }
-    incoming_payment_incoming_htlcs: incoming_htlcs {
+    incoming_payment_uma_post_transaction_data: uma_post_transaction_data {
         __typename
-        htlc_utxo: utxo
-        htlc_amount: amount {
+        post_transaction_data_utxo: utxo
+        post_transaction_data_amount: amount {
             __typename
             currency_amount_original_value: original_value
             currency_amount_original_unit: original_unit

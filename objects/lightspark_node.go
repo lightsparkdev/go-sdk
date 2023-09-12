@@ -33,6 +33,9 @@ type LightsparkNode interface {
 
 	// GetBlockchainBalance The details of the balance of this node on the Bitcoin Network.
 	GetBlockchainBalance() *BlockchainBalance
+
+	// GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
+	GetUmaPrescreeningUtxos() []string
 }
 
 func LightsparkNodeUnmarshal(data map[string]interface{}) (LightsparkNode, error) {

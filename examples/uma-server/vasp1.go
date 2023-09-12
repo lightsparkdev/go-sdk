@@ -9,6 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/lightsparkdev/go-sdk/uma"
+	"github.com/lightsparkdev/go-sdk/utils"
 	"io"
 	"log"
 	"net/http"
@@ -243,7 +244,14 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 
 	payerInfo := getPayerInfo(initialRequestData.lnurlpResponse.RequiredPayerData)
 	trInfo := "Here is some fake travel rule info. It's up to you to actually implement this."
-	senderUtxos := []string{"abcdef12345"} // TODO: Actually implement this
+	senderUtxos, err := v.client.GetNodeChannelUtxos(v.config.NodeUUID)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to get prescreening UTXOs",
+		})
+		return
+	}
 	// This is the node pub key of the sender's node. In practice, you'd want to get this from the sender's node.
 	senderNodePubKey := "abcdef12345"
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
@@ -391,11 +399,21 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 
 	// In practice, you'd want to send the UTXOs to the receiver's UTXO callback URL here.
 	// For this demo, we'll just log them.
-	var utxos []string
-	for _, htlc := range *payment.OutgoingHtlcs {
-		utxos = append(utxos, htlc.Utxo)
+	var utxosWithAmounts []uma.UtxoWithAmount
+	for _, postTransactionData := range *payment.UmaPostTransactionData {
+		amountMilliSatoshi, err := utils.ValueMilliSatoshi(postTransactionData.Amount)
+		if err != nil {
+			continue
+		}
+		utxosWithAmounts = append(utxosWithAmounts, uma.UtxoWithAmount{
+			Utxo:   postTransactionData.Utxo,
+			Amount: amountMilliSatoshi,
+		})
 	}
-	log.Printf("Sending UTXOs to %s: %s", payReqData.utxoCallback, strings.Join(utxos, ", "))
+	utxosWithAmountsBytes, err := json.Marshal(utxosWithAmounts)
+	if err == nil {
+		log.Printf("Sending UTXOs to %s: %s", payReqData.utxoCallback, utxosWithAmountsBytes)
+	}
 
 	context.JSON(http.StatusOK, gin.H{
 		"didSucceed": payment.Status == objects.TransactionStatusSuccess,
@@ -453,8 +471,6 @@ func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
 
 	context.JSON(http.StatusOK, response)
 }
-
-// TODO: Add implementation for post-transaction hooks.
 
 type PayerInfo struct {
 	Name       *string `json:"name"`

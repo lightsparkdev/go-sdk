@@ -345,6 +345,7 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
                                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                             }
                         }
+                        lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
                         lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
                             __typename
                             secret_encrypted_value: encrypted_value
@@ -449,6 +450,7 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
                                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                             }
                         }
+                        lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
                     }
                 }
             }
@@ -820,10 +822,10 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                         incoming_payment_payment_request: payment_request {
                             id
                         }
-                        incoming_payment_incoming_htlcs: incoming_htlcs {
+                        incoming_payment_uma_post_transaction_data: uma_post_transaction_data {
                             __typename
-                            htlc_utxo: utxo
-                            htlc_amount: amount {
+                            post_transaction_data_utxo: utxo
+                            post_transaction_data_amount: amount {
                                 __typename
                                 currency_amount_original_value: original_value
                                 currency_amount_original_unit: original_unit
@@ -993,6 +995,7 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                                                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                                             }
                                         }
+                                        lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
                                         lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
                                             __typename
                                             secret_encrypted_value: encrypted_value
@@ -1097,6 +1100,7 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                                                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                                             }
                                         }
+                                        lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
                                     }
                                 }
                             }
@@ -1106,10 +1110,10 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                             __typename
                             rich_text_text: text
                         }
-                        outgoing_payment_outgoing_htlcs: outgoing_htlcs {
+                        outgoing_payment_uma_post_transaction_data: uma_post_transaction_data {
                             __typename
-                            htlc_utxo: utxo
-                            htlc_amount: amount {
+                            post_transaction_data_utxo: utxo
+                            post_transaction_data_amount: amount {
                                 __typename
                                 currency_amount_original_value: original_value
                                 currency_amount_original_unit: original_unit
@@ -1366,6 +1370,7 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
                                             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                                         }
                                     }
+                                    lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
                                     lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
                                         __typename
                                         secret_encrypted_value: encrypted_value
@@ -1470,6 +1475,7 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
                                             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                                         }
                                     }
+                                    lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
                                 }
                             }
                         }

@@ -59,6 +59,9 @@ type LightsparkNodeWithRemoteSigning struct {
 
 	// BlockchainBalance The details of the balance of this node on the Bitcoin Network.
 	BlockchainBalance *BlockchainBalance `json:"lightspark_node_with_remote_signing_blockchain_balance"`
+
+	// UmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
+	UmaPrescreeningUtxos []string `json:"lightspark_node_with_remote_signing_uma_prescreening_utxos"`
 }
 
 const (
@@ -161,6 +164,7 @@ fragment LightsparkNodeWithRemoteSigningFragment on LightsparkNodeWithRemoteSign
             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
         }
     }
+    lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
 }
 `
 )
@@ -198,6 +202,11 @@ func (obj LightsparkNodeWithRemoteSigning) GetRemoteBalance() *CurrencyAmount {
 // GetBlockchainBalance The details of the balance of this node on the Bitcoin Network.
 func (obj LightsparkNodeWithRemoteSigning) GetBlockchainBalance() *BlockchainBalance {
 	return obj.BlockchainBalance
+}
+
+// GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
+func (obj LightsparkNodeWithRemoteSigning) GetUmaPrescreeningUtxos() []string {
+	return obj.UmaPrescreeningUtxos
 }
 
 // GetAlias A name that identifies the node. It has no importance in terms of operating the node, it is just a way to identify and search for commercial services or popular nodes. This alias can be changed at any time by the node operator.

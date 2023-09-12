@@ -174,3 +174,13 @@ type PubKeyResponse struct {
 	// They can be safely cached until this expiration (or forever if null).
 	ExpirationTimestamp *int64 `json:"expirationTimestamp"`
 }
+
+// UtxoWithAmount is a pair of utxo and amount transferred over that corresponding channel.
+// It can be used to register payment for KYT.
+type UtxoWithAmount struct {
+	// Utxo The utxo of the channel over which the payment went through in the format of <transaction_hash>:<output_index>.
+	Utxo string `json:"utxo"`
+
+	// Amount The amount of funds transferred in the payment in mSats.
+	Amount int64 `json:"amountMsats"`
+}
