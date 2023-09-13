@@ -5,31 +5,31 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential types of transactions that can be associated with your Lightspark Node.
+// TransactionType This is an enum of the potential types of transactions that can be associated with your Lightspark Node.
 type TransactionType int
 
 const (
 	TransactionTypeUndefined TransactionType = iota
 
-	// Transactions initiated from a Lightspark node on Lightning Network.
+	// TransactionTypeOutgoingPayment Transactions initiated from a Lightspark node on Lightning Network.
 	TransactionTypeOutgoingPayment
-	// Transactions received by a Lightspark node on Lightning Network.
+	// TransactionTypeIncomingPayment Transactions received by a Lightspark node on Lightning Network.
 	TransactionTypeIncomingPayment
-	// Transactions that forwarded payments through Lightspark nodes on Lightning Network.
+	// TransactionTypeRouted Transactions that forwarded payments through Lightspark nodes on Lightning Network.
 	TransactionTypeRouted
-	// Transactions on the Bitcoin blockchain to withdraw funds from a Lightspark node to a Bitcoin wallet.
+	// TransactionTypeL1Withdraw Transactions on the Bitcoin blockchain to withdraw funds from a Lightspark node to a Bitcoin wallet.
 	TransactionTypeL1Withdraw
-	// Transactions on Bitcoin blockchain to fund a Lightspark node's wallet.
+	// TransactionTypeL1Deposit Transactions on Bitcoin blockchain to fund a Lightspark node's wallet.
 	TransactionTypeL1Deposit
-	// Transactions on Bitcoin blockchain to open a channel on Lightning Network funded by the local Lightspark node.
+	// TransactionTypeChannelOpen Transactions on Bitcoin blockchain to open a channel on Lightning Network funded by the local Lightspark node.
 	TransactionTypeChannelOpen
-	// Transactions on Bitcoin blockchain to close a channel on Lightning Network where the balances are allocated back to local and remote nodes.
+	// TransactionTypeChannelClose Transactions on Bitcoin blockchain to close a channel on Lightning Network where the balances are allocated back to local and remote nodes.
 	TransactionTypeChannelClose
-	// Transactions initiated from a Lightspark node on Lightning Network.
+	// TransactionTypePayment Transactions initiated from a Lightspark node on Lightning Network.
 	TransactionTypePayment
-	// Payment requests from a Lightspark node on Lightning Network
+	// TransactionTypePaymentRequest Payment requests from a Lightspark node on Lightning Network
 	TransactionTypePaymentRequest
-	// Transactions that forwarded payments through Lightspark nodes on Lightning Network.
+	// TransactionTypeRoute Transactions that forwarded payments through Lightspark nodes on Lightning Network.
 	TransactionTypeRoute
 )
 

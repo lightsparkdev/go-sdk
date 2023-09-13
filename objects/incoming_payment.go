@@ -9,38 +9,38 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// This object represents any payment sent to a Lightspark node on the Lightning Network. You can retrieve this object to receive payment related information about a specific payment received by a Lightspark node.
+// IncomingPayment This object represents any payment sent to a Lightspark node on the Lightning Network. You can retrieve this object to receive payment related information about a specific payment received by a Lightspark node.
 type IncomingPayment struct {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"incoming_payment_id"`
 
-	// The date and time when this transaction was initiated.
+	// CreatedAt The date and time when this transaction was initiated.
 	CreatedAt time.Time `json:"incoming_payment_created_at"`
 
-	// The date and time when the entity was last updated.
+	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"incoming_payment_updated_at"`
 
-	// The current status of this transaction.
+	// Status The current status of this transaction.
 	Status TransactionStatus `json:"incoming_payment_status"`
 
-	// The date and time when this transaction was completed or failed.
+	// ResolvedAt The date and time when this transaction was completed or failed.
 	ResolvedAt *time.Time `json:"incoming_payment_resolved_at"`
 
-	// The amount of money involved in this transaction.
+	// Amount The amount of money involved in this transaction.
 	Amount CurrencyAmount `json:"incoming_payment_amount"`
 
-	// The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+	// TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 	TransactionHash *string `json:"incoming_payment_transaction_hash"`
 
-	// If known, the Lightspark node this payment originated from.
-	Origin *types.EntityWrapper `json:"incoming_payment_origin"`
-
-	// The recipient Lightspark node this payment was sent to.
+	// Destination The recipient Lightspark node this payment was sent to.
 	Destination types.EntityWrapper `json:"incoming_payment_destination"`
 
-	// The optional payment request for this incoming payment, which will be null if the payment is sent through keysend.
+	// PaymentRequest The optional payment request for this incoming payment, which will be null if the payment is sent through keysend.
 	PaymentRequest *types.EntityWrapper `json:"incoming_payment_payment_request"`
+
+	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
+	UmaPostTransactionData *[]PostTransactionData `json:"incoming_payment_uma_post_transaction_data"`
 }
 
 const (
@@ -61,50 +61,59 @@ fragment IncomingPaymentFragment on IncomingPayment {
         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
     }
     incoming_payment_transaction_hash: transaction_hash
-    incoming_payment_origin: origin {
-        id
-    }
     incoming_payment_destination: destination {
         id
     }
     incoming_payment_payment_request: payment_request {
         id
     }
+    incoming_payment_uma_post_transaction_data: uma_post_transaction_data {
+        __typename
+        post_transaction_data_utxo: utxo
+        post_transaction_data_amount: amount {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+    }
 }
 `
 )
 
-// The current status of this transaction.
+// GetStatus The current status of this transaction.
 func (obj IncomingPayment) GetStatus() TransactionStatus {
 	return obj.Status
 }
 
-// The date and time when this transaction was completed or failed.
+// GetResolvedAt The date and time when this transaction was completed or failed.
 func (obj IncomingPayment) GetResolvedAt() *time.Time {
 	return obj.ResolvedAt
 }
 
-// The amount of money involved in this transaction.
+// GetAmount The amount of money involved in this transaction.
 func (obj IncomingPayment) GetAmount() CurrencyAmount {
 	return obj.Amount
 }
 
-// The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+// GetTransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 func (obj IncomingPayment) GetTransactionHash() *string {
 	return obj.TransactionHash
 }
 
-// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj IncomingPayment) GetId() string {
 	return obj.Id
 }
 
-// The date and time when the entity was first created.
+// GetCreatedAt The date and time when the entity was first created.
 func (obj IncomingPayment) GetCreatedAt() time.Time {
 	return obj.CreatedAt
 }
 
-// The date and time when the entity was last updated.
+// GetUpdatedAt The date and time when the entity was last updated.
 func (obj IncomingPayment) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }

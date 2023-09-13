@@ -6,23 +6,24 @@ import (
 	"fmt"
 )
 
+// OnChainTransaction This object represents an L1 transaction that occurred on the Bitcoin Network. You can retrieve this object to receive information about a specific on-chain transaction made on the Lightning Network associated with your Lightspark Node.
 type OnChainTransaction interface {
 	Transaction
 	Entity
 
-	// The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
+	// GetFees The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
 	GetFees() *CurrencyAmount
 
-	// The hash of the block that included this transaction. This will be null for unconfirmed transactions.
+	// GetBlockHash The hash of the block that included this transaction. This will be null for unconfirmed transactions.
 	GetBlockHash() *string
 
-	// The height of the block that included this transaction. This will be zero for unconfirmed transactions.
+	// GetBlockHeight The height of the block that included this transaction. This will be zero for unconfirmed transactions.
 	GetBlockHeight() int64
 
-	// The Bitcoin blockchain addresses this transaction was sent to.
+	// GetDestinationAddresses The Bitcoin blockchain addresses this transaction was sent to.
 	GetDestinationAddresses() []string
 
-	// The number of blockchain confirmations for this transaction in real time.
+	// GetNumConfirmations The number of blockchain confirmations for this transaction in real time.
 	GetNumConfirmations() *int64
 }
 

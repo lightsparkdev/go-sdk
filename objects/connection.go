@@ -8,10 +8,10 @@ import (
 
 type Connection interface {
 
-	// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	// GetCount The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 	GetCount() int64
 
-	// An object that holds pagination information about the objects in this connection.
+	// GetPageInfo An object that holds pagination information about the objects in this connection.
 	GetPageInfo() PageInfo
 }
 
@@ -80,6 +80,18 @@ func ConnectionUnmarshal(data map[string]interface{}) (Connection, error) {
 			return nil, err
 		}
 		return outgoingPaymentToAttemptsConnection, nil
+	case "WalletToPaymentRequestsConnection":
+		var walletToPaymentRequestsConnection WalletToPaymentRequestsConnection
+		if err := json.Unmarshal(dataJSON, &walletToPaymentRequestsConnection); err != nil {
+			return nil, err
+		}
+		return walletToPaymentRequestsConnection, nil
+	case "WalletToTransactionsConnection":
+		var walletToTransactionsConnection WalletToTransactionsConnection
+		if err := json.Unmarshal(dataJSON, &walletToTransactionsConnection); err != nil {
+			return nil, err
+		}
+		return walletToTransactionsConnection, nil
 
 	default:
 		return nil, fmt.Errorf("unknown Connection type: %s", data["__typename"])

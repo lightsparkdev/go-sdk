@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// LightningTransaction This is an object representing a transaction made over the Lightning Network. You can retrieve this object to receive information about a specific transaction made over Lightning for a Lightspark node.
 type LightningTransaction interface {
 	Transaction
 	Entity

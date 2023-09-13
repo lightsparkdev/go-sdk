@@ -5,7 +5,7 @@ import "github.com/lightsparkdev/go-sdk/types"
 
 type SendPaymentOutput struct {
 
-	// The payment that has been sent.
+	// Payment The payment that has been sent.
 	Payment types.EntityWrapper `json:"send_payment_output_payment"`
 }
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential states that a payment request on the Lightning Network can take.
+// PaymentRequestStatus This is an enum of the potential states that a payment request on the Lightning Network can take.
 type PaymentRequestStatus int
 
 const (

@@ -4,16 +4,16 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"github.com/lightsparkdev/go-sdk/crypto"
 
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
 	"github.com/lightsparkdev/go-sdk/scripts"
-	"github.com/lightsparkdev/go-sdk/utils"
 )
 
 type LightsparkClient struct {
 	Requester *requester.Requester
-	nodeKeys  map[string][]byte
+	nodeKeys  map[string]SigningKeyLoader
 }
 
 // NewLightsparkClient creates a new LightsparkClient instance
@@ -26,12 +26,12 @@ type LightsparkClient struct {
 func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
 	baseUrl *string) *LightsparkClient {
 
-	requester := &requester.Requester{
+	gqlRequester := &requester.Requester{
 		ApiTokenClientId:     apiTokenClientId,
 		ApiTokenClientSecret: apiTokenClientSecret,
 		BaseUrl:              baseUrl,
 	}
-	return &LightsparkClient{Requester: requester, nodeKeys: map[string][]byte{}}
+	return &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]SigningKeyLoader{}}
 }
 
 // CreateApiToken creates a new API token that can be used to authenticate requests
@@ -121,17 +121,17 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 //
 // Args:
 //
-//	nodeId: the id of the node that should be paid
-//	amountMsats: the amount of the invoice in millisatoshis
-//	metadata: the metadata to include with the invoice
-//	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day).
+//		nodeId: the id of the node that should be paid
+//		amountMsats: the amount of the invoice in millisatoshis
+//		metadata: the metadata to include with the invoice
+//	 expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day)
 func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats int64,
 	metadata string, expirySecs *int32) (*objects.Invoice, error) {
 
 	variables := map[string]interface{}{
 		"amount_msats":  amountMsats,
 		"node_id":       nodeId,
-		"metadata_hash": utils.Sha256HexString(metadata),
+		"metadata_hash": crypto.Sha256HexString(metadata),
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
@@ -142,6 +142,43 @@ func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats in
 	}
 
 	output := response["create_lnurl_invoice"].(map[string]interface{})
+	var invoice objects.Invoice
+	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invoice")
+	}
+	json.Unmarshal(invoiceJson, &invoice)
+	return &invoice, nil
+}
+
+// CreateUmaInvoice creates a new invoice for the UMA protocol. The metadata is hashed and included in the invoice.
+// This API generates a Lightning Invoice (follows the Bolt 11 specification) to request a payment
+// from another Lightning Node. This should only be used for generating invoices for UMA, with `create_invoice`
+// preferred in the general case.
+//
+// Args:
+//
+//		nodeId: the id of the node that should be paid
+//		amountMsats: the amount of the invoice in millisatoshis
+//		metadata: the metadata to include with the invoice
+//	 	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day)
+func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int64,
+	metadata string, expirySecs *int32) (*objects.Invoice, error) {
+
+	variables := map[string]interface{}{
+		"amount_msats":  amountMsats,
+		"node_id":       nodeId,
+		"metadata_hash": crypto.Sha256HexString(metadata),
+	}
+	if expirySecs != nil {
+		variables["expiry_secs"] = expirySecs
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_UMA_INVOICE_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_uma_invoice"].(map[string]interface{})
 	var invoice objects.Invoice
 	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
 	if err != nil {
@@ -168,7 +205,7 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 	return walletAddress, nil
 }
 
-// In test mode, CreateTestModeInvoice generates a Lightning Invoice which can be paid by a local node.
+// CreateTestModeInvoice In test mode, generates a Lightning Invoice which can be paid by a local node.
 // This is useful for testing your integration with Lightspark.
 //
 // Args:
@@ -196,7 +233,7 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 	return &encodedInvoice, nil
 }
 
-// In test mode, CreateTestModePayment simulates a payment from other node to an invoice.
+// CreateTestModePayment In test mode, simulates a payment from other node to an invoice.
 // This is useful for testing your integration with Lightspark.
 //
 // Args:
@@ -281,14 +318,12 @@ func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 		"node_id":     nodeId,
 		"amount_sats": amountSats,
 	}
-
 	signingKey, err := client.getNodeSigningKey(nodeId)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION,
-		variables, signingKey)
+	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -432,14 +467,12 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 	if amountMsats != nil {
 		variables["amount_msats"] = amountMsats
 	}
-
 	signingKey, err := client.getNodeSigningKey(nodeId)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.PAY_INVOICE_MUTATION,
-		variables, signingKey)
+	response, err := client.Requester.ExecuteGraphql(scripts.PAY_INVOICE_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -454,35 +487,48 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 	return &payment, nil
 }
 
-// RecoverNodeSigningKey recovers the signing key of a node, given its node id and password.
+// PayUmaInvoice sends an UMA payment to a node on the Lightning Network, based on the invoice
+// (as defined by the BOLT11 specification) that you provide.
+// This should only be used for paying UMA invoices, with `pay_invoice` preferred in the general case.
 //
 // Args:
 //
-//	nodeId: The node id of the node whose signing key you want to recover.
-//	nodePassword: The password of the node whose signing key you want to recover.
-func (client *LightsparkClient) RecoverNodeSigningKey(nodeId string,
-	nodePassword string) ([]byte, error) {
+//	nodeId: The node from where you want to send the payment.
+//	encodedInvoice: The invoice you want to pay (as defined by the BOLT11 standard).
+//	timeoutSecs: The number of seconds that you are willing to wait for the payment to complete.
+//	maximumFeesMsats: The maximum amount of fees that you are willing to pay for this payment, expressed in mSATs.
+//	amountMsats: The amount you will pay for this invoice, expressed in msats.
+//		It should ONLY be set when the invoice amount is zero.
+func (client *LightsparkClient) PayUmaInvoice(nodeId string, encodedInvoice string,
+	timeoutSecs int, maximumFeesMsats int64, amountMsats *int64) (*objects.OutgoingPayment, error) {
 
 	variables := map[string]interface{}{
-		"node_id": nodeId,
+		"node_id":            nodeId,
+		"encoded_invoice":    encodedInvoice,
+		"timeout_secs":       timeoutSecs,
+		"maximum_fees_msats": maximumFeesMsats,
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.RECOVER_NODE_SIGNING_KEY_QUERY, variables, nil)
+	if amountMsats != nil {
+		variables["amount_msats"] = amountMsats
+	}
+	signingKey, err := client.getNodeSigningKey(nodeId)
 	if err != nil {
 		return nil, err
 	}
 
-	output := response["entity"].(map[string]interface{})
-	encryptedKeyOutput := output["encrypted_signing_private_key"].(map[string]interface{})
-	encryptedKey := encryptedKeyOutput["encrypted_value"].(string)
-	cipher := encryptedKeyOutput["cipher"].(string)
-
-	signingKey, err := utils.DecryptPrivateKey(cipher, encryptedKey, nodePassword)
+	response, err := client.Requester.ExecuteGraphql(scripts.PAY_UMA_INVOICE_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
-	client.LoadNodeSigningKey(nodeId, signingKey)
 
-	return signingKey, nil
+	output := response["pay_uma_invoice"].(map[string]interface{})
+	var payment objects.OutgoingPayment
+	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing payment")
+	}
+	json.Unmarshal(paymentJson, &payment)
+	return &payment, nil
 }
 
 // RequestWithdrawal withdraws funds from the account and sends it to the requested
@@ -515,8 +561,7 @@ func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int6
 		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.REQUEST_WITHDRAWAL_MUTATION,
-		variables, signingKey)
+	response, err := client.Requester.ExecuteGraphql(scripts.REQUEST_WITHDRAWAL_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -551,14 +596,12 @@ func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey 
 		"timeout_secs":           timeoutSecs,
 		"maximum_fees_msats":     maximumFeesMsats,
 	}
-
 	signingKey, err := client.getNodeSigningKey(nodeId)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SEND_PAYMENT_MUTATION,
-		variables, signingKey)
+	response, err := client.Requester.ExecuteGraphql(scripts.SEND_PAYMENT_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -573,29 +616,78 @@ func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey 
 	return &payment, nil
 }
 
-// ScreenBitcoinAddresses screens a list of bitcoin addresses against a given provider.
+// ScreenNode performs sanction screening on a lightning node against a given provider.
+// It should only be called if you have a Chainalysis API Key in settings.
 //
 // Args:
 //
-//	provider: The provider that you want to use to screen the addresses.
-//	addresses: The list of addresses that you want to screen.
-func (client *LightsparkClient) ScreenBitcoinAddresses(
-	provider objects.CryptoSanctionsScreeningProvider, addresses []string) (*[]objects.RiskRating, error) {
+//	provider: The provider that you want to use to perform the screening.
+//	nodePubkey: The public key of the node that needs to be screened.
+func (client *LightsparkClient) ScreenNode(
+	provider objects.ComplianceProvider, nodePubkey string) (*objects.RiskRating, error) {
 
-	variables := map[string]interface{}{"provider": provider, "addresses": addresses}
-	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_BITCOIN_ADDRESSES_MUTATION, variables, nil)
+	variables := map[string]interface{}{"provider": provider, "node_pubkey": nodePubkey}
+	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_NODE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	output := response["screen_bitcoin_addresses"].(map[string]interface{})
-	var ratings []objects.RiskRating
-	ratingsJson, err := json.Marshal(output["ratings"].([]interface{}))
+	output := response["screen_node"].(map[string]interface{})
+	ratingJson, err := json.Marshal(output["rating"].(string))
 	if err != nil {
-		return nil, errors.New("error parsing ratings")
+		return nil, errors.New("error parsing rating")
 	}
-	json.Unmarshal(ratingsJson, &ratings)
-	return &ratings, nil
+	var rating objects.RiskRating
+	json.Unmarshal(ratingJson, &rating)
+	return &rating, nil
+}
+
+// RegisterPayment registers a succeeded payment with a compliance provider.
+// It should only be called if you have a Chainalysis API Key in settings.
+//
+// Args:
+//
+//	provider: The provider that you want to use to register the payment.
+//	paymentId: The unique id of the payment.
+//	nodePubkey: The public key of the counterparty node which is the recipient
+//	            node if the payment is an outgoing payment and the sender node
+//	            if the payment is an incoming payment.
+func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvider,
+	paymentId string, nodePubkey string, direction objects.PaymentDirection) error {
+
+	variables := map[string]interface{}{
+		"provider":    provider,
+		"payment_id":  paymentId,
+		"node_pubkey": nodePubkey,
+		"direction":   direction,
+	}
+	_, err := client.Requester.ExecuteGraphql(scripts.REGISTER_PAYMENT_MUTATION, variables, nil)
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
+
+// GetNodeChannelUtxos returns the utxos of all channels of a node.
+//
+// Args:
+// nodeId: The id of the node whose utxos will be fetched.
+func (client *LightsparkClient) GetNodeChannelUtxos(nodeId string) ([]string, error) {
+	entity, err := client.GetEntity(nodeId)
+	if err != nil {
+		return nil, err
+	}
+	if entity == nil {
+		return nil, errors.New("node not found")
+	}
+
+	castNode, didCast := (*entity).(objects.LightsparkNode)
+	if !didCast {
+		return nil, errors.New("failed to cast entity to LightsparkNode")
+	}
+
+	return castNode.GetUmaPrescreeningUtxos(), nil
 }
 
 // GetEntity returns any `Entity`, identified by its unique ID.
@@ -637,9 +729,9 @@ func (client *LightsparkClient) ExecuteGraphqlRequest(document string,
 // Args:
 //
 //	nodeId: The ID of the node.
-//	signingKey: The signing key of the node.
-func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, signingKey []byte) {
-	client.nodeKeys[nodeId] = signingKey
+//	loader: The SigningKeyLoader that can load the node's key.
+func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, loader SigningKeyLoader) {
+	client.nodeKeys[nodeId] = loader
 }
 
 // getNodeSigningKey returns the signing key of a node.
@@ -647,10 +739,14 @@ func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, signingKey []b
 // Args:
 //
 //	nodeId: The ID of the node.
-func (client *LightsparkClient) getNodeSigningKey(nodeId string) ([]byte, error) {
-	nodeKey, ok := client.nodeKeys[nodeId]
+func (client *LightsparkClient) getNodeSigningKey(nodeId string) (requester.SigningKey, error) {
+	loader, ok := client.nodeKeys[nodeId]
 	if !ok {
-		return nil, errors.New("we did not find the signing key for node. Please call recover_node_signing_key")
+		return nil, errors.New("we did not find the signing key for node. Please call LoadNodeSigningKey first")
+	}
+	nodeKey, err := loader.LoadSigningKey(*client.Requester)
+	if err != nil {
+		return nil, err
 	}
 	return nodeKey, nil
 }

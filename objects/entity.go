@@ -7,15 +7,16 @@ import (
 	"time"
 )
 
+// Entity This interface is used by all the entities in the Lightspark system. It defines a few core fields that are available everywhere. Any object that implements this interface can be queried using the `entity` query and its ID.
 type Entity interface {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	GetId() string
 
-	// The date and time when the entity was first created.
+	// GetCreatedAt The date and time when the entity was first created.
 	GetCreatedAt() time.Time
 
-	// The date and time when the entity was last updated.
+	// GetUpdatedAt The date and time when the entity was last updated.
 	GetUpdatedAt() time.Time
 }
 
@@ -96,12 +97,18 @@ func EntityUnmarshal(data map[string]interface{}) (Entity, error) {
 			return nil, err
 		}
 		return invoice, nil
-	case "LightsparkNode":
-		var lightsparkNode LightsparkNode
-		if err := json.Unmarshal(dataJSON, &lightsparkNode); err != nil {
+	case "LightsparkNodeWithOSK":
+		var lightsparkNodeWithOSK LightsparkNodeWithOSK
+		if err := json.Unmarshal(dataJSON, &lightsparkNodeWithOSK); err != nil {
 			return nil, err
 		}
-		return lightsparkNode, nil
+		return lightsparkNodeWithOSK, nil
+	case "LightsparkNodeWithRemoteSigning":
+		var lightsparkNodeWithRemoteSigning LightsparkNodeWithRemoteSigning
+		if err := json.Unmarshal(dataJSON, &lightsparkNodeWithRemoteSigning); err != nil {
+			return nil, err
+		}
+		return lightsparkNodeWithRemoteSigning, nil
 	case "OutgoingPayment":
 		var outgoingPayment OutgoingPayment
 		if err := json.Unmarshal(dataJSON, &outgoingPayment); err != nil {
@@ -120,6 +127,18 @@ func EntityUnmarshal(data map[string]interface{}) (Entity, error) {
 			return nil, err
 		}
 		return routingTransaction, nil
+	case "Signable":
+		var signable Signable
+		if err := json.Unmarshal(dataJSON, &signable); err != nil {
+			return nil, err
+		}
+		return signable, nil
+	case "SignablePayload":
+		var signablePayload SignablePayload
+		if err := json.Unmarshal(dataJSON, &signablePayload); err != nil {
+			return nil, err
+		}
+		return signablePayload, nil
 	case "Wallet":
 		var wallet Wallet
 		if err := json.Unmarshal(dataJSON, &wallet); err != nil {

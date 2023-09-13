@@ -1,16 +1,16 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-// The connection from outgoing payment to all attempts.
+// OutgoingPaymentToAttemptsConnection The connection from outgoing payment to all attempts.
 type OutgoingPaymentToAttemptsConnection struct {
 
-	// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 	Count int64 `json:"outgoing_payment_to_attempts_connection_count"`
 
-	// An object that holds pagination information about the objects in this connection.
+	// PageInfo An object that holds pagination information about the objects in this connection.
 	PageInfo PageInfo `json:"outgoing_payment_to_attempts_connection_page_info"`
 
-	// The attempts for the current page of this connection.
+	// Entities The attempts for the current page of this connection.
 	Entities []OutgoingPaymentAttempt `json:"outgoing_payment_to_attempts_connection_entities"`
 }
 
@@ -33,12 +33,12 @@ fragment OutgoingPaymentToAttemptsConnectionFragment on OutgoingPaymentToAttempt
 `
 )
 
-// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+// GetCount The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 func (obj OutgoingPaymentToAttemptsConnection) GetCount() int64 {
 	return obj.Count
 }
 
-// An object that holds pagination information about the objects in this connection.
+// GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj OutgoingPaymentToAttemptsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
 }

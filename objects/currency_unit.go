@@ -5,25 +5,25 @@ import (
 	"encoding/json"
 )
 
-// This enum identifies the unit of currency associated with a CurrencyAmount.
+// CurrencyUnit This enum identifies the unit of currency associated with a CurrencyAmount.
 type CurrencyUnit int
 
 const (
 	CurrencyUnitUndefined CurrencyUnit = iota
 
-	// Bitcoin is the cryptocurrency native to the Bitcoin network. It is used as the native medium for value transfer for the Lightning Network.
+	// CurrencyUnitBitcoin Bitcoin is the cryptocurrency native to the Bitcoin network. It is used as the native medium for value transfer for the Lightning Network.
 	CurrencyUnitBitcoin
-	// 0.00000001 (10e-8) Bitcoin or one hundred millionth of a Bitcoin. This is the unit most commonly used in Lightning transactions.
+	// CurrencyUnitSatoshi 0.00000001 (10e-8) Bitcoin or one hundred millionth of a Bitcoin. This is the unit most commonly used in Lightning transactions.
 	CurrencyUnitSatoshi
-	// 0.001 Satoshi, or 10e-11 Bitcoin. We recommend using the Satoshi unit instead when possible.
+	// CurrencyUnitMillisatoshi 0.001 Satoshi, or 10e-11 Bitcoin. We recommend using the Satoshi unit instead when possible.
 	CurrencyUnitMillisatoshi
-	// United States Dollar.
+	// CurrencyUnitUsd United States Dollar.
 	CurrencyUnitUsd
-	// 0.000000001 (10e-9) Bitcoin or a billionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
+	// CurrencyUnitNanobitcoin 0.000000001 (10e-9) Bitcoin or a billionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
 	CurrencyUnitNanobitcoin
-	// 0.000001 (10e-6) Bitcoin or a millionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
+	// CurrencyUnitMicrobitcoin 0.000001 (10e-6) Bitcoin or a millionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
 	CurrencyUnitMicrobitcoin
-	// 0.001 (10e-3) Bitcoin or a thousandth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
+	// CurrencyUnitMillibitcoin 0.001 (10e-3) Bitcoin or a thousandth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
 	CurrencyUnitMillibitcoin
 )
 

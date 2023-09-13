@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of the potential types of addresses that a node on the Lightning Network can have.
+// NodeAddressType This is an enum of the potential types of addresses that a node on the Lightning Network can have.
 type NodeAddressType int
 
 const (

@@ -3,10 +3,10 @@ package objects
 
 type CreateApiTokenOutput struct {
 
-	// The API Token that has been created.
+	// ApiToken The API Token that has been created.
 	ApiToken ApiToken `json:"create_api_token_output_api_token"`
 
-	// The secret that should be used to authenticate against our API.
+	// ClientSecret The secret that should be used to authenticate against our API.
 	// This secret is not stored and will never be available again after this. You must keep this secret secure as it grants access to your account.
 	ClientSecret string `json:"create_api_token_output_client_secret"`
 }

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-// This is an enum of all potential statuses of a payment attempt made from a Lightspark Node.
+// OutgoingPaymentAttemptStatus This is an enum of all potential statuses of a payment attempt made from a Lightspark Node.
 type OutgoingPaymentAttemptStatus int
 
 const (

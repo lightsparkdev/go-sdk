@@ -7,43 +7,43 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// This object represents a transaction that was forwarded through a Lightspark node on the Lightning Network, i.e., a routed transaction. You can retrieve this object to receive information about any transaction routed through your Lightspark Node.
+// RoutingTransaction This object represents a transaction that was forwarded through a Lightspark node on the Lightning Network, i.e., a routed transaction. You can retrieve this object to receive information about any transaction routed through your Lightspark Node.
 type RoutingTransaction struct {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"routing_transaction_id"`
 
-	// The date and time when this transaction was initiated.
+	// CreatedAt The date and time when this transaction was initiated.
 	CreatedAt time.Time `json:"routing_transaction_created_at"`
 
-	// The date and time when the entity was last updated.
+	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"routing_transaction_updated_at"`
 
-	// The current status of this transaction.
+	// Status The current status of this transaction.
 	Status TransactionStatus `json:"routing_transaction_status"`
 
-	// The date and time when this transaction was completed or failed.
+	// ResolvedAt The date and time when this transaction was completed or failed.
 	ResolvedAt *time.Time `json:"routing_transaction_resolved_at"`
 
-	// The amount of money involved in this transaction.
+	// Amount The amount of money involved in this transaction.
 	Amount CurrencyAmount `json:"routing_transaction_amount"`
 
-	// The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+	// TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 	TransactionHash *string `json:"routing_transaction_transaction_hash"`
 
-	// If known, the channel this transaction was received from.
+	// IncomingChannel If known, the channel this transaction was received from.
 	IncomingChannel *types.EntityWrapper `json:"routing_transaction_incoming_channel"`
 
-	// If known, the channel this transaction was forwarded to.
+	// OutgoingChannel If known, the channel this transaction was forwarded to.
 	OutgoingChannel *types.EntityWrapper `json:"routing_transaction_outgoing_channel"`
 
-	// The fees collected by the node when routing this transaction. We subtract the outgoing amount to the incoming amount to determine how much fees were collected.
+	// Fees The fees collected by the node when routing this transaction. We subtract the outgoing amount to the incoming amount to determine how much fees were collected.
 	Fees *CurrencyAmount `json:"routing_transaction_fees"`
 
-	// If applicable, user-facing error message describing why the routing failed.
+	// FailureMessage If applicable, user-facing error message describing why the routing failed.
 	FailureMessage *RichText `json:"routing_transaction_failure_message"`
 
-	// If applicable, the reason why the routing failed.
+	// FailureReason If applicable, the reason why the routing failed.
 	FailureReason *RoutingTransactionFailureReason `json:"routing_transaction_failure_reason"`
 }
 
@@ -88,37 +88,37 @@ fragment RoutingTransactionFragment on RoutingTransaction {
 `
 )
 
-// The current status of this transaction.
+// GetStatus The current status of this transaction.
 func (obj RoutingTransaction) GetStatus() TransactionStatus {
 	return obj.Status
 }
 
-// The date and time when this transaction was completed or failed.
+// GetResolvedAt The date and time when this transaction was completed or failed.
 func (obj RoutingTransaction) GetResolvedAt() *time.Time {
 	return obj.ResolvedAt
 }
 
-// The amount of money involved in this transaction.
+// GetAmount The amount of money involved in this transaction.
 func (obj RoutingTransaction) GetAmount() CurrencyAmount {
 	return obj.Amount
 }
 
-// The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+// GetTransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 func (obj RoutingTransaction) GetTransactionHash() *string {
 	return obj.TransactionHash
 }
 
-// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj RoutingTransaction) GetId() string {
 	return obj.Id
 }
 
-// The date and time when the entity was first created.
+// GetCreatedAt The date and time when the entity was first created.
 func (obj RoutingTransaction) GetCreatedAt() time.Time {
 	return obj.CreatedAt
 }
 
-// The date and time when the entity was last updated.
+// GetUpdatedAt The date and time when the entity was last updated.
 func (obj RoutingTransaction) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }

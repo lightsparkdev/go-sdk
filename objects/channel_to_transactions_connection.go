@@ -3,16 +3,16 @@ package objects
 
 type ChannelToTransactionsConnection struct {
 
-	// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 	Count int64 `json:"channel_to_transactions_connection_count"`
 
-	// The average fee for the transactions that transited through this channel, according to the filters and constraints of the connection.
+	// AverageFee The average fee for the transactions that transited through this channel, according to the filters and constraints of the connection.
 	AverageFee *CurrencyAmount `json:"channel_to_transactions_connection_average_fee"`
 
-	// The total amount transacted for the transactions that transited through this channel, according to the filters and constraints of the connection.
+	// TotalAmountTransacted The total amount transacted for the transactions that transited through this channel, according to the filters and constraints of the connection.
 	TotalAmountTransacted *CurrencyAmount `json:"channel_to_transactions_connection_total_amount_transacted"`
 
-	// The total amount of fees for the transactions that transited through this channel, according to the filters and constraints of the connection.
+	// TotalFees The total amount of fees for the transactions that transited through this channel, according to the filters and constraints of the connection.
 	TotalFees *CurrencyAmount `json:"channel_to_transactions_connection_total_fees"`
 }
 

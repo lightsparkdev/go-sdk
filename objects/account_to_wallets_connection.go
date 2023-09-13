@@ -3,13 +3,13 @@ package objects
 
 type AccountToWalletsConnection struct {
 
-	// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 	Count int64 `json:"account_to_wallets_connection_count"`
 
-	// An object that holds pagination information about the objects in this connection.
+	// PageInfo An object that holds pagination information about the objects in this connection.
 	PageInfo PageInfo `json:"account_to_wallets_connection_page_info"`
 
-	// The wallets for the current page of this connection.
+	// Entities The wallets for the current page of this connection.
 	Entities []Wallet `json:"account_to_wallets_connection_entities"`
 }
 
@@ -32,12 +32,12 @@ fragment AccountToWalletsConnectionFragment on AccountToWalletsConnection {
 `
 )
 
-// The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+// GetCount The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 func (obj AccountToWalletsConnection) GetCount() int64 {
 	return obj.Count
 }
 
-// An object that holds pagination information about the objects in this connection.
+// GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj AccountToWalletsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
 }

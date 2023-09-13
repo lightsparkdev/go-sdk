@@ -16,7 +16,7 @@ mutation CreateInvoice(
         amount_msats: $amount_msats
         memo: $memo
         invoice_type: $invoice_type
-        expiry_secs: $expiry_secs
+		expiry_secs: $expiry_secs
     }) {
         invoice {
             ...InvoiceFragment

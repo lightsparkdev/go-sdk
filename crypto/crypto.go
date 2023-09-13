@@ -1,44 +1,20 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
-package utils
+package crypto
 
 import (
-	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"golang.org/x/crypto/pbkdf2"
 
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
-	"golang.org/x/crypto/pbkdf2"
 )
 
 const KEY_LEN = 32
-
-func SignPayload(payload []byte, signingKey []byte) (string, error) {
-	privateKey, err := x509.ParsePKCS8PrivateKey(signingKey)
-	if err != nil {
-		return "", err
-	}
-	rsaKey, ok := privateKey.(*rsa.PrivateKey)
-	if !ok {
-		return "", errors.New("private key is not an RSA key")
-	}
-
-	hashed := sha256.Sum256(payload)
-	signature, err := rsa.SignPSS(rand.Reader, rsaKey, crypto.SHA256, hashed[:], nil)
-
-	if err != nil {
-		return "", err
-	}
-
-	return base64.StdEncoding.EncodeToString(signature), nil
-}
 
 func DecryptPrivateKey(cipherVersion string, encryptedValue string,
 	password string) ([]byte, error) {
@@ -105,6 +81,29 @@ func Sha256HexString(str string) string {
 	return hex.EncodeToString(hash[:])
 }
 
+func DerivePublicKey(seedHexString string, network lightspark_crypto.BitcoinNetwork, derivationPath string) (string, error) {
+	seedBytes, err := hex.DecodeString(seedHexString)
+	if err != nil {
+		return "", err
+	}
+
+	return lightspark_crypto.DerivePublicKey(seedBytes, network, derivationPath)
+}
+
+func ECDH(seedBytes []byte, network lightspark_crypto.BitcoinNetwork, otherPubKey string) (string, error) {
+	otherPubKeyBytes, err := hex.DecodeString(otherPubKey)
+	if err != nil {
+		return "", err
+	}
+
+	secretBytes, err := lightspark_crypto.Ecdh(seedBytes, network, otherPubKeyBytes)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(secretBytes), nil
+}
+
 func deriveKey(password []byte, salt []byte, iterations int) []byte {
 	return pbkdf2.Key(password, salt, iterations, 32, sha256.New)
 }
@@ -161,13 +160,4 @@ func pkcs7Unpad(data []byte) ([]byte, error) {
 		}
 	}
 	return data[:len(data)-paddingLength], nil
-}
-
-func DerivePublicKey(seedHexString string, derivationPath string) (string, error) {
-	seedBytes, err := hex.DecodeString(seedHexString)
-	if err != nil {
-		return "", err
-	}
-
-	return lightspark_crypto.DerivePublicKey(seedBytes, derivationPath)
 }

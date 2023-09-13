@@ -38,8 +38,11 @@ const (
         ... on Invoice {
             ...InvoiceFragment
         }
-        ... on LightsparkNode {
-            ...LightsparkNodeFragment
+        ... on LightsparkNodeWithOSK {
+            ...LightsparkNodeWithOSKFragment
+        }
+        ... on LightsparkNodeWithRemoteSigning {
+            ...LightsparkNodeWithRemoteSigningFragment
         }
         ... on OutgoingPayment {
             ...OutgoingPaymentFragment
@@ -49,6 +52,12 @@ const (
         }
         ... on RoutingTransaction {
             ...RoutingTransactionFragment
+        }
+        ... on Signable {
+            ...SignableFragment
+        }
+        ... on SignablePayload {
+            ...SignablePayloadFragment
         }
         ... on Wallet {
             ...WalletFragment
@@ -72,10 +81,13 @@ const (
 		IncomingPaymentFragment +
 		IncomingPaymentAttemptFragment +
 		InvoiceFragment +
-		LightsparkNodeFragment +
+		LightsparkNodeWithOSKFragment +
+		LightsparkNodeWithRemoteSigningFragment +
 		OutgoingPaymentFragment +
 		OutgoingPaymentAttemptFragment +
 		RoutingTransactionFragment +
+		SignableFragment +
+		SignablePayloadFragment +
 		WalletFragment +
 		WithdrawalFragment +
 		WithdrawalRequestFragment

@@ -6,13 +6,14 @@ import (
 	"fmt"
 )
 
+// PaymentRequest This object contains information related to a payment request generated or received by a LightsparkNode. You can retrieve this object to receive payment information about a specific invoice.
 type PaymentRequest interface {
 	Entity
 
-	// The details of the payment request.
+	// GetData The details of the payment request.
 	GetData() PaymentRequestData
 
-	// The status of the payment request.
+	// GetStatus The status of the payment request.
 	GetStatus() PaymentRequestStatus
 }
 

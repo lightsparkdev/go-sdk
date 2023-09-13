@@ -9,61 +9,61 @@ import (
 	"github.com/lightsparkdev/go-sdk/types"
 )
 
-// This is an object representing a channel on the Lightning Network. You can retrieve this object to get detailed information on a specific Lightning Network channel.
+// Channel This is an object representing a channel on the Lightning Network. You can retrieve this object to get detailed information on a specific Lightning Network channel.
 type Channel struct {
 
-	// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"channel_id"`
 
-	// The date and time when the entity was first created.
+	// CreatedAt The date and time when the entity was first created.
 	CreatedAt time.Time `json:"channel_created_at"`
 
-	// The date and time when the entity was last updated.
+	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"channel_updated_at"`
 
-	// The transaction that funded the channel upon channel opening.
+	// FundingTransaction The transaction that funded the channel upon channel opening.
 	FundingTransaction *types.EntityWrapper `json:"channel_funding_transaction"`
 
-	// The total amount of funds in this channel, including the channel balance on the local node, the channel balance on the remote node and the on-chain fees to close the channel.
+	// Capacity The total amount of funds in this channel, including the channel balance on the local node, the channel balance on the remote node and the on-chain fees to close the channel.
 	Capacity *CurrencyAmount `json:"channel_capacity"`
 
-	// The channel balance on the local node.
+	// LocalBalance The channel balance on the local node.
 	LocalBalance *CurrencyAmount `json:"channel_local_balance"`
 
-	// The channel balance on the local node that is currently allocated to in-progress payments.
+	// LocalUnsettledBalance The channel balance on the local node that is currently allocated to in-progress payments.
 	LocalUnsettledBalance *CurrencyAmount `json:"channel_local_unsettled_balance"`
 
-	// The channel balance on the remote node.
+	// RemoteBalance The channel balance on the remote node.
 	RemoteBalance *CurrencyAmount `json:"channel_remote_balance"`
 
-	// The channel balance on the remote node that is currently allocated to in-progress payments.
+	// RemoteUnsettledBalance The channel balance on the remote node that is currently allocated to in-progress payments.
 	RemoteUnsettledBalance *CurrencyAmount `json:"channel_remote_unsettled_balance"`
 
-	// The channel balance that is currently allocated to in-progress payments.
+	// UnsettledBalance The channel balance that is currently allocated to in-progress payments.
 	UnsettledBalance *CurrencyAmount `json:"channel_unsettled_balance"`
 
-	// The total balance in this channel, including the channel balance on both local and remote nodes.
+	// TotalBalance The total balance in this channel, including the channel balance on both local and remote nodes.
 	TotalBalance *CurrencyAmount `json:"channel_total_balance"`
 
-	// The current status of this channel.
+	// Status The current status of this channel.
 	Status *ChannelStatus `json:"channel_status"`
 
-	// The estimated time to wait for the channel's hash timelock contract to expire when force closing the channel. It is in unit of minutes.
+	// EstimatedForceClosureWaitMinutes The estimated time to wait for the channel's hash timelock contract to expire when force closing the channel. It is in unit of minutes.
 	EstimatedForceClosureWaitMinutes *int64 `json:"channel_estimated_force_closure_wait_minutes"`
 
-	// The amount to be paid in fees for the current set of commitment transactions.
+	// CommitFee The amount to be paid in fees for the current set of commitment transactions.
 	CommitFee *CurrencyAmount `json:"channel_commit_fee"`
 
-	// The fees charged for routing payments through this channel.
+	// Fees The fees charged for routing payments through this channel.
 	Fees *ChannelFees `json:"channel_fees"`
 
-	// If known, the remote node of the channel.
+	// RemoteNode If known, the remote node of the channel.
 	RemoteNode *types.EntityWrapper `json:"channel_remote_node"`
 
-	// The local Lightspark node of the channel.
+	// LocalNode The local Lightspark node of the channel.
 	LocalNode types.EntityWrapper `json:"channel_local_node"`
 
-	// The unique identifier of the channel on Lightning Network, which is the location in the chain that the channel was confirmed. The format is <block-height>:<tx-index>:<tx-output>.
+	// ShortChannelId The unique identifier of the channel on Lightning Network, which is the location in the chain that the channel was confirmed. The format is <block-height>:<tx-index>:<tx-output>.
 	ShortChannelId *string `json:"channel_short_channel_id"`
 }
 
@@ -166,17 +166,17 @@ fragment ChannelFragment on Channel {
 `
 )
 
-// The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+// GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj Channel) GetId() string {
 	return obj.Id
 }
 
-// The date and time when the entity was first created.
+// GetCreatedAt The date and time when the entity was first created.
 func (obj Channel) GetCreatedAt() time.Time {
 	return obj.CreatedAt
 }
 
-// The date and time when the entity was last updated.
+// GetUpdatedAt The date and time when the entity was last updated.
 func (obj Channel) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }

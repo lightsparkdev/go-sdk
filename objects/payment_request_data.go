@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// PaymentRequestData This object is an interface of a payment request on the Lightning Network (i.e., a Lightning Invoice). It contains data related to parsing the payment details of a Lightning Invoice.
 type PaymentRequestData interface {
 	GetEncodedPaymentRequest() string
 

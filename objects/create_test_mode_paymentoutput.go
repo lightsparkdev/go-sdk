@@ -3,11 +3,14 @@ package objects
 
 import "github.com/lightsparkdev/go-sdk/types"
 
-// This is an object identifying the output of a test mode payment. This object can be used to retrieve the associated payment made from a Test Mode Payment call.
+// CreateTestModePaymentoutput This is an object identifying the output of a test mode payment. This object can be used to retrieve the associated payment made from a Test Mode Payment call.
 type CreateTestModePaymentoutput struct {
 
-	// The payment that has been sent.
+	// Payment The payment that has been sent.
 	Payment types.EntityWrapper `json:"create_test_mode_paymentoutput_payment"`
+
+	// IncomingPayment The payment that has been received.
+	IncomingPayment types.EntityWrapper `json:"create_test_mode_paymentoutput_incoming_payment"`
 }
 
 const (
@@ -15,6 +18,9 @@ const (
 fragment CreateTestModePaymentoutputFragment on CreateTestModePaymentoutput {
     __typename
     create_test_mode_paymentoutput_payment: payment {
+        id
+    }
+    create_test_mode_paymentoutput_incoming_payment: incoming_payment {
         id
     }
 }
