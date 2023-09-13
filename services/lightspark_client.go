@@ -4,15 +4,16 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"github.com/lightsparkdev/go-sdk/crypto"
 
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
 	"github.com/lightsparkdev/go-sdk/scripts"
-	"github.com/lightsparkdev/go-sdk/utils"
 )
 
 type LightsparkClient struct {
 	Requester *requester.Requester
+	nodeKeys  map[string]SigningKeyLoader
 }
 
 // NewLightsparkClient creates a new LightsparkClient instance
@@ -30,7 +31,7 @@ func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
 		ApiTokenClientSecret: apiTokenClientSecret,
 		BaseUrl:              baseUrl,
 	}
-	return &LightsparkClient{Requester: gqlRequester}
+	return &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]SigningKeyLoader{}}
 }
 
 // CreateApiToken creates a new API token that can be used to authenticate requests
@@ -61,7 +62,7 @@ func (client *LightsparkClient) CreateApiToken(name string, transact bool,
 		"name":        name,
 		"permissions": permissions,
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_API_TOKEN_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_API_TOKEN_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_INVOICE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -130,12 +131,12 @@ func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats in
 	variables := map[string]interface{}{
 		"amount_msats":  amountMsats,
 		"node_id":       nodeId,
-		"metadata_hash": utils.Sha256HexString(metadata),
+		"metadata_hash": crypto.Sha256HexString(metadata),
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_LNURL_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_LNURL_INVOICE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -167,12 +168,12 @@ func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int6
 	variables := map[string]interface{}{
 		"amount_msats":  amountMsats,
 		"node_id":       nodeId,
-		"metadata_hash": utils.Sha256HexString(metadata),
+		"metadata_hash": crypto.Sha256HexString(metadata),
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_UMA_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_UMA_INVOICE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +196,7 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 	variables := map[string]interface{}{
 		"node_id": nodeId,
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_NODE_WALLET_ADDRESS_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_NODE_WALLET_ADDRESS_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -222,7 +223,7 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 		"memo":          memo,
 		"invoice_type":  invoiceType,
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_INVOICE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +253,7 @@ func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
 		variables["amount_msats"] = amountMsats
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_PAYMENT_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_TEST_MODE_PAYMENT_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +276,7 @@ func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
 //	encodedPaymentRequest: The encoded payment request.
 func (client *LightsparkClient) DecodePaymentRequest(encodedPaymentRequest string) (*objects.PaymentRequestData, error) {
 	variables := map[string]interface{}{"encoded_payment_request": encodedPaymentRequest}
-	response, err := client.Requester.ExecuteGraphql(scripts.DECODE_PAYMENT_REQUEST_QUERY, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.DECODE_PAYMENT_REQUEST_QUERY, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +298,7 @@ func (client *LightsparkClient) DeleteApiToken(apiTokenId string) error {
 	variables := map[string]interface{}{
 		"api_token_id": apiTokenId,
 	}
-	_, err := client.Requester.ExecuteGraphql(scripts.DELETE_API_TOKEN_MUTATION, variables)
+	_, err := client.Requester.ExecuteGraphql(scripts.DELETE_API_TOKEN_MUTATION, variables, nil)
 	return err
 }
 
@@ -317,8 +318,12 @@ func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 		"node_id":     nodeId,
 		"amount_sats": amountSats,
 	}
+	signingKey, err := client.getNodeSigningKey(nodeId)
+	if err != nil {
+		return nil, err
+	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +347,7 @@ func (client *LightsparkClient) GetBitcoinFeeEstimate(
 	bitcoinNetwork objects.BitcoinNetwork) (*objects.FeeEstimate, error) {
 
 	variables := map[string]interface{}{"bitcoin_network": bitcoinNetwork}
-	response, err := client.Requester.ExecuteGraphql(scripts.BITCOIN_FEE_ESTIMATE_QUERY, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.BITCOIN_FEE_ESTIMATE_QUERY, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -360,7 +365,7 @@ func (client *LightsparkClient) GetBitcoinFeeEstimate(
 // GetCurrentAccount returns the current connected account.
 func (client *LightsparkClient) GetCurrentAccount() (*objects.Account, error) {
 	variables := map[string]interface{}{}
-	response, err := client.Requester.ExecuteGraphql(scripts.CURRENT_ACCOUNT_QUERY, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.CURRENT_ACCOUNT_QUERY, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +397,7 @@ func (client *LightsparkClient) GetLightningFeeEstimateForInvoice(nodeId string,
 		"encoded_payment_request": encodedInvoice,
 		"amount_msats":            amountMsats,
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.LIGHTNING_FEE_ESTIMATE_FOR_INVOICE_QUERY, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.LIGHTNING_FEE_ESTIMATE_FOR_INVOICE_QUERY, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +428,7 @@ func (client *LightsparkClient) GetLightningFeeEstimateForNode(nodeId string,
 		"destination_node_public_key": destinationNodePublicKey,
 		"amount_msats":                amountMsats,
 	}
-	response, err := client.Requester.ExecuteGraphql(scripts.LIGHTNING_FEE_ESTIMATE_FOR_NODE_QUERY, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.LIGHTNING_FEE_ESTIMATE_FOR_NODE_QUERY, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -462,8 +467,12 @@ func (client *LightsparkClient) PayInvoice(nodeId string, encodedInvoice string,
 	if amountMsats != nil {
 		variables["amount_msats"] = amountMsats
 	}
+	signingKey, err := client.getNodeSigningKey(nodeId)
+	if err != nil {
+		return nil, err
+	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.PAY_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.PAY_INVOICE_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -502,8 +511,12 @@ func (client *LightsparkClient) PayUmaInvoice(nodeId string, encodedInvoice stri
 	if amountMsats != nil {
 		variables["amount_msats"] = amountMsats
 	}
+	signingKey, err := client.getNodeSigningKey(nodeId)
+	if err != nil {
+		return nil, err
+	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.PAY_UMA_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.PAY_UMA_INVOICE_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -543,7 +556,12 @@ func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int6
 		"withdrawal_mode": withdrawalMode,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.REQUEST_WITHDRAWAL_MUTATION, variables)
+	signingKey, err := client.getNodeSigningKey(nodeId)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.REQUEST_WITHDRAWAL_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -578,8 +596,12 @@ func (client *LightsparkClient) SendPayment(nodeId string, destinationPublicKey 
 		"timeout_secs":           timeoutSecs,
 		"maximum_fees_msats":     maximumFeesMsats,
 	}
+	signingKey, err := client.getNodeSigningKey(nodeId)
+	if err != nil {
+		return nil, err
+	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SEND_PAYMENT_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.SEND_PAYMENT_MUTATION, variables, signingKey)
 	if err != nil {
 		return nil, err
 	}
@@ -605,7 +627,7 @@ func (client *LightsparkClient) ScreenNode(
 	provider objects.ComplianceProvider, nodePubkey string) (*objects.RiskRating, error) {
 
 	variables := map[string]interface{}{"provider": provider, "node_pubkey": nodePubkey}
-	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_NODE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.SCREEN_NODE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -639,7 +661,7 @@ func (client *LightsparkClient) RegisterPayment(provider objects.ComplianceProvi
 		"node_pubkey": nodePubkey,
 		"direction":   direction,
 	}
-	_, err := client.Requester.ExecuteGraphql(scripts.REGISTER_PAYMENT_MUTATION, variables)
+	_, err := client.Requester.ExecuteGraphql(scripts.REGISTER_PAYMENT_MUTATION, variables, nil)
 	if err != nil {
 		return err
 	} else {
@@ -677,7 +699,7 @@ func (client *LightsparkClient) GetEntity(id string) (*objects.Entity, error) {
 	variables := map[string]interface{}{
 		"id": id,
 	}
-	response, err := client.Requester.ExecuteGraphql(objects.GetEntityQuery, variables)
+	response, err := client.Requester.ExecuteGraphql(objects.GetEntityQuery, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -699,5 +721,32 @@ func (client *LightsparkClient) GetEntity(id string) (*objects.Entity, error) {
 func (client *LightsparkClient) ExecuteGraphqlRequest(document string,
 	variables map[string]interface{}) (map[string]interface{}, error) {
 
-	return client.Requester.ExecuteGraphql(document, variables)
+	return client.Requester.ExecuteGraphql(document, variables, nil)
+}
+
+// LoadNodeSigningKey loads the signing key of a node into the client.
+//
+// Args:
+//
+//	nodeId: The ID of the node.
+//	loader: The SigningKeyLoader that can load the node's key.
+func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, loader SigningKeyLoader) {
+	client.nodeKeys[nodeId] = loader
+}
+
+// getNodeSigningKey returns the signing key of a node.
+//
+// Args:
+//
+//	nodeId: The ID of the node.
+func (client *LightsparkClient) getNodeSigningKey(nodeId string) (requester.SigningKey, error) {
+	loader, ok := client.nodeKeys[nodeId]
+	if !ok {
+		return nil, errors.New("we did not find the signing key for node. Please call LoadNodeSigningKey first")
+	}
+	nodeKey, err := loader.LoadSigningKey(*client.Requester)
+	if err != nil {
+		return nil, err
+	}
+	return nodeKey, nil
 }

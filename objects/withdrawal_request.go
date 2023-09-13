@@ -147,7 +147,7 @@ func (obj WithdrawalRequest) GetChannelClosingTransactions(requester *requester.
 		"first":     first,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (obj WithdrawalRequest) GetChannelOpeningTransactions(requester *requester.
 		"first":     first,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/lightsparkdev/go-sdk/crypto"
 	"log"
 
-	"github.com/lightsparkdev/go-sdk/utils"
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 
 	"github.com/lightsparkdev/go-sdk/objects"
@@ -96,7 +96,7 @@ func DeclineToSignMessages(client *services.LightsparkClient, event webhooks.Web
 		"payload_ids": payloadIds,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.DECLINE_TO_SIGN_MESSAGES_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.DECLINE_TO_SIGN_MESSAGES_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -136,7 +136,7 @@ func HandleEcdhWebhook(client *services.LightsparkClient, webhook webhooks.Webho
 		return "", err
 	}
 
-	sharedSecret, err := utils.ECDH(seedBytes, bitcoinNetwork, publicKey.(string))
+	sharedSecret, err := crypto.ECDH(seedBytes, bitcoinNetwork, publicKey.(string))
 	if err != nil {
 		return "", err
 	}
@@ -146,7 +146,7 @@ func HandleEcdhWebhook(client *services.LightsparkClient, webhook webhooks.Webho
 		"shared_secret": sharedSecret,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.UPDATE_NODE_SHARED_SECRET_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.UPDATE_NODE_SHARED_SECRET_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -211,7 +211,7 @@ func HandleGetPerCommitmentPointWebhook(client *services.LightsparkClient, webho
 		"per_commitment_point_index": uint64(perCommitmentPointIdxInt),
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.UPDATE_CHANNEL_PER_COMMITMENT_POINT_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.UPDATE_CHANNEL_PER_COMMITMENT_POINT_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -276,7 +276,7 @@ func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, 
 		"per_commitment_index":  perCommitmentPointIdx,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_CHANNEL_PER_COMMITMENT_SECRET_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_CHANNEL_PER_COMMITMENT_SECRET_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -319,7 +319,10 @@ func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, w
 		return "", err
 	}
 
-	nonce := lightspark_crypto.GeneratePreimageNonce(seedBytes)
+	nonce, err := lightspark_crypto.GeneratePreimageNonce(seedBytes)
+	if err != nil {
+		return "", err
+	}
 	paymentHash, err := lightspark_crypto.GeneratePreimageHash(seedBytes, nonce)
 	if err != nil {
 		return "", err
@@ -331,7 +334,7 @@ func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, w
 		"preimage_nonce": hex.EncodeToString(nonce),
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SET_INVOICE_PAYMENT_HASH, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.SET_INVOICE_PAYMENT_HASH, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -398,7 +401,7 @@ func HandleSignInvoiceWebhook(client *services.LightsparkClient, webhook webhook
 		"recovery_id": signedInvoice.RecoveryId,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SIGN_INVOICE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.SIGN_INVOICE_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -451,7 +454,7 @@ func HandleReleaseInvoicePreimageWebhook(client *services.LightsparkClient, webh
 		"payment_preimage": hex.EncodeToString(preimage),
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_PAYMENT_PREIMAGE_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_PAYMENT_PREIMAGE_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}
@@ -549,7 +552,7 @@ func HandleDeriveKeyAndSignWebhook(client *services.LightsparkClient, webhook we
 		"signatures": signatures,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SIGN_MESSAGES_MUTATION, variables)
+	response, err := client.Requester.ExecuteGraphql(scripts.SIGN_MESSAGES_MUTATION, variables, nil)
 	if err != nil {
 		return "", err
 	}

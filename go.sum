@@ -524,6 +524,11 @@ github.com/leodido/go-urn v1.2.1/go.mod h1:zt4jvISO2HfUBqxjfIshjdMTYS56ZS/qv49ic
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230811181849-619095ba8b6b h1:bs4eZ439R5MFjx3TLsAY8Ua/BNqAvmTPU6UTNfmfYQg=
 github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230811181849-619095ba8b6b/go.mod h1:iecorZruwbWKa6I5vjGQrAR9Smie8Rke4Vy6Pg8h0NU=
+github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913080506-861075caf6e4/go.mod h1:iecorZruwbWKa6I5vjGQrAR9Smie8Rke4Vy6Pg8h0NU=
+github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913081308-d6f85549a3e8 h1:VQ+7eYRiuRG2djYCMcVFY/whzJlHc16gDxmtyR5NYaU=
+github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913081308-d6f85549a3e8/go.mod h1:iecorZruwbWKa6I5vjGQrAR9Smie8Rke4Vy6Pg8h0NU=
+github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913084507-7bd7b48ac5d2 h1:IiarCJti3POS8tDbvNMz/QFg+EZavuO5Yl178UAK/z0=
+github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913084507-7bd7b48ac5d2/go.mod h1:iecorZruwbWKa6I5vjGQrAR9Smie8Rke4Vy6Pg8h0NU=
 github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0/go.mod h1:zJYVVT2jmtg6P3p1VtQj7WsuWi/y4VnjVBn7F8KPB3I=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/magiconair/properties v1.8.5/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPKd5NZ3oSwXrF60=

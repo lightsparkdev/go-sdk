@@ -123,7 +123,7 @@ func (obj GraphNode) GetAddresses(requester *requester.Requester, first *int64, 
 		"types":     types,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -284,7 +284,7 @@ func (obj LightsparkNodeWithOSK) GetAddresses(requester *requester.Requester, fi
 		"types":     types,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +415,7 @@ func (obj LightsparkNodeWithOSK) GetChannels(requester *requester.Requester, fir
 		"after":     after,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}

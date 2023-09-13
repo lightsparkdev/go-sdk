@@ -614,7 +614,7 @@ func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, 
 		"types":               types,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -907,7 +907,7 @@ func (obj Wallet) GetPaymentRequests(requester *requester.Requester, first *int6
 		"created_before_date": createdBeforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -940,7 +940,7 @@ func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, created
 		"created_before_date": createdBeforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -973,7 +973,7 @@ func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, createdAfte
 		"created_before_date": createdBeforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}

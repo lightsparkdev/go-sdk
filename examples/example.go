@@ -24,6 +24,7 @@ func main() {
 	client := services.NewLightsparkClient(apiClientID, apiToken, &baseUrl)
 
 	nodeId := os.Getenv("LIGHTSPARK_TEST_NODE_ID")
+	nodePassword := os.Getenv("LIGHTSPARK_TEST_NODE_PASSWORD")
 
 	// Get current account
 	fmt.Println("Getting current account...")
@@ -232,6 +233,8 @@ func main() {
 	}
 	fmt.Printf("Node wallet address created: %v\n", address)
 	fmt.Println()
+
+	client.LoadNodeSigningKey(nodeId, *services.NewSigningKeyLoaderFromNodeIdAndPassword(nodeId, nodePassword))
 
 	// Pay an invoice
 	fmt.Println("Paying an invoice...")

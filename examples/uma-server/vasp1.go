@@ -371,6 +371,18 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		})
 		return
 	}
+	seedBytes, err := v.config.NodeMasterSeedBytes()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
+	v.client.LoadNodeSigningKey(
+		v.config.NodeUUID,
+		// Switch this to BitcoinNetworkMainnet if you're testing with a mainnet node:
+		*services.NewSigningKeyLoaderFromSignerMasterSeed(seedBytes, objects.BitcoinNetworkRegtest))
 
 	payment, err := v.client.PayUmaInvoice(
 		v.config.NodeUUID,

@@ -195,7 +195,7 @@ func (obj Channel) GetUptimePercentage(requester *requester.Requester, afterDate
 		"before_date": beforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (obj Channel) GetTransactions(requester *requester.Requester, types *[]Tran
 		"before_date": beforeDate,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}

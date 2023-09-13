@@ -3,13 +3,17 @@ package requester
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
-	lightspark "github.com/lightsparkdev/go-sdk"
 	"io/ioutil"
+	"math/big"
 	"net/http"
 	"regexp"
 	"runtime"
+	"time"
+
+	lightspark "github.com/lightsparkdev/go-sdk"
 )
 
 type Requester struct {
@@ -20,9 +24,10 @@ type Requester struct {
 	BaseUrl *string
 }
 
-const DEFAULT_BASE_URL = "https://api.lightspark.com/graphql/server/rc"
+const DEFAULT_BASE_URL = "https://api.lightspark.com/graphql/server/2023-09-13"
 
-func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{}) (map[string]interface{}, error) {
+func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{},
+	signingKey SigningKey) (map[string]interface{}, error) {
 
 	re := regexp.MustCompile(`(?i)\s*(?:query|mutation)\s+(?P<OperationName>\w+)`)
 	matches := re.FindStringSubmatch(query)
@@ -32,10 +37,26 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	}
 	operationName := matches[index]
 
+	var nonce uint32
+	if signingKey != nil {
+		randomBigInt, err := rand.Int(rand.Reader, big.NewInt(0xFFFFFFFF))
+		if err != nil {
+			return nil, err
+		}
+		nonce = uint32(randomBigInt.Uint64())
+	}
+
+	var expiresAt string
+	if signingKey != nil {
+		expiresAt = time.Now().UTC().Add(time.Hour).Format(time.RFC3339)
+	}
+
 	payload := map[string]interface{}{
 		"operationName": operationName,
 		"query":         query,
 		"variables":     variables,
+		"nonce":         nonce,
+		"expires_at":    expiresAt,
 	}
 
 	encodedPayload, err := json.Marshal(payload)
@@ -56,6 +77,18 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	request.Header.Add("X-GraphQL-Operation", operationName)
 	request.Header.Add("User-Agent", r.getUserAgent())
 	request.Header.Add("X-Lightspark-SDK", r.getUserAgent())
+
+	if signingKey != nil {
+		signature, err := signingKey.Sign(encodedPayload)
+		if err != nil {
+			return nil, err
+		}
+		signaturePayloadBytes, err := json.Marshal(map[string]interface{}{
+			"v":         1,
+			"signature": signature,
+		})
+		request.Header.Add("X-Lightspark-Signing", bytes.NewBuffer(signaturePayloadBytes).String())
+	}
 
 	httpClient := &http.Client{}
 	response, err := httpClient.Do(request)

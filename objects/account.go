@@ -84,7 +84,7 @@ func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, af
 		"after":     after,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoinN
 		"node_ids":         nodeIds,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (obj Account) GetConductivity(requester *requester.Requester, bitcoinNetwor
 		"node_ids":         nodeIds,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoinNetwor
 		"node_ids":         nodeIds,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +465,7 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
 		"after":            after,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +498,7 @@ func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoinNetwo
 		"node_ids":         nodeIds,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -526,7 +526,7 @@ func (obj Account) GetUptimePercentage(requester *requester.Requester, afterDate
 		"node_ids":         nodeIds,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -652,7 +652,7 @@ func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork Bi
 		"first":             first,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1209,7 +1209,7 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
 		"exclude_failures":  excludeFailures,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1504,7 +1504,7 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 		"lightning_node_id": lightningNodeId,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1580,7 +1580,7 @@ func (obj Account) GetWallets(requester *requester.Requester, first *int64, afte
 		"third_party_ids": thirdPartyIds,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}

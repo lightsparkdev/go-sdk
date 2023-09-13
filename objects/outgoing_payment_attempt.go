@@ -144,7 +144,7 @@ func (obj OutgoingPaymentAttempt) GetHops(requester *requester.Requester, first 
 		"after":     after,
 	}
 
-	response, err := requester.ExecuteGraphql(query, variables)
+	response, err := requester.ExecuteGraphql(query, variables, nil)
 	if err != nil {
 		return nil, err
 	}
