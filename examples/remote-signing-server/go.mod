@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/lightsparkdev/go-sdk v0.0.2
+	github.com/lightsparkdev/go-sdk v0.3.0
 )
 
 require (
