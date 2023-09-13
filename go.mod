@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
 	github.com/ecies/go/v2 v2.0.7
-	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913084507-7bd7b48ac5d2
+	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.2-0.20230913182621-2a219d33f68a
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.11.0
 )
