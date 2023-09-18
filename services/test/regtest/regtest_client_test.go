@@ -19,7 +19,31 @@ func TestCreateInvoice(t *testing.T) {
 	t.Log(invoice)
 }
 
-// TODO: We should add a check for funds on the nodes and automatically add funds if needed.
+// Create invoice for node 1 and pay it from routing node. You'll need to run this a few
+// times the first time you are funding a node to get enough funds in.
+// Note: This will only work with REGTEST nodes.
+func TestCreateTestPaymentNode1(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+	invoice, err := createInvoiceForNode(client, env.NodeID)
+	require.NoError(t, err)
+	payment, err := client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
+	require.NoError(t, err)
+	t.Log(payment)
+}
+
+// Create invoice for node 2 and pay it from routing node. You'll need to run this a few
+// times the first time you are funding a node to get enough funds in.
+// Note: This will only work with REGTEST nodes.
+func TestCreateTestPaymentNode2(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID2, env.ApiClientSecret2, &env.ApiClientEndpoint)
+	invoice, err := createInvoiceForNode(client, env.NodeID2)
+	require.NoError(t, err)
+	payment, err := client.CreateTestModePayment(env.NodeID2, invoice.Data.EncodedPaymentRequest, nil)
+	require.NoError(t, err)
+	t.Log(payment)
+}
 
 // Create test invoice from routing node and pay it from node 1.
 func TestCreateTestInvoiceNode1(t *testing.T) {
@@ -132,4 +156,12 @@ func TestGetFundingAddress(t *testing.T) {
 	address, err := client.CreateNodeWalletAddress(env.NodeID2)
 	require.NoError(t, err)
 	t.Log(address)
+}
+
+func createInvoiceForNode(client *services.LightsparkClient, nodeID string) (*objects.Invoice, error) {
+	invoice, err := client.CreateInvoice(nodeID, 10_000_000, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return invoice, nil
 }

@@ -496,7 +496,7 @@ func GetPayReqResponse(
 	receiverNodePubKey *string,
 	utxoCallback string,
 ) (*PayReqResponse, error) {
-	msatsAmount := query.Amount * conversionRate
+	msatsAmount := query.Amount*conversionRate + receiverFeesMillisats
 	encodedPayerData, err := json.Marshal(query.PayerData)
 	if err != nil {
 		return nil, err
