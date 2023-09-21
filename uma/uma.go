@@ -3,14 +3,12 @@ package uma
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4"
-	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
 	eciesgo "github.com/ecies/go/v2"
 	"github.com/lightsparkdev/go-sdk/services"
+	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 	"io"
 	"math/big"
 	"net/http"
@@ -80,12 +78,7 @@ func GenerateNonce() (*string, error) {
 }
 
 func signPayload(payload []byte, privateKeyBytes []byte) (*string, error) {
-	privateKey := secp256k1.PrivKeyFromBytes(privateKeyBytes)
-	if privateKey == nil {
-		return nil, errors.New("invalid private key")
-	}
-	hashedPayload := sha256.Sum256(payload)
-	signature, err := privateKey.ToECDSA().Sign(rand.Reader, hashedPayload[:], nil)
+	signature, err := lightspark_crypto.SignEcdsa(payload, privateKeyBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -100,33 +93,25 @@ func signPayload(payload []byte, privateKeyBytes []byte) (*string, error) {
 //	query: the signed query to verify.
 //	otherVaspPubKey: the bytes of the signing public key of the VASP making this request.
 func VerifyPayReqSignature(query *PayRequest, otherVaspPubKey []byte) error {
-	hashedPayload := sha256.Sum256(query.signablePayload())
-	return verifySignature(hashedPayload, query.PayerData.Compliance.Signature, otherVaspPubKey)
+	return verifySignature(query.signablePayload(), query.PayerData.Compliance.Signature, otherVaspPubKey)
 }
 
 // verifySignature Verifies the signature of the uma request.
 //
 // Args:
 //
-//	hashedPayload: the sha256 hash of the payload.
+//	payload: the payload that was signed.
 //	signature: the hex-encoded signature.
 //	otherVaspPubKey: the bytes of the signing public key of the VASP who signed the payload.
-func verifySignature(hashedPayload [32]byte, signature string, otherVaspPubKey []byte) error {
+func verifySignature(payload []byte, signature string, otherVaspPubKey []byte) error {
 	decodedSignature, err := hex.DecodeString(signature)
 	if err != nil {
 		return err
 	}
-	otherVaspPubKeyParsed, err := secp256k1.ParsePubKey(otherVaspPubKey)
+	verified, err := lightspark_crypto.VerifyEcdsa(payload, decodedSignature, otherVaspPubKey)
 	if err != nil {
 		return err
 	}
-
-	sigParsed, err := ecdsa.ParseDERSignature(decodedSignature)
-	if err != nil {
-		return err
-	}
-
-	verified := sigParsed.Verify(hashedPayload[:], otherVaspPubKeyParsed)
 
 	if !verified {
 		return errors.New("invalid uma signature")
@@ -232,8 +217,7 @@ func ParseLnurlpRequest(url url.URL) (*LnurlpRequest, error) {
 //	query: the signed query to verify.
 //	otherVaspSigningPubKey: the public key of the VASP making this request in bytes.
 func VerifyUmaLnurlpQuerySignature(query *LnurlpRequest, otherVaspSigningPubKey []byte) error {
-	hashedPayload := sha256.Sum256(query.signablePayload())
-	return verifySignature(hashedPayload, query.Signature, otherVaspSigningPubKey)
+	return verifySignature(query.signablePayload(), query.Signature, otherVaspSigningPubKey)
 }
 
 func GetLnurlpResponse(
@@ -304,8 +288,7 @@ func getSignedLnurlpComplianceResponse(
 //	response: the signed response to verify.
 //	otherVaspSigningPubKey: the public key of the VASP making this request in bytes.
 func VerifyUmaLnurlpResponseSignature(response *LnurlpResponse, otherVaspSigningPubKey []byte) error {
-	hashedPayload := sha256.Sum256(response.signablePayload())
-	return verifySignature(hashedPayload, response.Compliance.Signature, otherVaspSigningPubKey)
+	return verifySignature(response.signablePayload(), response.Compliance.Signature, otherVaspSigningPubKey)
 }
 
 func ParseLnurlpResponse(bytes []byte) (*LnurlpResponse, error) {

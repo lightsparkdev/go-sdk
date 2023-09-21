@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -113,8 +114,8 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		return nil, true
 	}
 
-	pubKey, err := uma.FetchPublicKeyForVasp(query.VaspDomain, v.pubKeyCache)
-	if err != nil || pubKey == nil {
+	pubKeys, err := uma.FetchPublicKeyForVasp(query.VaspDomain, v.pubKeyCache)
+	if err != nil || pubKeys == nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -122,7 +123,15 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		return nil, true
 	}
 
-	if err := uma.VerifyUmaLnurlpQuerySignature(query, pubKey.SigningPubKey); err != nil {
+	sendingVaspSigningPubKey, err := pubKeys.SigningPubKey()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return nil, true
+	}
+	if err := uma.VerifyUmaLnurlpQuerySignature(query, sendingVaspSigningPubKey); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -276,8 +285,8 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	pubKey, err := uma.FetchPublicKeyForVasp(sendingVaspDomain, v.pubKeyCache)
-	if err != nil || pubKey == nil {
+	pubKeys, err := uma.FetchPublicKeyForVasp(sendingVaspDomain, v.pubKeyCache)
+	if err != nil || pubKeys == nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -285,7 +294,15 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	if err := uma.VerifyPayReqSignature(request, pubKey.SigningPubKey); err != nil {
+	sendingVaspSigningPubKey, err := pubKeys.SigningPubKey()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
+	if err := uma.VerifyPayReqSignature(request, sendingVaspSigningPubKey); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -364,8 +381,8 @@ func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
 	twoWeeksFromNow := time.Now().AddDate(0, 0, 14)
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
 	response := uma.PubKeyResponse{
-		SigningPubKey:       signingPubKeyBytes,
-		EncryptionPubKey:    encryptionPubKeyBytes,
+		SigningPubKeyHex:    hex.EncodeToString(signingPubKeyBytes),
+		EncryptionPubKeyHex: hex.EncodeToString(encryptionPubKeyBytes),
 		ExpirationTimestamp: &twoWeeksFromNowSec,
 	}
 

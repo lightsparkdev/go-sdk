@@ -1,6 +1,9 @@
 package uma
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type PayerDataOptions struct {
 	NameRequired       bool
@@ -8,13 +11,39 @@ type PayerDataOptions struct {
 	ComplianceRequired bool
 }
 
-func (p PayerDataOptions) MarshalJSON() ([]byte, error) {
+func (p *PayerDataOptions) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`{
 		"identifier": { "mandatory": true },
 		"name": { "mandatory": %t },
 		"email": { "mandatory": %t },
 		"compliance": { "mandatory": %t }
 	}`, p.NameRequired, p.EmailRequired, p.ComplianceRequired)), nil
+}
+
+func decodePayerDataOptionField(data map[string]interface{}, fieldName string) bool {
+	m, ok := data[fieldName].(map[string]interface{})
+	if !ok {
+		return false
+	}
+	mandatory, ok := m["mandatory"].(bool)
+	if !ok {
+		return false
+	}
+	return mandatory
+}
+
+func (p *PayerDataOptions) UnmarshalJSON(data []byte) error {
+	var m map[string]interface{}
+	err := json.Unmarshal(data, &m)
+	if err != nil {
+		return err
+	}
+
+	p.NameRequired = decodePayerDataOptionField(m, "name")
+	p.EmailRequired = decodePayerDataOptionField(m, "email")
+	p.ComplianceRequired = decodePayerDataOptionField(m, "compliance")
+
+	return nil
 }
 
 type PayerData struct {

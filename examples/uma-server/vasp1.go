@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -104,7 +105,15 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		return
 	}
 
-	err = uma.VerifyUmaLnurlpResponseSignature(lnurlpResponse, receivingVaspPubKey.SigningPubKey)
+	receiverSigningPubKey, err := receivingVaspPubKey.SigningPubKey()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to get signing pub key for receiving VASP",
+		})
+		return
+	}
+	err = uma.VerifyUmaLnurlpResponseSignature(lnurlpResponse, receiverSigningPubKey)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -252,11 +261,19 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		})
 		return
 	}
+	vasp2EncryptionPubKey, err := vasp2PubKeys.EncryptionPubKey()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to get encryption pub key for receiving VASP",
+		})
+		return
+	}
 	// This is the node pub key of the sender's node. In practice, you'd want to get this from the sender's node.
 	senderNodePubKey := "abcdef12345"
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	payReq, err := uma.GetPayRequest(
-		vasp2PubKeys.EncryptionPubKey,
+		vasp2EncryptionPubKey,
 		umaSigningPrivateKey,
 		currencyCode,
 		amountInt64,
@@ -476,8 +493,8 @@ func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
 	twoWeeksFromNow := time.Now().AddDate(0, 0, 14)
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
 	response := uma.PubKeyResponse{
-		SigningPubKey:       signingPubKeyBytes,
-		EncryptionPubKey:    encryptionPubKeyBytes,
+		SigningPubKeyHex:    hex.EncodeToString(signingPubKeyBytes),
+		EncryptionPubKeyHex: hex.EncodeToString(encryptionPubKeyBytes),
 		ExpirationTimestamp: &twoWeeksFromNowSec,
 	}
 
