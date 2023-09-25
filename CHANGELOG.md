@@ -1,5 +1,10 @@
 # Changelog
 
+# v0.4.0
+
+- Moved the UMA protocol out to its own Lightspark-agnostic
+  repo: https://github.com/uma-universal-money-address/umd-go-sdk. Fixed some bugs along the way.
+
 # v0.3.0
 
 - Breaking change! Adjusting the API to support both remote signing and OSK side-by-side. See `SigningKeyLoader`
