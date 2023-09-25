@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/google/uuid"
 	"github.com/lightsparkdev/go-sdk/objects"
-	"github.com/lightsparkdev/go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 )
 
 type Vasp1InitialRequestData struct {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/lightsparkdev/go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	"log"
 	"os"
 )

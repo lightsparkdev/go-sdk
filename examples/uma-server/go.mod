@@ -1,11 +1,14 @@
 module github.com/lightsparkdev/go-sdk/examples/uma-server
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/google/uuid v1.3.0
-	github.com/lightsparkdev/go-sdk v0.3.0
+	github.com/google/uuid v1.3.1
+	github.com/lightsparkdev/go-sdk v0.3.1
+	github.com/uma-universal-money-address/uma-go-sdk v0.1.0
 )
 
 require (

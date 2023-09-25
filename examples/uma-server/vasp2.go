@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/lightsparkdev/go-sdk/services"
-	"github.com/lightsparkdev/go-sdk/uma"
+	lsuma "github.com/lightsparkdev/go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	"net/http"
 	"strconv"
 	"strings"
@@ -321,7 +322,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 
 	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
 	expirySecs := int32(600) // Expire in 10 minutes
-	invoiceCreator := uma.LightsparkClientUmaInvoiceCreator{
+	invoiceCreator := lsuma.LightsparkClientUmaInvoiceCreator{
 		LightsparkClient: *lsClient,
 		NodeId:           v.config.NodeUUID,
 		ExpirySecs:       &expirySecs,

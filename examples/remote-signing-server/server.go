@@ -43,18 +43,21 @@ func main() {
 		if signature == "" {
 			log.Print("ERROR: Signature was not present")
 			c.AbortWithStatus(http.StatusBadRequest)
+			return
 		}
 
 		data, err := c.GetRawData()
 		if err != nil {
 			log.Printf("ERROR: Couldn't get data: %s", err)
 			c.AbortWithStatus(http.StatusInternalServerError)
+			return
 		}
 
 		event, err := webhooks.VerifyAndParse(data, signature, config.WebhookSecret)
 		if err != nil {
 			log.Printf("ERROR: Couldn't parse webhook data: %s", err)
 			c.AbortWithStatus(http.StatusBadRequest)
+			return
 		}
 
 		log.Printf("Received %s", event.EventType.StringValue())
@@ -66,6 +69,7 @@ func main() {
 			if err != nil {
 				log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
 				c.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
 
 			if resp != "" {
