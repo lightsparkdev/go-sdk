@@ -4,6 +4,7 @@ package requester
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -85,7 +86,7 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		}
 		signaturePayloadBytes, err := json.Marshal(map[string]interface{}{
 			"v":         1,
-			"signature": signature,
+			"signature": base64.StdEncoding.EncodeToString(signature),
 		})
 		request.Header.Add("X-Lightspark-Signing", bytes.NewBuffer(signaturePayloadBytes).String())
 	}
