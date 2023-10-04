@@ -1,5 +1,9 @@
 # Changelog
 
+# v0.4.1
+
+- Fixed an encoding issue with signing GraphQL requests.
+
 # v0.4.0
 
 - Moved the UMA protocol out to its own Lightspark-agnostic
