@@ -7,7 +7,7 @@ const SET_INVOICE_PAYMENT_HASH = `
 mutation SetInvoicePaymentHash(
   $invoice_id: ID!
   $payment_hash: Hash32!
-  $preimage_nonce: Hash32!
+  $preimage_nonce: Hash32
 ) {
     set_invoice_payment_hash(input: {
 		invoice_id: $invoice_id

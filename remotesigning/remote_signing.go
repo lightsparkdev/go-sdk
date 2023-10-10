@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/lightsparkdev/go-sdk/crypto"
 	"log"
+
+	"github.com/lightsparkdev/go-sdk/crypto"
 
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 
@@ -51,24 +51,79 @@ func HandleRemoteSigningWebhook(
 		return DeclineToSignMessages(client, webhook)
 	}
 
-	switch subtype {
-	case objects.RemoteSigningSubEventTypeEcdh:
-		return HandleEcdhWebhook(client, webhook, seedBytes)
-	case objects.RemoteSigningSubEventTypeGetPerCommitmentPoint:
-		return HandleGetPerCommitmentPointWebhook(client, webhook, seedBytes)
-	case objects.RemoteSigningSubEventTypeReleasePerCommitmentSecret:
-		return HandleReleasePerCommitmentSecretWebhook(client, webhook, seedBytes)
-	case objects.RemoteSigningSubEventTypeDeriveKeyAndSign:
-		return HandleDeriveKeyAndSignWebhook(client, webhook, seedBytes)
-	case objects.RemoteSigningSubEventTypeRequestInvoicePaymentHash:
-		return HandleRequestInvoicePaymentHashWebhook(client, webhook, seedBytes)
-	case objects.RemoteSigningSubEventTypeSignInvoice:
-		return HandleSignInvoiceWebhook(client, webhook, seedBytes)
-	case objects.RemoteSigningSubEventTypeReleasePaymentPreimage:
-		return HandleReleaseInvoicePreimageWebhook(client, webhook, seedBytes)
-	default:
-		return "", errors.New("webhook event is not for remote signing")
+	request, err := ParseRemoteSigningRequest(webhook)
+	if err != nil {
+		return "", err
 	}
+
+	response, err := HandleSigningRequest(request, seedBytes)
+
+	if err != nil {
+		return "", err
+	}
+
+	if response == nil {
+		// No response is required for this event type.
+		return "", nil
+	}
+
+	return HandleSigningResponse(client, response)
+}
+
+func HandleSigningRequest(request SigningRequest, seedBytes []byte) (SigningResponse, error) {
+	var response SigningResponse
+	var err error
+	switch request.Type() {
+	case objects.RemoteSigningSubEventTypeEcdh:
+		response, err = HandleEcdhRequest(request.(*ECDHRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeGetPerCommitmentPoint:
+		response, err = HandleGetPerCommitmentPointRequest(request.(*GetPerCommitmentPointRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeReleasePerCommitmentSecret:
+		response, err = HandleReleasePerCommitmentSecretRequest(request.(*ReleasePerCommitmentSecretRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeDeriveKeyAndSign:
+		response, err = HandleDeriveKeyAndSignRequest(request.(*DeriveKeyAndSignRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeRequestInvoicePaymentHash:
+		response, err = HandleInvoicePaymentHashRequest(request.(*InvoicePaymentHashRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeSignInvoice:
+		response, err = HandleSignInvoiceRequest(request.(*SignInvoiceRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeReleasePaymentPreimage:
+		response, err = HandleReleaseInvoicePreimageRequest(request.(*ReleasePaymentPreimageRequest), seedBytes)
+	case objects.RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret:
+		// No op for this event type.
+		return nil, nil
+	default:
+		return nil, errors.New("webhook event is not for remote signing")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func HandleSigningResponse(client *services.LightsparkClient, response SigningResponse) (string, error) {
+	graphql := response.GraphqlResponse()
+
+	result, err := client.Requester.ExecuteGraphql(graphql.Query, graphql.Variables, nil)
+	if err != nil {
+		return "", err
+	}
+
+	output := result[graphql.OutputField].(map[string]interface{})
+	var responseObj objects.UpdateNodeSharedSecretOutput
+	outputJson, err := json.Marshal(output)
+	if err != nil {
+		return "", err
+	}
+
+	// This is just to validate the response.
+	err = json.Unmarshal(outputJson, &responseObj)
+	if err != nil {
+		return "", err
+	}
+
+	return string(outputJson), nil
 }
 
 func DeclineToSignMessages(client *services.LightsparkClient, event webhooks.WebhookEvent) (string, error) {
@@ -117,389 +172,147 @@ func DeclineToSignMessages(client *services.LightsparkClient, event webhooks.Web
 	return "rejected signing", nil
 }
 
-func HandleEcdhWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleEcdhRequest(request *ECDHRequest, seedBytes []byte) (*ECDHResponse, error) {
 	log.Println("Handling ECDH webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeEcdh.StringValue() {
-		return "", errors.New("sub_event_type is not ECDH")
-	}
-
-	publicKey := (*webhook.Data)["peer_public_key"]
-	if publicKey == nil {
-		return "", errors.New("missing peer_public_key in webhook")
-	}
-
-	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
+	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	sharedSecret, err := crypto.ECDH(seedBytes, bitcoinNetwork, publicKey.(string))
+	sharedSecret, err := crypto.ECDH(seedBytes, bitcoinNetwork, request.PeerPubKeyHex)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	variables := map[string]interface{}{
-		"node_id":       webhook.EntityId,
-		"shared_secret": sharedSecret,
+	response := ECDHResponse{
+		NodeId:          request.NodeId,
+		SharedSecretHex: sharedSecret,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.UPDATE_NODE_SHARED_SECRET_MUTATION, variables, nil)
-	if err != nil {
-		return "", err
-	}
-
-	output := response["update_node_shared_secret"].(map[string]interface{})
-	var responseObj objects.UpdateNodeSharedSecretOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
+	return &response, nil
 }
 
-func HandleGetPerCommitmentPointWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleGetPerCommitmentPointRequest(request *GetPerCommitmentPointRequest, seedBytes []byte) (*GetPerCommitmentPointResponse, error) {
 	log.Println("Handling GET_PER_COMMITMENT_POINT webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeGetPerCommitmentPoint.StringValue() {
-		return "", errors.New("sub_event_type is not GET_PER_COMMITMENT_POINT")
-	}
-
-	perCommitmentPointIdx := (*webhook.Data)["per_commitment_point_idx"]
-	if perCommitmentPointIdx == nil {
-		return "", errors.New("missing per_commitment_point_idx in webhook")
-	}
-
-	perCommitmentPointIdxInt, err := perCommitmentPointIdx.(json.Number).Int64()
+	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
 	if err != nil {
-		return "", fmt.Errorf("invalid per_commitment_point_idx in webhook (%v)", perCommitmentPointIdx)
+		return nil, err
 	}
 
-	derivationPath := (*webhook.Data)["derivation_path"]
-	if derivationPath == nil {
-		return "", errors.New("missing derivation_path in webhook")
-	}
-
-	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
-	if err != nil {
-		return "", err
-	}
-
-	channelId := webhook.EntityId
 	perCommitmentPoint, err := lightspark_crypto.GetPerCommitmentPoint(
 		seedBytes,
 		bitcoinNetwork,
-		derivationPath.(string),
-		uint64(perCommitmentPointIdxInt))
+		request.DerivationPath,
+		request.PerCommitmentPointIdx)
 	if err != nil {
-		return "", err
-	}
-	variables := map[string]interface{}{
-		"channel_id":                 channelId,
-		"per_commitment_point":       hex.EncodeToString(perCommitmentPoint),
-		"per_commitment_point_index": uint64(perCommitmentPointIdxInt),
+		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.UPDATE_CHANNEL_PER_COMMITMENT_POINT_MUTATION, variables, nil)
-	if err != nil {
-		return "", err
+	response := GetPerCommitmentPointResponse{
+		ChannelId:             request.ChannelId,
+		PerCommitmentPointIdx: request.PerCommitmentPointIdx,
+		PerCommitmentPointHex: hex.EncodeToString(perCommitmentPoint),
 	}
 
-	output := response["update_channel_per_commitment_point"].(map[string]interface{})
-	var responseObj objects.UpdateChannelPerCommitmentPointOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
+	return &response, nil
 }
 
-func HandleReleasePerCommitmentSecretWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleReleasePerCommitmentSecretRequest(request *ReleasePerCommitmentSecretRequest, seedBytes []byte) (*ReleasePerCommitmentSecretResponse, error) {
 	log.Println("Handling RELEASE_PER_COMMITMENT_SECRET webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeReleasePerCommitmentSecret.StringValue() {
-		return "", errors.New("sub_event_type is not RELEASE_PER_COMMITMENT_POINT")
-	}
-
-	perCommitmentPointIdxNumber := (*webhook.Data)["per_commitment_point_idx"]
-	if perCommitmentPointIdxNumber == nil {
-		return "", errors.New("missing per_commitment_point_idx in webhook")
-	}
-
-	perCommitmentPointIdx, err := perCommitmentPointIdxNumber.(json.Number).Int64()
+	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	derivationPath := (*webhook.Data)["derivation_path"]
-	if derivationPath == nil {
-		return "", errors.New("missing derivation_path in webhook")
-	}
-
-	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
-	if err != nil {
-		return "", err
-	}
-
-	channelId := webhook.EntityId
 	perCommitmentSecret, err := lightspark_crypto.ReleasePerCommitmentSecret(
 		seedBytes,
 		bitcoinNetwork,
-		derivationPath.(string),
-		uint64(perCommitmentPointIdx))
+		request.DerivationPath,
+		request.PerCommitmentPointIdx)
 	if err != nil {
-		return "", err
-	}
-	variables := map[string]interface{}{
-		"channel_id":            channelId,
-		"per_commitment_secret": hex.EncodeToString(perCommitmentSecret),
-		"per_commitment_index":  perCommitmentPointIdx,
+		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_CHANNEL_PER_COMMITMENT_SECRET_MUTATION, variables, nil)
-	if err != nil {
-		return "", err
+	response := ReleasePerCommitmentSecretResponse{
+		ChannelId:             request.ChannelId,
+		PerCommitmentPointIdx: request.PerCommitmentPointIdx,
+		PerCommitmentSecret:   hex.EncodeToString(perCommitmentSecret),
 	}
 
-	output := response["release_channel_per_commitment_secret"].(map[string]interface{})
-	var responseObj objects.ReleaseChannelPerCommitmentSecretOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
+	return &response, nil
 }
 
-func HandleRequestInvoicePaymentHashWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleInvoicePaymentHashRequest(request *InvoicePaymentHashRequest, seedBytes []byte) (*InvoicePaymentHashResponse, error) {
 	log.Println("Handling REQUEST_INVOICE_PAYMENT_HASH webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeRequestInvoicePaymentHash.StringValue() {
-		return "", errors.New("sub_event_type is not REQUEST_INVOICE_PAYMENT_HASH")
-	}
-
-	invoiceId := (*webhook.Data)["invoice_id"]
-	if invoiceId == nil {
-		return "", errors.New("missing invoice_id in webhook")
-	}
-	log.Printf("invoiceId: %v", invoiceId)
-
-	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
-	log.Printf("bitcoinNetwork: %v", bitcoinNetwork)
-	if err != nil {
-		log.Fatalf("Error getting bitcoin network: %v", err)
-		return "", err
-	}
-
 	nonce, err := lightspark_crypto.GeneratePreimageNonce(seedBytes)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	paymentHash, err := lightspark_crypto.GeneratePreimageHash(seedBytes, nonce)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	variables := map[string]interface{}{
-		"invoice_id":     invoiceId,
-		"payment_hash":   hex.EncodeToString(paymentHash),
-		"preimage_nonce": hex.EncodeToString(nonce),
+	nonce_str := hex.EncodeToString(nonce)
+
+	response := InvoicePaymentHashResponse{
+		InvoiceId:      request.InvoiceId,
+		PaymentHashHex: hex.EncodeToString(paymentHash),
+		Nonce:          &nonce_str,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SET_INVOICE_PAYMENT_HASH, variables, nil)
-	if err != nil {
-		return "", err
-	}
-
-	output := response["set_invoice_payment_hash"].(map[string]interface{})
-	var responseObj objects.SetInvoicePaymentHashOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
+	return &response, nil
 }
 
-func HandleSignInvoiceWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleSignInvoiceRequest(request *SignInvoiceRequest, seedBytes []byte) (*SignInvoiceResponse, error) {
 	log.Println("Handling SIGN_INVOICE webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeSignInvoice.StringValue() {
-		return "", errors.New("sub_event_type is not SIGN_INVOICE")
-	}
-
-	invoiceId := (*webhook.Data)["invoice_id"]
-	if invoiceId == nil {
-		return "", errors.New("missing invoice_id in webhook")
-	}
-	log.Printf("invoiceId: %v", invoiceId)
-
-	payReqHash := (*webhook.Data)["payreq_hash"]
-	if payReqHash == nil {
-		return "", errors.New("missing payreq_hash in webhook")
-	}
-	log.Printf("payReqHash: %v", payReqHash)
-	payReqHashBytes, err := hex.DecodeString(payReqHash.(string))
+	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
 	if err != nil {
-		log.Fatalf("Error decoding payreq_hash: %v", err)
-		return "", err
+		return nil, err
 	}
 
-	log.Printf("payReqHashBytes: %v", payReqHashBytes)
-	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
-	log.Printf("bitcoinNetwork: %v", bitcoinNetwork)
+	hash, err := hex.DecodeString(request.PaymentRequestHash)
 	if err != nil {
-		log.Fatalf("Error getting bitcoin network: %v", err)
-		return "", err
+		return nil, err
 	}
 
-	signedInvoice, err := lightspark_crypto.SignInvoiceHash(seedBytes, bitcoinNetwork, payReqHashBytes)
-	log.Printf("signedInvoice: %v", signedInvoice)
+	signedInvoice, err := lightspark_crypto.SignInvoiceHash(seedBytes, bitcoinNetwork, hash)
 	if err != nil {
 		log.Fatalf("Error signing invoice: %v", err)
-		return "", err
-	}
-	variables := map[string]interface{}{
-		"invoice_id":  invoiceId,
-		"signature":   hex.EncodeToString(signedInvoice.Signature),
-		"recovery_id": signedInvoice.RecoveryId,
+		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SIGN_INVOICE_MUTATION, variables, nil)
-	if err != nil {
-		return "", err
+	response := SignInvoiceResponse{
+		InvoiceId:  request.InvoiceId,
+		Signature:  hex.EncodeToString(signedInvoice.Signature),
+		RecoveryId: signedInvoice.RecoveryId,
 	}
 
-	output := response["sign_invoice"].(map[string]interface{})
-	var responseObj objects.SignInvoiceOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
+	return &response, nil
 }
 
-func HandleReleaseInvoicePreimageWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleReleaseInvoicePreimageRequest(request *ReleasePaymentPreimageRequest, seedBytes []byte) (*ReleasePaymentPreimageResponse, error) {
 	log.Println("Handling RELEASE_PAYMENT_PREIMAGE webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeReleasePaymentPreimage.StringValue() {
-		return "", errors.New("sub_event_type is not RELEASE_PAYMENT_PREIMAGE")
-	}
-
-	nonce := (*webhook.Data)["preimage_nonce"]
+	nonce := request.Nonce
 	if nonce == nil {
-		return "", errors.New("missing preimage_nonce in webhook")
+		return nil, errors.New("missing preimage_nonce in webhook")
 	}
-	nonceBytes, err := hex.DecodeString(nonce.(string))
+	nonceBytes, err := hex.DecodeString(*nonce)
 	if err != nil {
-		return "", err
-	}
-
-	invoiceId := (*webhook.Data)["invoice_id"]
-	if invoiceId == nil {
-		return "", errors.New("missing invoice_id in webhook")
+		return nil, err
 	}
 
 	preimage, err := lightspark_crypto.GeneratePreimage(seedBytes, nonceBytes)
 	if err != nil {
-		return "", err
-	}
-	variables := map[string]interface{}{
-		"invoice_id":       invoiceId.(string),
-		"payment_preimage": hex.EncodeToString(preimage),
+		return nil, err
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.RELEASE_PAYMENT_PREIMAGE_MUTATION, variables, nil)
-	if err != nil {
-		return "", err
+	response := ReleasePaymentPreimageResponse{
+		InvoiceId:       request.InvoiceId,
+		PaymentPreimage: hex.EncodeToString(preimage),
 	}
 
-	output := response["release_payment_preimage"].(map[string]interface{})
-	var responseObj objects.ReleasePaymentPreimageOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
-}
-
-type SigningJob struct {
-	Id             string  `json:"id"`
-	DerivationPath string  `json:"derivation_path"`
-	Message        string  `json:"message"`
-	AddTweak       *string `json:"add_tweak"`
-	MulTweak       *string `json:"mul_tweak"`
-	IsRaw          bool    `json:"is_raw"`
-}
-
-func (j *SigningJob) MulTweakBytes() ([]byte, error) {
-	if j.MulTweak == nil {
-		return nil, nil
-	}
-	return hex.DecodeString(*j.MulTweak)
-}
-
-func (j *SigningJob) AddTweakBytes() ([]byte, error) {
-	if j.AddTweak == nil {
-		return nil, nil
-	}
-	return hex.DecodeString(*j.AddTweak)
-}
-
-func (j *SigningJob) MessageBytes() ([]byte, error) {
-	return hex.DecodeString(j.Message)
+	return &response, nil
 }
 
 // signatureResponse A separate type is required for the response because the json field names are different from objects.Signature.
@@ -508,79 +321,39 @@ type signatureResponse struct {
 	Signature string `json:"signature"`
 }
 
-func HandleDeriveKeyAndSignWebhook(client *services.LightsparkClient, webhook webhooks.WebhookEvent, seedBytes []byte) (string, error) {
+func HandleDeriveKeyAndSignRequest(request *DeriveKeyAndSignRequest, seedBytes []byte) (*DeriveKeyAndSignResponse, error) {
 	log.Println("Handling DERIVE_KEY_AND_SIGN webhook")
-	if webhook.Data == nil {
-		return "", errors.New("missing data in webhook")
-	}
-	if (*webhook.Data)["sub_event_type"] != objects.RemoteSigningSubEventTypeDeriveKeyAndSign.StringValue() {
-		return "", errors.New("sub_event_type is not DERIVE_KEY_AND_SIGN")
-	}
-
-	signingJobsJson := (*webhook.Data)["signing_jobs"]
-	if signingJobsJson == nil {
-		return "", errors.New("missing signing_jobs in webhook")
-	}
-	signingJobsJsonString, err := json.Marshal(signingJobsJson.([]interface{}))
+	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
 	if err != nil {
-		return "", err
-	}
-
-	var signingJobs []SigningJob
-	err = json.Unmarshal(signingJobsJsonString, &signingJobs)
-	if err != nil {
-		return "", err
-	}
-
-	bitcoinNetwork, err := bitcoinNetworkFromData(*webhook.Data)
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var signatures []signatureResponse
-	for _, signingJob := range signingJobs {
+	for _, signingJob := range request.SigningJobs {
 		signature, err := signSigningJob(signingJob, seedBytes, bitcoinNetwork)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		signatures = append(signatures, signatureResponse{
 			Id:        signingJob.Id,
 			Signature: signature.Signature,
 		})
 	}
-	variables := map[string]interface{}{
-		"signatures": signatures,
+
+	response := DeriveKeyAndSignResponse{
+		Signatures: signatures,
 	}
 
-	response, err := client.Requester.ExecuteGraphql(scripts.SIGN_MESSAGES_MUTATION, variables, nil)
-	if err != nil {
-		return "", err
-	}
-
-	output := response["sign_messages"].(map[string]interface{})
-	var responseObj objects.SignMessagesOutput
-	outputJson, err := json.Marshal(output)
-	if err != nil {
-		return "", err
-	}
-
-	// This is just to validate the response.
-	err = json.Unmarshal(outputJson, &responseObj)
-	if err != nil {
-		return "", err
-	}
-
-	return string(outputJson), nil
+	return &response, nil
 }
 
-func bitcoinNetworkFromData(data map[string]interface{}) (lightspark_crypto.BitcoinNetwork, error) {
-	network := data["bitcoin_network"].(string)
+func bitcoinNetworkConversion(network objects.BitcoinNetwork) (lightspark_crypto.BitcoinNetwork, error) {
 	switch network {
-	case "MAINNET":
+	case objects.BitcoinNetworkMainnet:
 		return lightspark_crypto.Mainnet, nil
-	case "TESTNET":
+	case objects.BitcoinNetworkTestnet:
 		return lightspark_crypto.Testnet, nil
-	case "REGTEST":
+	case objects.BitcoinNetworkRegtest:
 		return lightspark_crypto.Regtest, nil
 	default:
 		return lightspark_crypto.BitcoinNetwork(0), errors.New("invalid network")

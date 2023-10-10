@@ -2,6 +2,8 @@
 package objects
 
 type SignMessagesOutput struct {
+
+	// SignedPayloads The list of signed payloads.
 	SignedPayloads []SignablePayload `json:"sign_messages_output_signed_payloads"`
 }
 

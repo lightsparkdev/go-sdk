@@ -15,6 +15,8 @@ const (
 	SignablePayloadStatusSigned
 
 	SignablePayloadStatusValidationFailed
+
+	SignablePayloadStatusInvalidSignature
 )
 
 func (a *SignablePayloadStatus) UnmarshalJSON(b []byte) error {
@@ -31,6 +33,8 @@ func (a *SignablePayloadStatus) UnmarshalJSON(b []byte) error {
 		*a = SignablePayloadStatusSigned
 	case "VALIDATION_FAILED":
 		*a = SignablePayloadStatusValidationFailed
+	case "INVALID_SIGNATURE":
+		*a = SignablePayloadStatusInvalidSignature
 
 	}
 	return nil
@@ -47,6 +51,8 @@ func (a SignablePayloadStatus) StringValue() string {
 		s = "SIGNED"
 	case SignablePayloadStatusValidationFailed:
 		s = "VALIDATION_FAILED"
+	case SignablePayloadStatusInvalidSignature:
+		s = "INVALID_SIGNATURE"
 
 	}
 	return s

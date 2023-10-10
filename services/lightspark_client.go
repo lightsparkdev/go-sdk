@@ -243,7 +243,7 @@ func (client *LightsparkClient) CreateTestModeInvoice(localNodeId string, amount
 //	amountMsats: The amount you will be paid for this invoice, expressed in msats.
 //		It should ONLY be set when the invoice amount is zero.
 func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
-	encodedInvoice string, amountMsats *int64) (*objects.OutgoingPayment, error) {
+	encodedInvoice string, amountMsats *int64) (*objects.IncomingPayment, error) {
 
 	variables := map[string]interface{}{
 		"local_node_id":   localNodeId,
@@ -259,8 +259,8 @@ func (client *LightsparkClient) CreateTestModePayment(localNodeId string,
 	}
 
 	output := response["create_test_mode_payment"].(map[string]interface{})
-	var payment objects.OutgoingPayment
-	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	var payment objects.IncomingPayment
+	paymentJson, err := json.Marshal(output["incoming_payment"].(map[string]interface{}))
 	if err != nil {
 		return nil, errors.New("error parsing payment")
 	}

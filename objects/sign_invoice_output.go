@@ -4,6 +4,8 @@ package objects
 import "github.com/lightsparkdev/go-sdk/types"
 
 type SignInvoiceOutput struct {
+
+	// Invoice  The signed invoice object.
 	Invoice types.EntityWrapper `json:"sign_invoice_output_invoice"`
 }
 

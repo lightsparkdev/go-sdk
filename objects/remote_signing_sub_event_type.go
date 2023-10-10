@@ -24,6 +24,8 @@ const (
 	RemoteSigningSubEventTypeReleasePaymentPreimage
 
 	RemoteSigningSubEventTypeRequestInvoicePaymentHash
+
+	RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret
 )
 
 func (a *RemoteSigningSubEventType) UnmarshalJSON(b []byte) error {
@@ -48,6 +50,8 @@ func (a *RemoteSigningSubEventType) UnmarshalJSON(b []byte) error {
 		*a = RemoteSigningSubEventTypeReleasePaymentPreimage
 	case "REQUEST_INVOICE_PAYMENT_HASH":
 		*a = RemoteSigningSubEventTypeRequestInvoicePaymentHash
+	case "REVEAL_COUNTERPARTY_PER_COMMITMENT_SECRET":
+		*a = RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret
 
 	}
 	return nil
@@ -72,6 +76,8 @@ func (a RemoteSigningSubEventType) StringValue() string {
 		s = "RELEASE_PAYMENT_PREIMAGE"
 	case RemoteSigningSubEventTypeRequestInvoicePaymentHash:
 		s = "REQUEST_INVOICE_PAYMENT_HASH"
+	case RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret:
+		s = "REVEAL_COUNTERPARTY_PER_COMMITMENT_SECRET"
 
 	}
 	return s

@@ -4,6 +4,8 @@ package objects
 import "github.com/lightsparkdev/go-sdk/types"
 
 type ReleasePaymentPreimageOutput struct {
+
+	// Invoice The invoice of the transaction.
 	Invoice types.EntityWrapper `json:"release_payment_preimage_output_invoice"`
 }
 

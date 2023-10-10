@@ -17,7 +17,10 @@ mutation CreateTestModePayment(
         payment {
             ...OutgoingPaymentFragment
         }
+		incoming_payment {
+			...IncomingPaymentFragment
+		}
     }
 }
 
-` + objects.OutgoingPaymentFragment
+` + objects.OutgoingPaymentFragment + objects.IncomingPaymentFragment

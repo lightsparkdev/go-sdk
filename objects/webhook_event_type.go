@@ -13,6 +13,10 @@ const (
 
 	WebhookEventTypePaymentFinished
 
+	WebhookEventTypeWithdrawalFinished
+
+	WebhookEventTypeFundsReceived
+
 	WebhookEventTypeNodeStatus
 
 	WebhookEventTypeWalletStatus
@@ -26,6 +30,8 @@ const (
 	WebhookEventTypeWalletFundsReceived
 
 	WebhookEventTypeRemoteSigning
+
+	WebhookEventTypeLowBalance
 )
 
 func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
@@ -38,6 +44,10 @@ func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
 		*a = WebhookEventTypeUndefined
 	case "PAYMENT_FINISHED":
 		*a = WebhookEventTypePaymentFinished
+	case "WITHDRAWAL_FINISHED":
+		*a = WebhookEventTypeWithdrawalFinished
+	case "FUNDS_RECEIVED":
+		*a = WebhookEventTypeFundsReceived
 	case "NODE_STATUS":
 		*a = WebhookEventTypeNodeStatus
 	case "WALLET_STATUS":
@@ -52,6 +62,8 @@ func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
 		*a = WebhookEventTypeWalletFundsReceived
 	case "REMOTE_SIGNING":
 		*a = WebhookEventTypeRemoteSigning
+	case "LOW_BALANCE":
+		*a = WebhookEventTypeLowBalance
 
 	}
 	return nil
@@ -64,6 +76,10 @@ func (a WebhookEventType) StringValue() string {
 		s = "undefined"
 	case WebhookEventTypePaymentFinished:
 		s = "PAYMENT_FINISHED"
+	case WebhookEventTypeWithdrawalFinished:
+		s = "WITHDRAWAL_FINISHED"
+	case WebhookEventTypeFundsReceived:
+		s = "FUNDS_RECEIVED"
 	case WebhookEventTypeNodeStatus:
 		s = "NODE_STATUS"
 	case WebhookEventTypeWalletStatus:
@@ -78,6 +94,8 @@ func (a WebhookEventType) StringValue() string {
 		s = "WALLET_FUNDS_RECEIVED"
 	case WebhookEventTypeRemoteSigning:
 		s = "REMOTE_SIGNING"
+	case WebhookEventTypeLowBalance:
+		s = "LOW_BALANCE"
 
 	}
 	return s
