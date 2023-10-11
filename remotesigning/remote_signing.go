@@ -315,12 +315,6 @@ func HandleReleaseInvoicePreimageRequest(request *ReleasePaymentPreimageRequest,
 	return &response, nil
 }
 
-// signatureResponse A separate type is required for the response because the json field names are different from objects.Signature.
-type signatureResponse struct {
-	Id        string `json:"id"`
-	Signature string `json:"signature"`
-}
-
 func HandleDeriveKeyAndSignRequest(request *DeriveKeyAndSignRequest, seedBytes []byte) (*DeriveKeyAndSignResponse, error) {
 	log.Println("Handling DERIVE_KEY_AND_SIGN webhook")
 	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
@@ -328,13 +322,13 @@ func HandleDeriveKeyAndSignRequest(request *DeriveKeyAndSignRequest, seedBytes [
 		return nil, err
 	}
 
-	var signatures []signatureResponse
+	var signatures []SignatureResponse
 	for _, signingJob := range request.SigningJobs {
 		signature, err := signSigningJob(signingJob, seedBytes, bitcoinNetwork)
 		if err != nil {
 			return nil, err
 		}
-		signatures = append(signatures, signatureResponse{
+		signatures = append(signatures, SignatureResponse{
 			Id:        signingJob.Id,
 			Signature: signature.Signature,
 		})

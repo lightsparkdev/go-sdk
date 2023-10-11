@@ -60,8 +60,14 @@ func (r ReleasePerCommitmentSecretResponse) GraphqlResponse() *GraphQLResponse {
 	}
 }
 
+// SignatureResponse A separate type is required for the response because the json field names are different from objects.Signature.
+type SignatureResponse struct {
+	Id        string `json:"id"`
+	Signature string `json:"signature"`
+}
+
 type DeriveKeyAndSignResponse struct {
-	Signatures []signatureResponse
+	Signatures []SignatureResponse
 }
 
 func (r DeriveKeyAndSignResponse) GraphqlResponse() *GraphQLResponse {

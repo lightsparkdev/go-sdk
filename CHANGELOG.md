@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.5.0
+- Expose remote signing requests and responses for the ability to handle them in custom ways.
+
 # v0.4.1
 
 - Fixed an encoding issue with signing GraphQL requests.
