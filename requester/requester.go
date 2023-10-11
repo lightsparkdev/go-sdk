@@ -97,6 +97,9 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, err
 	}
 	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New("lightspark request failed: " + response.Status)
+	}
 
 	data, err := ioutil.ReadAll(response.Body)
 	var result map[string]interface{}

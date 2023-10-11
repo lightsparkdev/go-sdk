@@ -441,6 +441,11 @@ func (r *ReleaseCounterpartyPerCommitmentSecretRequest) Type() objects.RemoteSig
 	return objects.RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret
 }
 
+// A signing job is a request to sign a message with a particular key.
+// The signig key is computed using the node's master key and the parameter.
+// DerivationPath is the bip32 derivation path to get the key from the master key `k`.
+// Then apply MulTweak * k + AddTweak to get the final signing key.
+// If IsRaw is true, then the message is the hash value that could be signed directly.
 type SigningJob struct {
 	Id             string  `json:"id"`
 	DerivationPath string  `json:"derivation_path"`
