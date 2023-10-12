@@ -1,3 +1,4 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package remotesigning
 
 import (
@@ -445,14 +446,12 @@ func (r *ReleaseCounterpartyPerCommitmentSecretRequest) Type() objects.RemoteSig
 // The signig key is computed using the node's master key and the parameter.
 // DerivationPath is the bip32 derivation path to get the key from the master key `k`.
 // Then apply MulTweak * k + AddTweak to get the final signing key.
-// If IsRaw is true, then the message is the hash value that could be signed directly.
 type SigningJob struct {
 	Id             string  `json:"id"`
 	DerivationPath string  `json:"derivation_path"`
 	Message        string  `json:"message"`
 	AddTweak       *string `json:"add_tweak"`
 	MulTweak       *string `json:"mul_tweak"`
-	IsRaw          bool    `json:"is_raw"`
 }
 
 func (j *SigningJob) MulTweakBytes() ([]byte, error) {

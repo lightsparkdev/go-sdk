@@ -210,7 +210,7 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 //
 // Args:
 //
-//	localNodeId: the id of the node that should be paid
+//	localNodeId: the id of the node that will pay the invoice
 //	amountMsats: the amount of the invoice in millisatoshis
 //	memo: the memo of the invoice
 //	invoiceType: the type of the invoice

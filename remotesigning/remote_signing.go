@@ -1,3 +1,4 @@
+// Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package remotesigning
 
 import (
@@ -373,7 +374,7 @@ func signSigningJob(signingJob SigningJob, seedBytes []byte, network lightspark_
 		network,
 		messageBytes,
 		signingJob.DerivationPath,
-		signingJob.IsRaw,
+		true,
 		&addTweakBytes,
 		&mulTweakBytes)
 	if err != nil {

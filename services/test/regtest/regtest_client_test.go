@@ -9,7 +9,7 @@ import (
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/lightsparkdev/go-sdk/utils"
 	"github.com/stretchr/testify/require"
-	"math"
+	"log"
 	"testing"
 	"time"
 )
@@ -34,7 +34,10 @@ func TestCreateTestPaymentNode1(t *testing.T) {
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
 	invoice, err := createInvoiceForNode(client, env.NodeID)
 	require.NoError(t, err)
+	t.Logf("Created invoice %v", invoice)
 	payment, err := client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
+	require.NoError(t, err)
+	t.Logf("Created payment %v", payment)
 	tx := *waitForPaymentCompletion(t, client, payment.Id)
 	require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
 	t.Log(tx)
@@ -48,8 +51,10 @@ func TestCreateTestPaymentNode2(t *testing.T) {
 	client := services.NewLightsparkClient(env.ApiClientID2, env.ApiClientSecret2, &env.ApiClientEndpoint)
 	invoice, err := createInvoiceForNode(client, env.NodeID2)
 	require.NoError(t, err)
+	t.Logf("Created invoice %v", invoice)
 	payment, err := client.CreateTestModePayment(env.NodeID2, invoice.Data.EncodedPaymentRequest, nil)
 	require.NoError(t, err)
+	t.Logf("Created payment %v", payment)
 	tx := *waitForPaymentCompletion(t, client, payment.Id)
 	require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
 	t.Log(tx)
@@ -189,13 +194,30 @@ func ensureEnoughNodeFunds(
 	require.True(t, didCast)
 	balanceMilliSats, err := utils.ValueMilliSatoshi(*castNode.GetLocalBalance())
 	require.NoError(t, err)
-	buffer := int64(math.Round(float64(amountMillisatoshis) * 0.25))
-	if balanceMilliSats < amountMillisatoshis+buffer {
+	log.Printf("Check if node id, %s, has enough local balance as of, %d msats, to send, %d msats, before funding.", nodeId, balanceMilliSats, amountMillisatoshis)
+	if balanceMilliSats < amountMillisatoshis {
 		invoice, err := client.CreateInvoice(nodeId, amountMillisatoshis*5, nil, nil, nil)
 		require.NoError(t, err)
 		payment, err := client.CreateTestModePayment(nodeId, invoice.Data.EncodedPaymentRequest, nil)
 		require.NoError(t, err)
 		transaction := (*waitForPaymentCompletion(t, client, payment.Id)).(objects.IncomingPayment)
 		require.Equal(t, objects.TransactionStatusSuccess, transaction.Status)
+
+		startTime := time.Now()
+		for {
+			nodeEntity, err := client.GetEntity(nodeId)
+			require.NoError(t, err)
+			castNode, didCast := (*nodeEntity).(objects.LightsparkNode)
+			require.True(t, didCast)
+			balanceMilliSats, err := utils.ValueMilliSatoshi(*castNode.GetLocalBalance())
+			require.NoError(t, err)
+			log.Printf("Check if node id, %s, has enough local balance as of, %d msats, to send, %d msats, after funding.", nodeId, balanceMilliSats, amountMillisatoshis)
+			if balanceMilliSats >= amountMillisatoshis {
+				break
+			}
+			if time.Since(startTime) > time.Minute*3 {
+				t.Fatalf("Funding node id, %s, failed, it still has %d msats balance.", nodeId, balanceMilliSats)
+			}
+		}
 	}
 }

@@ -97,7 +97,7 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, err
 	}
 	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
+	if response.StatusCode < 200 || response.StatusCode > 299 {
 		return nil, errors.New("lightspark request failed: " + response.Status)
 	}
 
