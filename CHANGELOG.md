@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.5.1
+- Remove is_raw field in DeriveKeyAndSign request.
+
 # v0.5.0
 - Expose remote signing requests and responses for the ability to handle them in custom ways.
 
