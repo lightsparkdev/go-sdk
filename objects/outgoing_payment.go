@@ -53,6 +53,9 @@ type OutgoingPayment struct {
 
 	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
 	UmaPostTransactionData *[]PostTransactionData `json:"outgoing_payment_uma_post_transaction_data"`
+
+	// PaymentPreimage The preimage of the payment.
+	PaymentPreimage *string `json:"outgoing_payment_payment_preimage"`
 }
 
 const (
@@ -344,6 +347,7 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
         }
     }
+    outgoing_payment_payment_preimage: payment_preimage
 }
 `
 )
@@ -425,6 +429,33 @@ func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *in
                     outgoing_payment_attempt_outgoing_payment: outgoing_payment {
                         id
                     }
+                    outgoing_payment_attempt_channel_snapshot: channel_snapshot {
+                        __typename
+                        channel_snapshot_local_balance: local_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        channel_snapshot_local_unsettled_balance: local_unsettled_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        channel_snapshot_local_channel_reserve: local_channel_reserve {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                    }
                 }
             }
         }
@@ -491,6 +522,9 @@ type OutgoingPaymentJSON struct {
 
 	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
 	UmaPostTransactionData *[]PostTransactionData `json:"outgoing_payment_uma_post_transaction_data"`
+
+	// PaymentPreimage The preimage of the payment.
+	PaymentPreimage *string `json:"outgoing_payment_payment_preimage"`
 }
 
 func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
@@ -530,6 +564,8 @@ func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
 	data.FailureMessage = temp.FailureMessage
 
 	data.UmaPostTransactionData = temp.UmaPostTransactionData
+
+	data.PaymentPreimage = temp.PaymentPreimage
 
 	return nil
 }

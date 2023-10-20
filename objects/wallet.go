@@ -530,6 +530,7 @@ func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, 
                                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                             }
                         }
+                        outgoing_payment_payment_preimage: payment_preimage
                     }
                     ... on RoutingTransaction {
                         __typename
