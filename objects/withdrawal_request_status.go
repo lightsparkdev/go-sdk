@@ -11,6 +11,8 @@ type WithdrawalRequestStatus int
 const (
 	WithdrawalRequestStatusUndefined WithdrawalRequestStatus = iota
 
+	WithdrawalRequestStatusCreated
+
 	WithdrawalRequestStatusFailed
 
 	WithdrawalRequestStatusInProgress
@@ -26,6 +28,8 @@ func (a *WithdrawalRequestStatus) UnmarshalJSON(b []byte) error {
 	switch s {
 	default:
 		*a = WithdrawalRequestStatusUndefined
+	case "CREATED":
+		*a = WithdrawalRequestStatusCreated
 	case "FAILED":
 		*a = WithdrawalRequestStatusFailed
 	case "IN_PROGRESS":
@@ -42,6 +46,8 @@ func (a WithdrawalRequestStatus) StringValue() string {
 	switch a {
 	default:
 		s = "undefined"
+	case WithdrawalRequestStatusCreated:
+		s = "CREATED"
 	case WithdrawalRequestStatusFailed:
 		s = "FAILED"
 	case WithdrawalRequestStatusInProgress:

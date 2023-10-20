@@ -41,6 +41,9 @@ type OutgoingPaymentAttempt struct {
 
 	// OutgoingPayment The outgoing payment for this attempt.
 	OutgoingPayment types.EntityWrapper `json:"outgoing_payment_attempt_outgoing_payment"`
+
+	// ChannelSnapshot The channel snapshot at the time the outgoing payment attempt was made.
+	ChannelSnapshot *ChannelSnapshot `json:"outgoing_payment_attempt_channel_snapshot"`
 }
 
 const (
@@ -72,6 +75,33 @@ fragment OutgoingPaymentAttemptFragment on OutgoingPaymentAttempt {
     }
     outgoing_payment_attempt_outgoing_payment: outgoing_payment {
         id
+    }
+    outgoing_payment_attempt_channel_snapshot: channel_snapshot {
+        __typename
+        channel_snapshot_local_balance: local_balance {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+        channel_snapshot_local_unsettled_balance: local_unsettled_balance {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+        channel_snapshot_local_channel_reserve: local_channel_reserve {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
     }
 }
 `
