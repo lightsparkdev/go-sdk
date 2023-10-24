@@ -14,6 +14,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -49,7 +51,12 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverId := addressParts[0]
 	receiverVasp := addressParts[1]
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
-	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(signingKey, receiverAddress, "localhost:8080", true, nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
+	}
+	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(
+		signingKey, receiverAddress, "localhost:"+port, true, nil)
 
 	resp, err := http.Get(lnurlpRequest.String())
 	if err != nil {
@@ -87,12 +94,11 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		})
 		return
 	}
+
 	lnurlpResponse, err := uma.ParseLnurlpResponse(responseBodyBytes)
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to parse lnurlp response from receiver",
-		})
+	if err != nil || lnurlpResponse.UmaVersion == "" || lnurlpResponse.Compliance.Signature == "" {
+		// Try to fall back to a non-UMA lnurlp response.
+		v.attemptToParseAsNonUmaLnurlpResponse(responseBodyBytes, receiverId, receiverVasp, context)
 		return
 	}
 
@@ -161,10 +167,14 @@ func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signin
 		})
 		return nil, true
 	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
+	}
 	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(
 		signingKey,
 		receiverAddress,
-		"localhost:8080",
+		"localhost:"+port,
 		true,
 		highestSupportedVersion,
 	)
@@ -217,10 +227,24 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 
+	if initialRequestData.umaLnurlpResponse == nil {
+		if initialRequestData.nonUmaLnurlpResponse == nil {
+			context.JSON(http.StatusBadRequest, gin.H{
+				"status": "ERROR",
+				"reason": "Invalid callback UUID",
+			})
+			return
+		}
+
+		// Fall back to non-UMA LNURL payreq flow.
+		v.handleNonUmaPayReq(context, initialRequestData, amountInt64, callbackUuid)
+		return
+	}
+
 	currencyCode := context.Query("currencyCode")
 	currencySupported := false
-	for i := range initialRequestData.lnurlpResponse.Currencies {
-		if initialRequestData.lnurlpResponse.Currencies[i].Code == currencyCode {
+	for i := range initialRequestData.umaLnurlpResponse.Currencies {
+		if initialRequestData.umaLnurlpResponse.Currencies[i].Code == currencyCode {
 			currencySupported = true
 			break
 		}
@@ -251,7 +275,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 
-	payerInfo := getPayerInfo(initialRequestData.lnurlpResponse.RequiredPayerData)
+	payerInfo := getPayerInfo(initialRequestData.umaLnurlpResponse.RequiredPayerData)
 	trInfo := "Here is some fake travel rule info. It's up to you to actually implement this."
 	senderUtxos, err := v.client.GetNodeChannelUtxos(v.config.NodeUUID)
 	if err != nil {
@@ -302,7 +326,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		})
 		return
 	}
-	payreqResult, err := http.Post(initialRequestData.lnurlpResponse.Callback, "application/json", bytes.NewBuffer(payReqBytes))
+	payreqResult, err := http.Post(initialRequestData.umaLnurlpResponse.Callback, "application/json", bytes.NewBuffer(payReqBytes))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -354,7 +378,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	v.requestCache.SavePayReqData(
 		callbackUuid,
 		payreqResponse.EncodedInvoice,
-		payreqResponse.Compliance.UtxoCallback,
+		&payreqResponse.Compliance.UtxoCallback,
 		&invoiceData,
 	)
 
@@ -440,8 +464,11 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		})
 	}
 	utxosWithAmountsBytes, err := json.Marshal(utxosWithAmounts)
-	if err == nil {
+	if err != nil {
+		log.Fatalf("Failed to marshal UTXOs: %v", err)
+	} else if payReqData.utxoCallback != nil {
 		log.Printf("Sending UTXOs to %s: %s", payReqData.utxoCallback, utxosWithAmountsBytes)
+		// This is where you would actually send the UTXOs to the receiver's UTXO callback URL.
 	}
 
 	context.JSON(http.StatusOK, gin.H{
@@ -499,6 +526,105 @@ func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, response)
+}
+
+func (v *Vasp1) attemptToParseAsNonUmaLnurlpResponse(
+	bodyBytes []byte, receiverId string, receiverDomain string, context *gin.Context) {
+	var nonUmaLnurlpResponse NonUmaLnurlpResponse
+	err := json.Unmarshal(bodyBytes, &nonUmaLnurlpResponse)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to parse lnurlp response",
+		})
+		return
+	}
+	callbackUuid := v.requestCache.SaveNonUmaLnurlpResponseData(nonUmaLnurlpResponse, receiverId, receiverDomain)
+	context.JSON(http.StatusOK, gin.H{
+		"callbackUuid":      callbackUuid,
+		"maxSendSats":       nonUmaLnurlpResponse.MaxSendable,
+		"minSendSats":       nonUmaLnurlpResponse.MinSendable,
+		"receiverKYCStatus": uma.KycStatusNotVerified,
+	})
+}
+
+func (v *Vasp1) handleNonUmaPayReq(
+	context *gin.Context, initialRequestData Vasp1InitialRequestData, amountInt64 int64, callbackUuid string) {
+	callbackUrl, err := url.Parse(initialRequestData.nonUmaLnurlpResponse.Callback)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to parse callback URL",
+		})
+		return
+	}
+	queryParams := callbackUrl.Query()
+	queryParams.Add("amount", strconv.FormatInt(amountInt64, 10))
+	callbackUrl.RawQuery = queryParams.Encode()
+
+	payreqResult, err := http.Get(callbackUrl.String())
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
+
+	if payreqResult.StatusCode != http.StatusOK {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed payreq response: %d", payreqResult.StatusCode),
+		})
+		return
+	}
+
+	defer payreqResult.Body.Close()
+
+	payreqResultBytes, err := io.ReadAll(payreqResult.Body)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to read payreq response",
+		})
+		return
+	}
+
+	var payreqResponse NonUmaPayReqResponse
+	err = json.Unmarshal(payreqResultBytes, &payreqResponse)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to unmarshal payreq response",
+		})
+		return
+	}
+
+	log.Printf("Received invoice: %s", payreqResponse.EncodedInvoice)
+	invoice, err := v.client.DecodePaymentRequest(payreqResponse.EncodedInvoice)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to decode invoice",
+		})
+		return
+	}
+	invoiceData := (*invoice).(objects.InvoiceData)
+	v.requestCache.SavePayReqData(
+		callbackUuid,
+		payreqResponse.EncodedInvoice,
+		nil,
+		&invoiceData,
+	)
+
+	context.JSON(http.StatusOK, gin.H{
+		"encodedInvoice": payreqResponse.EncodedInvoice,
+		"callbackUuid":   callbackUuid,
+		"amount":         invoiceData.Amount,
+		"conversionRate": 1,
+		"currencyCode":   "mSAT",
+		"expiresAt":      invoiceData.ExpiresAt.Unix(),
+	})
 }
 
 type PayerInfo struct {

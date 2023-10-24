@@ -7,14 +7,15 @@ import (
 )
 
 type Vasp1InitialRequestData struct {
-	lnurlpResponse uma.LnurlpResponse
-	receiverId     string
-	vasp2Domain    string
+	umaLnurlpResponse    *uma.LnurlpResponse
+	nonUmaLnurlpResponse *NonUmaLnurlpResponse
+	receiverId           string
+	vasp2Domain          string
 }
 
 type Vasp1PayReqData struct {
 	encodedInvoice string
-	utxoCallback   string
+	utxoCallback   *string
 	invoiceData    *objects.InvoiceData
 }
 
@@ -47,9 +48,20 @@ func (c *Vasp1RequestCache) SaveLnurlpResponseData(lnurlpResponse uma.LnurlpResp
 	// Generate a UUID for this request
 	requestUUID := uuid.New().String()
 	c.umaRequestCache[requestUUID] = Vasp1InitialRequestData{
-		lnurlpResponse: lnurlpResponse,
-		receiverId:     receiverId,
-		vasp2Domain:    vasp2Domain,
+		umaLnurlpResponse: &lnurlpResponse,
+		receiverId:        receiverId,
+		vasp2Domain:       vasp2Domain,
+	}
+	return requestUUID
+}
+
+func (c *Vasp1RequestCache) SaveNonUmaLnurlpResponseData(lnurlpResponse NonUmaLnurlpResponse, receiverId string, vasp2Domain string) string {
+	// Generate a UUID for this request
+	requestUUID := uuid.New().String()
+	c.umaRequestCache[requestUUID] = Vasp1InitialRequestData{
+		nonUmaLnurlpResponse: &lnurlpResponse,
+		receiverId:           receiverId,
+		vasp2Domain:          vasp2Domain,
 	}
 	return requestUUID
 }
@@ -66,7 +78,7 @@ func (c *Vasp1RequestCache) GetPayReqData(uuid string) (Vasp1PayReqData, bool) {
 func (c *Vasp1RequestCache) SavePayReqData(
 	requestUUID string,
 	encodedInvoice string,
-	utxoCallback string,
+	utxoCallback *string,
 	invoiceData *objects.InvoiceData,
 ) string {
 	c.payReqCache[requestUUID] = Vasp1PayReqData{
