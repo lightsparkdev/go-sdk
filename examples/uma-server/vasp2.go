@@ -54,7 +54,8 @@ func (v *Vasp2) getMetadata() (string, error) {
 func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 	username := context.Param("username")
 
-	if username != v.config.Username {
+	// Allow with or without the $ for LNURL fallback.
+	if username != v.config.Username && username != "$"+v.config.Username {
 		context.JSON(http.StatusNotFound, gin.H{
 			"status": "ERROR",
 			"reason": fmt.Sprintf("User not found: %s", username),
@@ -64,15 +65,22 @@ func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 
 	requestUrl := context.Request.URL
 	requestUrl.Host = context.Request.Host
-	if uma.IsUmaLnurlpQuery(*requestUrl) {
-		responseJson, hadError := v.parseUmaQueryData(context)
-		if hadError {
-			return
-		}
-		context.Data(http.StatusOK, "application/json", responseJson)
+
+	// Fallback to regular LNURL if the request is not a UMA request.
+	if !uma.IsUmaLnurlpQuery(*requestUrl) {
+		v.handleNonUmaLnurlRequest(context)
 		return
 	}
 
+	responseJson, hadError := v.parseUmaQueryData(context)
+	if hadError {
+		return
+	}
+	context.Data(http.StatusOK, "application/json", responseJson)
+	return
+}
+
+func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context) {
 	callback := v.getLnurlpCallback(context)
 	metadata, err := v.getMetadata()
 
@@ -202,6 +210,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 	return responseJson, false
 }
 
+// This is the handler for regular (non-UMA) LNURL payreq requests when the request is a GET.
 func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 	uuid := context.Param("uuid")
 
