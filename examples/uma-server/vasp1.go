@@ -296,6 +296,9 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	// This is the node pub key of the sender's node. In practice, you'd want to get this from the sender's node.
 	senderNodePubKey := "abcdef12345"
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
+	// If you are using a standardized travel rule format, you can set this to something like:
+	// "IVMS@101.2023".
+	var trFormat *uma.TravelRuleFormat
 	payReq, err := uma.GetPayRequest(
 		vasp2EncryptionPubKey,
 		umaSigningPrivateKey,
@@ -305,6 +308,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		payerInfo.Name,
 		payerInfo.Email,
 		&trInfo,
+		trFormat,
 		uma.KycStatusVerified,
 		&senderUtxos,
 		&senderNodePubKey,
