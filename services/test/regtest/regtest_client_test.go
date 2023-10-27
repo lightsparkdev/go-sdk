@@ -4,14 +4,16 @@
 package regtest_test
 
 import (
+	"log"
+	"reflect"
+	"testing"
+	"time"
+
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/lightsparkdev/go-sdk/utils"
 	"github.com/stretchr/testify/require"
-	"log"
-	"testing"
-	"time"
 )
 
 const (
@@ -39,8 +41,10 @@ func TestCreateTestPaymentNode1(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Created payment %v", payment)
 	tx := *waitForPaymentCompletion(t, client, payment.Id)
-	require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
-	t.Log(tx)
+	if tx != nil {
+		require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
+		t.Log(tx)
+	}
 }
 
 // Create invoice for node 2 and pay it from routing node. You'll need to run this a few
@@ -56,8 +60,10 @@ func TestCreateTestPaymentNode2(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("Created payment %v", payment)
 	tx := *waitForPaymentCompletion(t, client, payment.Id)
-	require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
-	t.Log(tx)
+	if tx != nil {
+		require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
+		t.Log(tx)
+	}
 }
 
 // Create test invoice from routing node and pay it from node 1.
@@ -72,10 +78,9 @@ func TestCreateTestInvoiceAndPayFromNode1(t *testing.T) {
 	require.NoError(t, err)
 
 	completedTransaction := *waitForPaymentCompletion(t, client, payment.Id)
-	if completedTransaction.GetStatus() == objects.TransactionStatusFailed {
-		t.Errorf("Payment failed: %s", payment.FailureReason.StringValue())
+	if completedTransaction != nil {
+		t.Log(completedTransaction)
 	}
-	t.Log(completedTransaction)
 }
 
 // Create test invoice from routing node and pay it from node 2.
@@ -90,10 +95,9 @@ func TestCreateTestInvoiceAndPayFromNode2(t *testing.T) {
 	require.NoError(t, err)
 
 	completedTransaction := *waitForPaymentCompletion(t, client, payment.Id)
-	if completedTransaction.GetStatus() == objects.TransactionStatusFailed {
-		t.Errorf("Payment failed: %s", payment.FailureReason.StringValue())
+	if completedTransaction != nil {
+		t.Log(completedTransaction)
 	}
-	t.Log(completedTransaction)
 }
 
 // Create an invoice from node 1, pay it from node 2
@@ -109,12 +113,10 @@ func TestPayInvoiceNode2ToNode1(t *testing.T) {
 	servicestest.LoadSeedAsSigningKey(t, env.NodeID2, env.MasterSeedHex2, objects.BitcoinNetworkRegtest, client2)
 	payment, err := client2.PayInvoice(env.NodeID2, invoice.Data.EncodedPaymentRequest, 60, InvoiceAmount*0.16, nil)
 	require.NoError(t, err)
-
 	completedTransaction := *waitForPaymentCompletion(t, client2, payment.Id)
-	if completedTransaction.GetStatus() == objects.TransactionStatusFailed {
-		t.Errorf("Payment failed: %s", payment.FailureReason.StringValue())
+	if completedTransaction != nil {
+		t.Log(completedTransaction)
 	}
-	t.Log(completedTransaction)
 }
 
 // Create an invoice from node 2, pay it from node 1
@@ -132,10 +134,9 @@ func TestPayInvoiceNode1ToNode2(t *testing.T) {
 	require.NoError(t, err)
 
 	completedTransaction := *waitForPaymentCompletion(t, client2, payment.Id)
-	if completedTransaction.GetStatus() == objects.TransactionStatusFailed {
-		t.Errorf("Payment failed: %s", payment.FailureReason.StringValue())
+	if completedTransaction != nil {
+		t.Log(completedTransaction)
 	}
-	t.Log(completedTransaction)
 }
 
 func TestGetChannelUtxos(t *testing.T) {
@@ -180,6 +181,20 @@ func waitForPaymentCompletion(
 		castPayment, didCast = (*payment).(objects.LightningTransaction)
 		require.True(t, didCast)
 	}
+	if castPayment.GetStatus() == objects.TransactionStatusFailed {
+		if reflect.TypeOf(castPayment) == reflect.TypeOf(objects.OutgoingPayment{}) {
+			outgoingPayment, ok := castPayment.(objects.OutgoingPayment)
+			require.True(t, ok)
+			if outgoingPayment.FailureReason != nil {
+				t.Errorf("Payment failed due to: %s", outgoingPayment.FailureReason.StringValue())
+			} else {
+				t.Error("Payment failed with failure reaseon unavailable.")
+			}
+		} else {
+			t.Error("Payment failed with failure reaseon unavailable.")
+		}
+	}
+
 	return &castPayment
 }
 
