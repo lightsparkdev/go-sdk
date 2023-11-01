@@ -452,6 +452,9 @@ type SigningJob struct {
 	Message        string  `json:"message"`
 	AddTweak       *string `json:"add_tweak"`
 	MulTweak       *string `json:"mul_tweak"`
+	Script         *string `json:"script"`
+	Transaction    *string `json:"transaction"`
+	Amount 	       *int64 `json:"amount"`
 }
 
 func (j *SigningJob) MulTweakBytes() ([]byte, error) {
