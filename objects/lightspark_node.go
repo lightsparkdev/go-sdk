@@ -20,18 +20,23 @@ type LightsparkNode interface {
 	GetStatus() *LightsparkNodeStatus
 
 	// GetTotalBalance The sum of the balance on the Bitcoin Network, channel balances, and commit fees on this node.
+	// Deprecated: Use `balances` instead.
 	GetTotalBalance() *CurrencyAmount
 
 	// GetTotalLocalBalance The total sum of the channel balances (online and offline) on this node.
+	// Deprecated: Use `balances` instead.
 	GetTotalLocalBalance() *CurrencyAmount
 
 	// GetLocalBalance The sum of the channel balances (online only) that are available to send on this node.
+	// Deprecated: Use `balances` instead.
 	GetLocalBalance() *CurrencyAmount
 
 	// GetRemoteBalance The sum of the channel balances that are available to receive on this node.
+	// Deprecated: Use `balances` instead.
 	GetRemoteBalance() *CurrencyAmount
 
 	// GetBlockchainBalance The details of the balance of this node on the Bitcoin Network.
+	// Deprecated: Use `balances` instead.
 	GetBlockchainBalance() *BlockchainBalance
 
 	// GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
