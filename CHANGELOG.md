@@ -1,5 +1,9 @@
 # Changelog
 
+# v0.6.0
+- Add a more human-readable `balances` field to nodes and wallets.
+- Add `deprecated` tags where relevant.
+
 # v0.5.1
 - Remove is_raw field in DeriveKeyAndSign request.
 
