@@ -7,6 +7,7 @@ import "github.com/lightsparkdev/go-sdk/types"
 type CreateTestModePaymentoutput struct {
 
 	// Payment The payment that has been sent.
+	// Deprecated: Use incoming_payment instead.
 	Payment types.EntityWrapper `json:"create_test_mode_paymentoutput_payment"`
 
 	// IncomingPayment The payment that has been received.

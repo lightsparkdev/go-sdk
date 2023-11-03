@@ -46,18 +46,23 @@ type LightsparkNodeWithOSK struct {
 	Status *LightsparkNodeStatus `json:"lightspark_node_with_o_s_k_status"`
 
 	// TotalBalance The sum of the balance on the Bitcoin Network, channel balances, and commit fees on this node.
+	// Deprecated: Use `balances` instead.
 	TotalBalance *CurrencyAmount `json:"lightspark_node_with_o_s_k_total_balance"`
 
 	// TotalLocalBalance The total sum of the channel balances (online and offline) on this node.
+	// Deprecated: Use `balances` instead.
 	TotalLocalBalance *CurrencyAmount `json:"lightspark_node_with_o_s_k_total_local_balance"`
 
 	// LocalBalance The sum of the channel balances (online only) that are available to send on this node.
+	// Deprecated: Use `balances` instead.
 	LocalBalance *CurrencyAmount `json:"lightspark_node_with_o_s_k_local_balance"`
 
 	// RemoteBalance The sum of the channel balances that are available to receive on this node.
+	// Deprecated: Use `balances` instead.
 	RemoteBalance *CurrencyAmount `json:"lightspark_node_with_o_s_k_remote_balance"`
 
 	// BlockchainBalance The details of the balance of this node on the Bitcoin Network.
+	// Deprecated: Use `balances` instead.
 	BlockchainBalance *BlockchainBalance `json:"lightspark_node_with_o_s_k_blockchain_balance"`
 
 	// UmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
@@ -218,26 +223,31 @@ func (obj LightsparkNodeWithOSK) GetStatus() *LightsparkNodeStatus {
 }
 
 // GetTotalBalance The sum of the balance on the Bitcoin Network, channel balances, and commit fees on this node.
+// Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithOSK) GetTotalBalance() *CurrencyAmount {
 	return obj.TotalBalance
 }
 
 // GetTotalLocalBalance The total sum of the channel balances (online and offline) on this node.
+// Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithOSK) GetTotalLocalBalance() *CurrencyAmount {
 	return obj.TotalLocalBalance
 }
 
 // GetLocalBalance The sum of the channel balances (online only) that are available to send on this node.
+// Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithOSK) GetLocalBalance() *CurrencyAmount {
 	return obj.LocalBalance
 }
 
 // GetRemoteBalance The sum of the channel balances that are available to receive on this node.
+// Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithOSK) GetRemoteBalance() *CurrencyAmount {
 	return obj.RemoteBalance
 }
 
 // GetBlockchainBalance The details of the balance of this node on the Bitcoin Network.
+// Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithOSK) GetBlockchainBalance() *BlockchainBalance {
 	return obj.BlockchainBalance
 }
