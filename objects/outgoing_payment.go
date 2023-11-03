@@ -221,6 +221,33 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
                         }
                     }
                     lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
+                    lightspark_node_with_o_s_k_balances: balances {
+                        __typename
+                        balances_owned_balance: owned_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        balances_available_to_send_balance: available_to_send_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        balances_available_to_withdraw_balance: available_to_withdraw_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                    }
                     lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
                         __typename
                         secret_encrypted_value: encrypted_value
@@ -326,6 +353,33 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
                         }
                     }
                     lightspark_node_with_remote_signing_uma_prescreening_utxos: uma_prescreening_utxos
+                    lightspark_node_with_remote_signing_balances: balances {
+                        __typename
+                        balances_owned_balance: owned_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        balances_available_to_send_balance: available_to_send_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        balances_available_to_withdraw_balance: available_to_withdraw_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                    }
                 }
             }
         }
@@ -431,6 +485,10 @@ func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *in
                     }
                     outgoing_payment_attempt_channel_snapshot: channel_snapshot {
                         __typename
+                        channel_snapshot_channel: channel {
+                            id
+                        }
+                        channel_snapshot_timestamp: timestamp
                         channel_snapshot_local_balance: local_balance {
                             __typename
                             currency_amount_original_value: original_value
@@ -448,6 +506,22 @@ func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *in
                             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                         }
                         channel_snapshot_local_channel_reserve: local_channel_reserve {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        channel_snapshot_remote_balance: remote_balance {
+                            __typename
+                            currency_amount_original_value: original_value
+                            currency_amount_original_unit: original_unit
+                            currency_amount_preferred_currency_unit: preferred_currency_unit
+                            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                        }
+                        channel_snapshot_remote_unsettled_balance: remote_unsettled_balance {
                             __typename
                             currency_amount_original_value: original_value
                             currency_amount_original_unit: original_unit

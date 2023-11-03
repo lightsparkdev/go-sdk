@@ -59,6 +59,8 @@ const (
 
 	HtlcAttemptFailureCodeInvalidOnionPayload
 
+	HtlcAttemptFailureCodeInvalidOnionBlinding
+
 	HtlcAttemptFailureCodeInternalFailure
 
 	HtlcAttemptFailureCodeUnknownFailure
@@ -122,6 +124,8 @@ func (a *HtlcAttemptFailureCode) UnmarshalJSON(b []byte) error {
 		*a = HtlcAttemptFailureCodeMppTimeout
 	case "INVALID_ONION_PAYLOAD":
 		*a = HtlcAttemptFailureCodeInvalidOnionPayload
+	case "INVALID_ONION_BLINDING":
+		*a = HtlcAttemptFailureCodeInvalidOnionBlinding
 	case "INTERNAL_FAILURE":
 		*a = HtlcAttemptFailureCodeInternalFailure
 	case "UNKNOWN_FAILURE":
@@ -186,6 +190,8 @@ func (a HtlcAttemptFailureCode) StringValue() string {
 		s = "MPP_TIMEOUT"
 	case HtlcAttemptFailureCodeInvalidOnionPayload:
 		s = "INVALID_ONION_PAYLOAD"
+	case HtlcAttemptFailureCodeInvalidOnionBlinding:
+		s = "INVALID_ONION_BLINDING"
 	case HtlcAttemptFailureCodeInternalFailure:
 		s = "INTERNAL_FAILURE"
 	case HtlcAttemptFailureCodeUnknownFailure:

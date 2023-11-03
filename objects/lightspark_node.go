@@ -36,6 +36,9 @@ type LightsparkNode interface {
 
 	// GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
 	GetUmaPrescreeningUtxos() []string
+
+	// GetBalances The balances that describe the funds in this node.
+	GetBalances() *Balances
 }
 
 func LightsparkNodeUnmarshal(data map[string]interface{}) (LightsparkNode, error) {
