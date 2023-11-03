@@ -63,6 +63,9 @@ type LightsparkNodeWithOSK struct {
 	// UmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
 	UmaPrescreeningUtxos []string `json:"lightspark_node_with_o_s_k_uma_prescreening_utxos"`
 
+	// Balances The balances that describe the funds in this node.
+	Balances *Balances `json:"lightspark_node_with_o_s_k_balances"`
+
 	// EncryptedSigningPrivateKey The private key client is using to sign a GraphQL request which will be verified at server side.
 	EncryptedSigningPrivateKey *Secret `json:"lightspark_node_with_o_s_k_encrypted_signing_private_key"`
 }
@@ -168,6 +171,33 @@ fragment LightsparkNodeWithOSKFragment on LightsparkNodeWithOSK {
         }
     }
     lightspark_node_with_o_s_k_uma_prescreening_utxos: uma_prescreening_utxos
+    lightspark_node_with_o_s_k_balances: balances {
+        __typename
+        balances_owned_balance: owned_balance {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+        balances_available_to_send_balance: available_to_send_balance {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+        balances_available_to_withdraw_balance: available_to_withdraw_balance {
+            __typename
+            currency_amount_original_value: original_value
+            currency_amount_original_unit: original_unit
+            currency_amount_preferred_currency_unit: preferred_currency_unit
+            currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+            currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+        }
+    }
     lightspark_node_with_o_s_k_encrypted_signing_private_key: encrypted_signing_private_key {
         __typename
         secret_encrypted_value: encrypted_value
@@ -215,6 +245,11 @@ func (obj LightsparkNodeWithOSK) GetBlockchainBalance() *BlockchainBalance {
 // GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
 func (obj LightsparkNodeWithOSK) GetUmaPrescreeningUtxos() []string {
 	return obj.UmaPrescreeningUtxos
+}
+
+// GetBalances The balances that describe the funds in this node.
+func (obj LightsparkNodeWithOSK) GetBalances() *Balances {
+	return obj.Balances
 }
 
 // GetAlias A name that identifies the node. It has no importance in terms of operating the node, it is just a way to identify and search for commercial services or popular nodes. This alias can be changed at any time by the node operator.
