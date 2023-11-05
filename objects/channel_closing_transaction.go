@@ -48,6 +48,9 @@ type ChannelClosingTransaction struct {
 
 	// Channel If known, the channel this transaction is closing.
 	Channel *types.EntityWrapper `json:"channel_closing_transaction_channel"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -145,4 +148,8 @@ func (obj ChannelClosingTransaction) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj ChannelClosingTransaction) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj ChannelClosingTransaction) GetTypename() string {
+	return obj.Typename
 }

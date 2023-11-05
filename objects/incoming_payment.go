@@ -41,6 +41,9 @@ type IncomingPayment struct {
 
 	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
 	UmaPostTransactionData *[]PostTransactionData `json:"incoming_payment_uma_post_transaction_data"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -116,6 +119,10 @@ func (obj IncomingPayment) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj IncomingPayment) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj IncomingPayment) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj IncomingPayment) GetAttempts(requester *requester.Requester, first *int64, statuses *[]IncomingPaymentAttemptStatus, after *string) (*IncomingPaymentToAttemptsConnection, error) {

@@ -30,6 +30,9 @@ type IncomingPaymentAttempt struct {
 
 	// Channel The channel this attempt was made on.
 	Channel types.EntityWrapper `json:"incoming_payment_attempt_channel"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -69,4 +72,8 @@ func (obj IncomingPaymentAttempt) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj IncomingPaymentAttempt) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj IncomingPaymentAttempt) GetTypename() string {
+	return obj.Typename
 }

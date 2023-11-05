@@ -23,6 +23,9 @@ type ApiToken struct {
 
 	// Permissions A list of permissions granted to the token.
 	Permissions []Permission `json:"api_token_permissions"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -52,4 +55,8 @@ func (obj ApiToken) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj ApiToken) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj ApiToken) GetTypename() string {
+	return obj.Typename
 }

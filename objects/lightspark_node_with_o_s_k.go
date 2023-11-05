@@ -73,6 +73,9 @@ type LightsparkNodeWithOSK struct {
 
 	// EncryptedSigningPrivateKey The private key client is using to sign a GraphQL request which will be verified at server side.
 	EncryptedSigningPrivateKey *Secret `json:"lightspark_node_with_o_s_k_encrypted_signing_private_key"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -305,6 +308,10 @@ func (obj LightsparkNodeWithOSK) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj LightsparkNodeWithOSK) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj LightsparkNodeWithOSK) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj LightsparkNodeWithOSK) GetAddresses(requester *requester.Requester, first *int64, types *[]NodeAddressType) (*NodeToAddressesConnection, error) {

@@ -37,6 +37,9 @@ type GraphNode struct {
 
 	// PublicKey The public key of this node. It acts as a unique identifier of this node in the Lightning Network.
 	PublicKey *string `json:"graph_node_public_key"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -99,6 +102,10 @@ func (obj GraphNode) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj GraphNode) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj GraphNode) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj GraphNode) GetAddresses(requester *requester.Requester, first *int64, types *[]NodeAddressType) (*NodeToAddressesConnection, error) {

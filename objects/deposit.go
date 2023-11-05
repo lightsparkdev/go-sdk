@@ -48,6 +48,9 @@ type Deposit struct {
 
 	// Destination The recipient Lightspark node this deposit was sent to.
 	Destination types.EntityWrapper `json:"deposit_destination"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -145,4 +148,8 @@ func (obj Deposit) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Deposit) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Deposit) GetTypename() string {
+	return obj.Typename
 }

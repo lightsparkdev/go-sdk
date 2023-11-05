@@ -12,6 +12,9 @@ type OutgoingPaymentAttemptToHopsConnection struct {
 
 	// Entities The hops for the current page of this connection.
 	Entities []Hop `json:"outgoing_payment_attempt_to_hops_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -41,4 +44,8 @@ func (obj OutgoingPaymentAttemptToHopsConnection) GetCount() int64 {
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj OutgoingPaymentAttemptToHopsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
+}
+
+func (obj OutgoingPaymentAttemptToHopsConnection) GetTypename() string {
+	return obj.Typename
 }

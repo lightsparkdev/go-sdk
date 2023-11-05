@@ -35,6 +35,9 @@ type Wallet struct {
 
 	// Status The status of this wallet.
 	Status WalletStatus `json:"wallet_status"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -94,6 +97,10 @@ func (obj Wallet) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Wallet) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Wallet) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, after *string, createdAfterDate *time.Time, createdBeforeDate *time.Time, statuses *[]TransactionStatus, types *[]TransactionType) (*WalletToTransactionsConnection, error) {

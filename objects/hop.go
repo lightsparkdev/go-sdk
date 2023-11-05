@@ -36,6 +36,9 @@ type Hop struct {
 
 	// ExpiryBlockHeight The block height at which an unsettled HTLC is considered expired.
 	ExpiryBlockHeight *int64 `json:"hop_expiry_block_height"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -84,4 +87,8 @@ func (obj Hop) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Hop) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Hop) GetTypename() string {
+	return obj.Typename
 }

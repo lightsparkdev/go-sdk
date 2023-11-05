@@ -12,6 +12,9 @@ type IncomingPaymentToAttemptsConnection struct {
 
 	// Entities The incoming payment attempts for the current page of this connection.
 	Entities []IncomingPaymentAttempt `json:"incoming_payment_to_attempts_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -41,4 +44,8 @@ func (obj IncomingPaymentToAttemptsConnection) GetCount() int64 {
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj IncomingPaymentToAttemptsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
+}
+
+func (obj IncomingPaymentToAttemptsConnection) GetTypename() string {
+	return obj.Typename
 }
