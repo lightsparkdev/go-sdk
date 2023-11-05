@@ -13,6 +13,9 @@ type AccountToPaymentRequestsConnection struct {
 
 	// Entities The payment requests for the current page of this connection.
 	Entities []PaymentRequest `json:"account_to_payment_requests_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -44,6 +47,10 @@ func (obj AccountToPaymentRequestsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
 }
 
+func (obj AccountToPaymentRequestsConnection) GetTypename() string {
+	return obj.Typename
+}
+
 type AccountToPaymentRequestsConnectionJSON struct {
 
 	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
@@ -54,6 +61,9 @@ type AccountToPaymentRequestsConnectionJSON struct {
 
 	// Entities The payment requests for the current page of this connection.
 	Entities []map[string]interface{} `json:"account_to_payment_requests_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 func (data *AccountToPaymentRequestsConnection) UnmarshalJSON(dataBytes []byte) error {
@@ -77,6 +87,8 @@ func (data *AccountToPaymentRequestsConnection) UnmarshalJSON(dataBytes []byte) 
 		}
 		data.Entities = entities
 	}
+
+	data.Typename = temp.Typename
 
 	return nil
 }

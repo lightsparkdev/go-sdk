@@ -13,6 +13,9 @@ type Connection interface {
 
 	// GetPageInfo An object that holds pagination information about the objects in this connection.
 	GetPageInfo() PageInfo
+
+	// GetTypename The typename of the object
+	GetTypename() string
 }
 
 func ConnectionUnmarshal(data map[string]interface{}) (Connection, error) {

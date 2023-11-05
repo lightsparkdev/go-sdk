@@ -65,6 +65,9 @@ type Channel struct {
 
 	// ShortChannelId The unique identifier of the channel on Lightning Network, which is the location in the chain that the channel was confirmed. The format is <block-height>:<tx-index>:<tx-output>.
 	ShortChannelId *string `json:"channel_short_channel_id"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -179,6 +182,10 @@ func (obj Channel) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Channel) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Channel) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj Channel) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time) (*int64, error) {

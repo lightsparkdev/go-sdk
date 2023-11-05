@@ -45,6 +45,9 @@ type RoutingTransaction struct {
 
 	// FailureReason If applicable, the reason why the routing failed.
 	FailureReason *RoutingTransactionFailureReason `json:"routing_transaction_failure_reason"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -121,4 +124,8 @@ func (obj RoutingTransaction) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj RoutingTransaction) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj RoutingTransaction) GetTypename() string {
+	return obj.Typename
 }

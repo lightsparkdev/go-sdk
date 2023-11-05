@@ -35,6 +35,9 @@ type SignablePayload struct {
 
 	// Signable The signable this payload belongs to.
 	Signable types.EntityWrapper `json:"signable_payload_signable"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -69,4 +72,8 @@ func (obj SignablePayload) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj SignablePayload) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj SignablePayload) GetTypename() string {
+	return obj.Typename
 }

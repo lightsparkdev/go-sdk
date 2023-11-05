@@ -29,6 +29,9 @@ type InvoiceData struct {
 
 	// Destination The lightning node that will be paid when fulfilling this invoice.
 	Destination Node `json:"invoice_data_destination"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -335,6 +338,10 @@ func (obj InvoiceData) GetBitcoinNetwork() BitcoinNetwork {
 	return obj.BitcoinNetwork
 }
 
+func (obj InvoiceData) GetTypename() string {
+	return obj.Typename
+}
+
 type InvoiceDataJSON struct {
 	EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
 
@@ -357,6 +364,9 @@ type InvoiceDataJSON struct {
 
 	// Destination The lightning node that will be paid when fulfilling this invoice.
 	Destination map[string]interface{} `json:"invoice_data_destination"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 func (data *InvoiceData) UnmarshalJSON(dataBytes []byte) error {
@@ -384,6 +394,8 @@ func (data *InvoiceData) UnmarshalJSON(dataBytes []byte) error {
 		return err
 	}
 	data.Destination = Destination
+
+	data.Typename = temp.Typename
 
 	return nil
 }

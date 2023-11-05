@@ -11,6 +11,9 @@ type PaymentRequestData interface {
 	GetEncodedPaymentRequest() string
 
 	GetBitcoinNetwork() BitcoinNetwork
+
+	// GetTypename The typename of the object
+	GetTypename() string
 }
 
 func PaymentRequestDataUnmarshal(data map[string]interface{}) (PaymentRequestData, error) {

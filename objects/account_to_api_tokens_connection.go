@@ -11,6 +11,9 @@ type AccountToApiTokensConnection struct {
 
 	// Entities The API tokens for the current page of this connection.
 	Entities []ApiToken `json:"account_to_api_tokens_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -40,4 +43,8 @@ func (obj AccountToApiTokensConnection) GetCount() int64 {
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj AccountToApiTokensConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
+}
+
+func (obj AccountToApiTokensConnection) GetTypename() string {
+	return obj.Typename
 }

@@ -13,6 +13,9 @@ type WalletToTransactionsConnection struct {
 
 	// Entities The transactions for the current page of this connection.
 	Entities []Transaction `json:"wallet_to_transactions_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -44,6 +47,10 @@ func (obj WalletToTransactionsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
 }
 
+func (obj WalletToTransactionsConnection) GetTypename() string {
+	return obj.Typename
+}
+
 type WalletToTransactionsConnectionJSON struct {
 
 	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
@@ -54,6 +61,9 @@ type WalletToTransactionsConnectionJSON struct {
 
 	// Entities The transactions for the current page of this connection.
 	Entities []map[string]interface{} `json:"wallet_to_transactions_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 func (data *WalletToTransactionsConnection) UnmarshalJSON(dataBytes []byte) error {
@@ -77,6 +87,8 @@ func (data *WalletToTransactionsConnection) UnmarshalJSON(dataBytes []byte) erro
 		}
 		data.Entities = entities
 	}
+
+	data.Typename = temp.Typename
 
 	return nil
 }

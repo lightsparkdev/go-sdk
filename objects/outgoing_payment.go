@@ -56,6 +56,9 @@ type OutgoingPayment struct {
 
 	// PaymentPreimage The preimage of the payment.
 	PaymentPreimage *string `json:"outgoing_payment_payment_preimage"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -441,6 +444,10 @@ func (obj OutgoingPayment) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
 }
 
+func (obj OutgoingPayment) GetTypename() string {
+	return obj.Typename
+}
+
 func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *int64, after *string) (*OutgoingPaymentToAttemptsConnection, error) {
 	query := `query FetchOutgoingPaymentToAttemptsConnection($entity_id: ID!, $first: Int, $after: String) {
     entity(id: $entity_id) {
@@ -599,6 +606,9 @@ type OutgoingPaymentJSON struct {
 
 	// PaymentPreimage The preimage of the payment.
 	PaymentPreimage *string `json:"outgoing_payment_payment_preimage"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
@@ -640,6 +650,8 @@ func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
 	data.UmaPostTransactionData = temp.UmaPostTransactionData
 
 	data.PaymentPreimage = temp.PaymentPreimage
+
+	data.Typename = temp.Typename
 
 	return nil
 }

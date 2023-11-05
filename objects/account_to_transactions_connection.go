@@ -22,6 +22,9 @@ type AccountToTransactionsConnection struct {
 
 	// Entities The transactions for the current page of this connection.
 	Entities []Transaction `json:"account_to_transactions_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -77,6 +80,10 @@ func (obj AccountToTransactionsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
 }
 
+func (obj AccountToTransactionsConnection) GetTypename() string {
+	return obj.Typename
+}
+
 type AccountToTransactionsConnectionJSON struct {
 
 	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
@@ -96,6 +103,9 @@ type AccountToTransactionsConnectionJSON struct {
 
 	// Entities The transactions for the current page of this connection.
 	Entities []map[string]interface{} `json:"account_to_transactions_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 func (data *AccountToTransactionsConnection) UnmarshalJSON(dataBytes []byte) error {
@@ -125,6 +135,8 @@ func (data *AccountToTransactionsConnection) UnmarshalJSON(dataBytes []byte) err
 		}
 		data.Entities = entities
 	}
+
+	data.Typename = temp.Typename
 
 	return nil
 }

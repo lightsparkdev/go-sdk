@@ -23,6 +23,9 @@ type Invoice struct {
 
 	// AmountPaid The total amount that has been paid to this invoice.
 	AmountPaid *CurrencyAmount `json:"invoice_amount_paid"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -359,4 +362,8 @@ func (obj Invoice) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Invoice) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Invoice) GetTypename() string {
+	return obj.Typename
 }

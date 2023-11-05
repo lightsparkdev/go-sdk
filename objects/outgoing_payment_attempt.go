@@ -44,6 +44,9 @@ type OutgoingPaymentAttempt struct {
 
 	// ChannelSnapshot The channel snapshot at the time the outgoing payment attempt was made.
 	ChannelSnapshot *ChannelSnapshot `json:"outgoing_payment_attempt_channel_snapshot"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -140,6 +143,10 @@ func (obj OutgoingPaymentAttempt) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj OutgoingPaymentAttempt) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj OutgoingPaymentAttempt) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj OutgoingPaymentAttempt) GetHops(requester *requester.Requester, first *int64, after *string) (*OutgoingPaymentAttemptToHopsConnection, error) {

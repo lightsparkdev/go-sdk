@@ -11,6 +11,9 @@ type LightsparkNodeToChannelsConnection struct {
 
 	// Entities The channels for the current page of this connection.
 	Entities []Channel `json:"lightspark_node_to_channels_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -40,4 +43,8 @@ func (obj LightsparkNodeToChannelsConnection) GetCount() int64 {
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj LightsparkNodeToChannelsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
+}
+
+func (obj LightsparkNodeToChannelsConnection) GetTypename() string {
+	return obj.Typename
 }

@@ -11,6 +11,9 @@ type AccountToWalletsConnection struct {
 
 	// Entities The wallets for the current page of this connection.
 	Entities []Wallet `json:"account_to_wallets_connection_entities"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -40,4 +43,8 @@ func (obj AccountToWalletsConnection) GetCount() int64 {
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj AccountToWalletsConnection) GetPageInfo() PageInfo {
 	return obj.PageInfo
+}
+
+func (obj AccountToWalletsConnection) GetTypename() string {
+	return obj.Typename
 }

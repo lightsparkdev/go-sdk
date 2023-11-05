@@ -18,6 +18,9 @@ type Entity interface {
 
 	// GetUpdatedAt The date and time when the entity was last updated.
 	GetUpdatedAt() time.Time
+
+	// GetTypename The typename of the object
+	GetTypename() string
 }
 
 func EntityUnmarshal(data map[string]interface{}) (Entity, error) {

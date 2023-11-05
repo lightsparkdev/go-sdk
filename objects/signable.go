@@ -13,6 +13,9 @@ type Signable struct {
 
 	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"signable_updated_at"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -39,4 +42,8 @@ func (obj Signable) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Signable) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Signable) GetTypename() string {
+	return obj.Typename
 }

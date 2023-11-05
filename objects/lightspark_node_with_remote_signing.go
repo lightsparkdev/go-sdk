@@ -70,6 +70,9 @@ type LightsparkNodeWithRemoteSigning struct {
 
 	// Balances The balances that describe the funds in this node.
 	Balances *Balances `json:"lightspark_node_with_remote_signing_balances"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -297,6 +300,10 @@ func (obj LightsparkNodeWithRemoteSigning) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj LightsparkNodeWithRemoteSigning) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj LightsparkNodeWithRemoteSigning) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj LightsparkNodeWithRemoteSigning) GetAddresses(requester *requester.Requester, first *int64, types *[]NodeAddressType) (*NodeToAddressesConnection, error) {

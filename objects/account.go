@@ -22,6 +22,9 @@ type Account struct {
 
 	// Name The name of this account.
 	Name *string `json:"account_name"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -49,6 +52,10 @@ func (obj Account) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Account) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Account) GetTypename() string {
+	return obj.Typename
 }
 
 func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, after *string) (*AccountToApiTokensConnection, error) {

@@ -48,6 +48,9 @@ type Withdrawal struct {
 
 	// Origin The Lightspark node this withdrawal originated from.
 	Origin types.EntityWrapper `json:"withdrawal_origin"`
+
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
@@ -145,4 +148,8 @@ func (obj Withdrawal) GetCreatedAt() time.Time {
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Withdrawal) GetUpdatedAt() time.Time {
 	return obj.UpdatedAt
+}
+
+func (obj Withdrawal) GetTypename() string {
+	return obj.Typename
 }
