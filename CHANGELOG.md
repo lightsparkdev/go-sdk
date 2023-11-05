@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.6.1
+- Fix serialization of interfaces by including typenames.
+
 # v0.6.0
 - Add a more human-readable `balances` field to nodes and wallets.
 - Add `deprecated` tags where relevant.
