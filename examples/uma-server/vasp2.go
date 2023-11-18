@@ -166,6 +166,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		return nil, true
 	}
 
+	displayDecimals := 2
 	signedResponse, err := uma.GetLnurlpResponse(
 		query,
 		umaPrivateKey,
@@ -187,6 +188,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 				MillisatoshiPerUnit: 34_150,
 				MinSendable:         1,
 				MaxSendable:         10_000_000,
+				DisplayDecimals:     &displayDecimals,
 			},
 		},
 		uma.KycStatusVerified,
