@@ -2,9 +2,12 @@
 package services
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"github.com/lightsparkdev/go-sdk/crypto"
+	"regexp"
 
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
@@ -732,6 +735,202 @@ func (client *LightsparkClient) ExecuteGraphqlRequest(document string,
 //	loader: The SigningKeyLoader that can load the node's key.
 func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, loader SigningKeyLoader) {
 	client.nodeKeys[nodeId] = loader
+}
+
+// CreateUmaInvitation creates a new uma invitation.
+//
+// Args:
+//
+//	inviterUma: the uma of the inviter
+//
+// Returns:
+//
+//	*objects.UmaInvitation: the created invitation
+func (client *LightsparkClient) CreateUmaInvitation(inviterUma string) (*objects.UmaInvitation, error) {
+	variables := map[string]interface{}{
+		"inviter_uma": inviterUma,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_UMA_INVITATION_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_uma_invitation"].(map[string]interface{})
+	var invitation objects.UmaInvitation
+	invitationJson, err := json.Marshal(output["invitation"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invitation")
+	}
+	err = json.Unmarshal(invitationJson, &invitation)
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
+// CreateUmaInvitationWithIncentives creates a new uma invitation with incentives.
+//
+// Args:
+//
+//	inviterUma: the uma of the inviter
+//	inviterPhoneNumber: the phone number of the inviter in E.164 format
+//	inviterRegion: the RegionCode of the inviter
+//
+// Returns:
+//
+//	*objects.UmaInvitation: the created invitation
+func (client *LightsparkClient) CreateUmaInvitationWithIncentives(
+	inviterUma string,
+	inviterPhoneNumber string,
+	inviterRegion objects.RegionCode) (*objects.UmaInvitation, error) {
+	inviterPhoneHash, err := hashPhoneNumber(inviterPhoneNumber)
+	variables := map[string]interface{}{
+		"inviter_uma":        inviterUma,
+		"inviter_phone_hash": inviterPhoneHash,
+		"inviter_region":     inviterRegion,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_UMA_INVITATION_WITH_INCENTIVES_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_uma_invitation_with_incentives"].(map[string]interface{})
+	var invitation objects.UmaInvitation
+	invitationJson, err := json.Marshal(output["invitation"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invitation")
+	}
+	err = json.Unmarshal(invitationJson, &invitation)
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
+// ClaimUmaInvitation claims an existing uma invitation.
+//
+// Args:
+//
+//	invitationCode: the code of the invitation
+//	inviteeUma: the uma of the invitee
+//
+// Returns:
+//
+//	*objects.UmaInvitation: the claimed invitation
+func (client *LightsparkClient) ClaimUmaInvitation(invitationCode string, inviteeUma string) (*objects.UmaInvitation, error) {
+	variables := map[string]interface{}{
+		"invitation_code": invitationCode,
+		"invitee_uma":     inviteeUma,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.CLAIM_UMA_INVITATION_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["claim_uma_invitation"].(map[string]interface{})
+	var invitation objects.UmaInvitation
+	invitationJson, err := json.Marshal(output["invitation"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invitation")
+	}
+	err = json.Unmarshal(invitationJson, &invitation)
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
+// ClaimUmaInvitationWithIncentives claims an existing uma invitation with incentives.
+//
+// Args:
+//
+//	invitationCode: the code of the invitation
+//	inviteeUma: the uma of the invitee
+//	inviteePhoneNumber: the phone number of the invitee in E.164 format
+//	inviteeRegion: the RegionCode of the invitee
+//
+// Returns:
+//
+//	*objects.UmaInvitation: the claimed invitation
+func (client *LightsparkClient) ClaimUmaInvitationWithIncentives(
+	invitationCode string,
+	inviteeUma string,
+	inviteePhoneNumber string,
+	inviteeRegion objects.RegionCode) (*objects.UmaInvitation, error) {
+	inviteePhoneHash, err := hashPhoneNumber(inviteePhoneNumber)
+	if err != nil {
+		return nil, err
+	}
+	variables := map[string]interface{}{
+		"invitation_code":    invitationCode,
+		"invitee_uma":        inviteeUma,
+		"invitee_phone_hash": inviteePhoneHash,
+		"invitee_region":     inviteeRegion,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.CLAIM_UMA_INVITATION_WITH_INCENTIVES_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["claim_uma_invitation_with_incentives"].(map[string]interface{})
+	var invitation objects.UmaInvitation
+	invitationJson, err := json.Marshal(output["invitation"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invitation")
+	}
+	err = json.Unmarshal(invitationJson, &invitation)
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
+// FetchUmaInvitation fetches an existing uma invitation by its code.
+//
+// Args:
+//
+//	invitationCode: the code of the invitation
+//
+// Returns:
+//
+//	*objects.UmaInvitation: the fetched invitation
+func (client *LightsparkClient) FetchUmaInvitation(invitationCode string) (*objects.UmaInvitation, error) {
+	variables := map[string]interface{}{
+		"invitation_code": invitationCode,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.FETCH_UMA_INVITATION_QUERY, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var invitation objects.UmaInvitation
+	invitationJson, err := json.Marshal(response["uma_invitation_by_code"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invitation")
+	}
+	err = json.Unmarshal(invitationJson, &invitation)
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
+func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
+	e164PhoneRegex, err := regexp.Compile(`^\+?[1-9]\d{1,14}$`)
+	if err != nil {
+		return nil, err
+	}
+	if !e164PhoneRegex.MatchString(e614PhoneNumber) {
+		return nil, errors.New("the phone number must follow the E.164 format")
+	}
+	hash := sha256.Sum256([]byte(e614PhoneNumber))
+	hashString := hex.EncodeToString(hash[:])
+	return &hashString, nil
 }
 
 // getNodeSigningKey returns the signing key of a node.

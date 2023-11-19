@@ -470,6 +470,7 @@ func (obj OutgoingPayment) GetAttempts(requester *requester.Requester, first *in
                     outgoing_payment_attempt_status: status
                     outgoing_payment_attempt_failure_code: failure_code
                     outgoing_payment_attempt_failure_source_index: failure_source_index
+                    outgoing_payment_attempt_attempted_at: attempted_at
                     outgoing_payment_attempt_resolved_at: resolved_at
                     outgoing_payment_attempt_amount: amount {
                         __typename
