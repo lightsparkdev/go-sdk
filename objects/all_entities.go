@@ -59,6 +59,9 @@ const (
         ... on SignablePayload {
             ...SignablePayloadFragment
         }
+        ... on UmaInvitation {
+            ...UmaInvitationFragment
+        }
         ... on Wallet {
             ...WalletFragment
         }
@@ -88,6 +91,7 @@ const (
 		RoutingTransactionFragment +
 		SignableFragment +
 		SignablePayloadFragment +
+		UmaInvitationFragment +
 		WalletFragment +
 		WithdrawalFragment +
 		WithdrawalRequestFragment

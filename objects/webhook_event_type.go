@@ -13,11 +13,15 @@ const (
 
 	WebhookEventTypePaymentFinished
 
+	WebhookEventTypeForceClosure
+
 	WebhookEventTypeWithdrawalFinished
 
 	WebhookEventTypeFundsReceived
 
 	WebhookEventTypeNodeStatus
+
+	WebhookEventTypeUmaInvitationClaimed
 
 	WebhookEventTypeWalletStatus
 
@@ -44,12 +48,16 @@ func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
 		*a = WebhookEventTypeUndefined
 	case "PAYMENT_FINISHED":
 		*a = WebhookEventTypePaymentFinished
+	case "FORCE_CLOSURE":
+		*a = WebhookEventTypeForceClosure
 	case "WITHDRAWAL_FINISHED":
 		*a = WebhookEventTypeWithdrawalFinished
 	case "FUNDS_RECEIVED":
 		*a = WebhookEventTypeFundsReceived
 	case "NODE_STATUS":
 		*a = WebhookEventTypeNodeStatus
+	case "UMA_INVITATION_CLAIMED":
+		*a = WebhookEventTypeUmaInvitationClaimed
 	case "WALLET_STATUS":
 		*a = WebhookEventTypeWalletStatus
 	case "WALLET_OUTGOING_PAYMENT_FINISHED":
@@ -76,12 +84,16 @@ func (a WebhookEventType) StringValue() string {
 		s = "undefined"
 	case WebhookEventTypePaymentFinished:
 		s = "PAYMENT_FINISHED"
+	case WebhookEventTypeForceClosure:
+		s = "FORCE_CLOSURE"
 	case WebhookEventTypeWithdrawalFinished:
 		s = "WITHDRAWAL_FINISHED"
 	case WebhookEventTypeFundsReceived:
 		s = "FUNDS_RECEIVED"
 	case WebhookEventTypeNodeStatus:
 		s = "NODE_STATUS"
+	case WebhookEventTypeUmaInvitationClaimed:
+		s = "UMA_INVITATION_CLAIMED"
 	case WebhookEventTypeWalletStatus:
 		s = "WALLET_STATUS"
 	case WebhookEventTypeWalletOutgoingPaymentFinished:

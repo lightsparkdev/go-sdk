@@ -15,7 +15,7 @@ type OutgoingPaymentAttempt struct {
 	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 	Id string `json:"outgoing_payment_attempt_id"`
 
-	// CreatedAt The date and time when the attempt was initiated.
+	// CreatedAt The date and time when the entity was first created.
 	CreatedAt time.Time `json:"outgoing_payment_attempt_created_at"`
 
 	// UpdatedAt The date and time when the entity was last updated.
@@ -29,6 +29,9 @@ type OutgoingPaymentAttempt struct {
 
 	// FailureSourceIndex If the payment attempt failed, then this contains the index of the hop at which the problem occurred.
 	FailureSourceIndex *int64 `json:"outgoing_payment_attempt_failure_source_index"`
+
+	// AttemptedAt The date and time when the attempt was initiated.
+	AttemptedAt time.Time `json:"outgoing_payment_attempt_attempted_at"`
 
 	// ResolvedAt The time the outgoing payment attempt failed or succeeded.
 	ResolvedAt *time.Time `json:"outgoing_payment_attempt_resolved_at"`
@@ -59,6 +62,7 @@ fragment OutgoingPaymentAttemptFragment on OutgoingPaymentAttempt {
     outgoing_payment_attempt_status: status
     outgoing_payment_attempt_failure_code: failure_code
     outgoing_payment_attempt_failure_source_index: failure_source_index
+    outgoing_payment_attempt_attempted_at: attempted_at
     outgoing_payment_attempt_resolved_at: resolved_at
     outgoing_payment_attempt_amount: amount {
         __typename

@@ -142,6 +142,12 @@ func EntityUnmarshal(data map[string]interface{}) (Entity, error) {
 			return nil, err
 		}
 		return signablePayload, nil
+	case "UmaInvitation":
+		var umaInvitation UmaInvitation
+		if err := json.Unmarshal(dataJSON, &umaInvitation); err != nil {
+			return nil, err
+		}
+		return umaInvitation, nil
 	case "Wallet":
 		var wallet Wallet
 		if err := json.Unmarshal(dataJSON, &wallet); err != nil {
