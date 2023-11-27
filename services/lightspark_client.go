@@ -191,6 +191,30 @@ func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int6
 	return &invoice, nil
 }
 
+// CancelInvoice cancels an existing unpaid invoice and returns that invoice. Cancelled invoices cannot be paid.
+//
+// Args:
+//
+//	invoiceId: The id of the invoice to cancel.
+func (client *LightsparkClient) CancelInvoice(invoiceId string) (*objects.Invoice, error) {
+	variables := map[string]interface{}{
+		"invoice_id": invoiceId,
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CANCEL_INVOICE_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["cancel_invoice"].(map[string]interface{})
+	var invoice objects.Invoice
+	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing canceled invoice")
+	}
+	json.Unmarshal(invoiceJson, &invoice)
+	return &invoice, nil
+}
+
 // CreateNodeWalletAddress creates a Bitcoin address for the wallet associated with
 // your Lightning Node. You can use this address to send funds to your node. It is
 // a best practice to generate a new wallet address every time you need to send money.
