@@ -326,6 +326,22 @@ func main() {
 	fmt.Printf("Invoice paid with a simulated payment %v\n", testPayment.Id)
 	fmt.Println()
 
+	// Create and cancel an invoice
+	fmt.Println("Creating an invoice...")
+	invoiceToCancel, err := client.CreateInvoice(nodeId, 100000, nil, nil, nil)
+	if err != nil {
+		fmt.Printf("create invoice failed: %v", err)
+		return
+	}
+	fmt.Printf("Cancelling Invoice: %v\n", invoice.Data.EncodedPaymentRequest)
+	canceledInvoice, err := client.CancelInvoice(invoiceToCancel.Id)
+	if err != nil {
+		fmt.Printf("cancel invoice failed: %v", err)
+		return
+	}
+	fmt.Printf("Invoice canceled: %v\n", canceledInvoice.Id)
+	fmt.Println()
+
 	// Withdraw funds
 	fmt.Println("Withdraw funds...")
 	bitcoinAddress := "<your bitcoin address for withdrawal>"
