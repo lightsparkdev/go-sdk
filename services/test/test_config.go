@@ -12,6 +12,7 @@ type TestConfig struct {
 	NodeID2           string
 	MasterSeedHex     string
 	MasterSeedHex2    string
+	UmaVaspDomain     string
 }
 
 func NewConfig() TestConfig {
@@ -30,5 +31,6 @@ func NewConfig() TestConfig {
 		ApiClientSecret2:  os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_SECRET_2"),
 		MasterSeedHex:     os.Getenv("LIGHTSPARK_MASTER_SEED_HEX"),
 		MasterSeedHex2:    os.Getenv("LIGHTSPARK_MASTER_SEED_HEX_2"),
+		UmaVaspDomain:     os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
 }
