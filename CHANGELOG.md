@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.7.0
+- Add a function for cancelling unpaid invoices.
+- Add UMA invites support.
+
 # 0.6.1
 - Fix serialization of interfaces by including typenames.
 
