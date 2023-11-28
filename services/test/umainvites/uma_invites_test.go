@@ -15,8 +15,8 @@ import (
 func NewUmameClient() *services.LightsparkClient {
 	config := servicestest.NewConfig()
 	clientRequester := requester.Requester{
-		ApiTokenClientId:     config.ApiClientSecret,
-		ApiTokenClientSecret: config.ApiClientID,
+		ApiTokenClientId:     config.ApiClientID,
+		ApiTokenClientSecret: config.ApiClientSecret,
 		BaseUrl:              &config.ApiClientEndpoint,
 	}
 	return &services.LightsparkClient{Requester: &clientRequester}
@@ -31,8 +31,9 @@ func TestInvalidPhoneNumber(t *testing.T) {
 }
 
 func TestCreateInvitation(t *testing.T) {
+	config := servicestest.NewConfig()
 	client := NewUmameClient()
-	invitation, err := client.CreateUmaInvitation("bob@vasp.com")
+	invitation, err := client.CreateUmaInvitation("$bob@" + config.UmaVaspDomain)
 	if err != nil {
 		t.Fatalf("Error creating invitation: %v", err)
 	}
@@ -40,8 +41,13 @@ func TestCreateInvitation(t *testing.T) {
 }
 
 func TestCreateInvitationWithIncentives(t *testing.T) {
+	config := servicestest.NewConfig()
 	client := NewUmameClient()
-	invitation, err := client.CreateUmaInvitationWithIncentives("bob@vasp.com", "+15555555555", objects.RegionCodeUs)
+	invitation, err := client.CreateUmaInvitationWithIncentives(
+		"$bob@"+config.UmaVaspDomain,
+		"+15555555555",
+		objects.RegionCodeUs,
+	)
 	if err != nil {
 		t.Fatalf("Error creating invitation: %v", err)
 	}
@@ -49,13 +55,14 @@ func TestCreateInvitationWithIncentives(t *testing.T) {
 }
 
 func TestClaimInvitation(t *testing.T) {
+	config := servicestest.NewConfig()
 	client := NewUmameClient()
-	invitation, err := client.CreateUmaInvitation("bob@vasp.com")
+	invitation, err := client.CreateUmaInvitation("$bob@" + config.UmaVaspDomain)
 	if err != nil {
 		t.Fatalf("Error creating invitation: %v", err)
 	}
 	t.Logf("Created invitation %v", invitation)
-	claimedInvitation, err := client.ClaimUmaInvitation(invitation.Code, "alice@vasp2.com")
+	claimedInvitation, err := client.ClaimUmaInvitation(invitation.Code, "$alice@"+config.UmaVaspDomain)
 	if err != nil {
 		t.Fatalf("Error claiming invitation: %v", err)
 	}
@@ -63,13 +70,14 @@ func TestClaimInvitation(t *testing.T) {
 }
 
 func TestClaimInvitationWithIncentives(t *testing.T) {
+	config := servicestest.NewConfig()
 	client := NewUmameClient()
-	invitation, err := client.CreateUmaInvitationWithIncentives("bob@vasp.com", "+15555555555", objects.RegionCodeUs)
+	invitation, err := client.CreateUmaInvitationWithIncentives("$bob@"+config.UmaVaspDomain, "+15555555555", objects.RegionCodeUs)
 	if err != nil {
 		t.Fatalf("Error creating invitation: %v", err)
 	}
 	t.Logf("Created invitation %v", invitation)
-	claimedInvitation, err := client.ClaimUmaInvitationWithIncentives(invitation.Code, "alice@vasp2.com", "+15555555556", objects.RegionCodeUs)
+	claimedInvitation, err := client.ClaimUmaInvitationWithIncentives(invitation.Code, "$alice@"+config.UmaVaspDomain, "+15555555556", objects.RegionCodeUs)
 	if err != nil {
 		t.Fatalf("Error claiming invitation: %v", err)
 	}
@@ -77,8 +85,9 @@ func TestClaimInvitationWithIncentives(t *testing.T) {
 }
 
 func TestFetchInvitation(t *testing.T) {
+	config := servicestest.NewConfig()
 	client := NewUmameClient()
-	invitation, err := client.CreateUmaInvitation("bob@vasp.com")
+	invitation, err := client.CreateUmaInvitation("$bob@" + config.UmaVaspDomain)
 	if err != nil {
 		t.Fatalf("Error creating invitation: %v", err)
 	}
