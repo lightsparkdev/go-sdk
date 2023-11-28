@@ -111,7 +111,16 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	if errs, ok := result["errors"]; ok {
 		err := errs.([]interface{})[0]
 		errMap := err.(map[string]interface{})
-		return nil, errors.New(errMap["message"].(string))
+		errorMessage := errMap["message"].(string)
+		if errMap["extensions"] == nil {
+			return nil, errors.New(errorMessage)
+		}
+		extensions := errMap["extensions"].(map[string]interface{})
+		if extensions["error_name"] == nil {
+			return nil, errors.New(errorMessage)
+		}
+		errorName := extensions["error_name"].(string)
+		return nil, errors.New(errorName + " - " + errorMessage)
 	}
 
 	return result["data"].(map[string]interface{}), nil
