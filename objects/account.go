@@ -1686,6 +1686,92 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 	return result, nil
 }
 
+func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, afterDate *time.Time, beforeDate *time.Time) (*AccountToWithdrawalRequestsConnection, error) {
+	query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $after_date: DateTime, $before_date: DateTime) {
+    entity(id: $entity_id) {
+        ... on Account {
+            withdrawal_requests(, first: $first, after: $after, bitcoin_networks: $bitcoin_networks, statuses: $statuses, node_ids: $node_ids, after_date: $after_date, before_date: $before_date) {
+                __typename
+                account_to_withdrawal_requests_connection_count: count
+                account_to_withdrawal_requests_connection_page_info: page_info {
+                    __typename
+                    page_info_has_next_page: has_next_page
+                    page_info_has_previous_page: has_previous_page
+                    page_info_start_cursor: start_cursor
+                    page_info_end_cursor: end_cursor
+                }
+                account_to_withdrawal_requests_connection_entities: entities {
+                    __typename
+                    withdrawal_request_id: id
+                    withdrawal_request_created_at: created_at
+                    withdrawal_request_updated_at: updated_at
+                    withdrawal_request_requested_amount: requested_amount {
+                        __typename
+                        currency_amount_original_value: original_value
+                        currency_amount_original_unit: original_unit
+                        currency_amount_preferred_currency_unit: preferred_currency_unit
+                        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                    }
+                    withdrawal_request_amount: amount {
+                        __typename
+                        currency_amount_original_value: original_value
+                        currency_amount_original_unit: original_unit
+                        currency_amount_preferred_currency_unit: preferred_currency_unit
+                        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                    }
+                    withdrawal_request_estimated_amount: estimated_amount {
+                        __typename
+                        currency_amount_original_value: original_value
+                        currency_amount_original_unit: original_unit
+                        currency_amount_preferred_currency_unit: preferred_currency_unit
+                        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                    }
+                    withdrawal_request_amount_withdrawn: amount_withdrawn {
+                        __typename
+                        currency_amount_original_value: original_value
+                        currency_amount_original_unit: original_unit
+                        currency_amount_preferred_currency_unit: preferred_currency_unit
+                        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                    }
+                    withdrawal_request_bitcoin_address: bitcoin_address
+                    withdrawal_request_withdrawal_mode: withdrawal_mode
+                    withdrawal_request_status: status
+                    withdrawal_request_completed_at: completed_at
+                    withdrawal_request_withdrawal: withdrawal {
+                        id
+                    }
+                }
+            }
+        }
+    }
+}`
+	variables := map[string]interface{}{
+		"entity_id":        obj.Id,
+		"first":            first,
+		"after":            after,
+		"bitcoin_networks": bitcoinNetworks,
+		"statuses":         statuses,
+		"node_ids":         nodeIds,
+		"after_date":       afterDate,
+		"before_date":      beforeDate,
+	}
+
+	response, err := requester.ExecuteGraphql(query, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["entity"].(map[string]interface{})["withdrawal_requests"].(map[string]interface{})
+	var result *AccountToWithdrawalRequestsConnection
+	jsonString, err := json.Marshal(output)
+	json.Unmarshal(jsonString, &result)
+	return result, nil
+}
+
 func (obj Account) GetWallets(requester *requester.Requester, first *int64, after *string, thirdPartyIds *[]string) (*AccountToWalletsConnection, error) {
 	query := `query FetchAccountToWalletsConnection($entity_id: ID!, $first: Int, $after: String, $third_party_ids: [String!]) {
     entity(id: $entity_id) {
