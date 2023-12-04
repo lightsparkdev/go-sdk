@@ -59,6 +59,12 @@ func ConnectionUnmarshal(data map[string]interface{}) (Connection, error) {
 			return nil, err
 		}
 		return accountToWalletsConnection, nil
+	case "AccountToWithdrawalRequestsConnection":
+		var accountToWithdrawalRequestsConnection AccountToWithdrawalRequestsConnection
+		if err := json.Unmarshal(dataJSON, &accountToWithdrawalRequestsConnection); err != nil {
+			return nil, err
+		}
+		return accountToWithdrawalRequestsConnection, nil
 	case "IncomingPaymentToAttemptsConnection":
 		var incomingPaymentToAttemptsConnection IncomingPaymentToAttemptsConnection
 		if err := json.Unmarshal(dataJSON, &incomingPaymentToAttemptsConnection); err != nil {
@@ -95,6 +101,12 @@ func ConnectionUnmarshal(data map[string]interface{}) (Connection, error) {
 			return nil, err
 		}
 		return walletToTransactionsConnection, nil
+	case "WalletToWithdrawalRequestsConnection":
+		var walletToWithdrawalRequestsConnection WalletToWithdrawalRequestsConnection
+		if err := json.Unmarshal(dataJSON, &walletToWithdrawalRequestsConnection); err != nil {
+			return nil, err
+		}
+		return walletToWithdrawalRequestsConnection, nil
 
 	default:
 		return nil, fmt.Errorf("unknown Connection type: %s", data["__typename"])

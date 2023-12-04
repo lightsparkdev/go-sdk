@@ -21,11 +21,18 @@ type WithdrawalRequest struct {
 	// UpdatedAt The date and time when the entity was last updated.
 	UpdatedAt time.Time `json:"withdrawal_request_updated_at"`
 
+	// RequestedAmount The requested amount of money to be withdrawn. If the requested amount is -1, it means to withdraw all.
+	RequestedAmount CurrencyAmount `json:"withdrawal_request_requested_amount"`
+
 	// Amount The amount of money that should be withdrawn in this request.
+	// Deprecated: Use `requested_amount` instead
 	Amount CurrencyAmount `json:"withdrawal_request_amount"`
 
 	// EstimatedAmount If the requested amount is `-1` (i.e. everything), this field may contain an estimate of the amount for the withdrawal.
 	EstimatedAmount *CurrencyAmount `json:"withdrawal_request_estimated_amount"`
+
+	// AmountWithdrawn The actual amount that is withdrawn. It will be set once the request is completed.
+	AmountWithdrawn *CurrencyAmount `json:"withdrawal_request_amount_withdrawn"`
 
 	// BitcoinAddress The bitcoin address where the funds should be sent.
 	BitcoinAddress string `json:"withdrawal_request_bitcoin_address"`
@@ -53,6 +60,14 @@ fragment WithdrawalRequestFragment on WithdrawalRequest {
     withdrawal_request_id: id
     withdrawal_request_created_at: created_at
     withdrawal_request_updated_at: updated_at
+    withdrawal_request_requested_amount: requested_amount {
+        __typename
+        currency_amount_original_value: original_value
+        currency_amount_original_unit: original_unit
+        currency_amount_preferred_currency_unit: preferred_currency_unit
+        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+    }
     withdrawal_request_amount: amount {
         __typename
         currency_amount_original_value: original_value
@@ -62,6 +77,14 @@ fragment WithdrawalRequestFragment on WithdrawalRequest {
         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
     }
     withdrawal_request_estimated_amount: estimated_amount {
+        __typename
+        currency_amount_original_value: original_value
+        currency_amount_original_unit: original_unit
+        currency_amount_preferred_currency_unit: preferred_currency_unit
+        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+    }
+    withdrawal_request_amount_withdrawn: amount_withdrawn {
         __typename
         currency_amount_original_value: original_value
         currency_amount_original_unit: original_unit
