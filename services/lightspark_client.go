@@ -6,13 +6,23 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/lightsparkdev/go-sdk/crypto"
+	"net/http"
 	"regexp"
 
+	"github.com/lightsparkdev/go-sdk/crypto"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
 	"github.com/lightsparkdev/go-sdk/scripts"
 )
+
+type Option func(*LightsparkClient)
+
+// WithHTTPClient sets the HTTPClient of the LightsparkClient requester.
+func WithHTTPClient(c *http.Client) Option {
+	return func(client *LightsparkClient) {
+		client.Requester.HTTPClient = c
+	}
+}
 
 type LightsparkClient struct {
 	Requester *requester.Requester
@@ -27,14 +37,17 @@ type LightsparkClient struct {
 //	apiTokenClientSecret: the client secret of the API token
 //	baseUrl: the base url of the Lightspark API
 func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
-	baseUrl *string) *LightsparkClient {
-
+	baseUrl *string, options ...Option) *LightsparkClient {
 	gqlRequester := &requester.Requester{
 		ApiTokenClientId:     apiTokenClientId,
 		ApiTokenClientSecret: apiTokenClientSecret,
 		BaseUrl:              baseUrl,
 	}
-	return &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]SigningKeyLoader{}}
+	client := &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]SigningKeyLoader{}}
+	for _, option := range options {
+		option(client)
+	}
+	return client
 }
 
 // CreateApiToken creates a new API token that can be used to authenticate requests
