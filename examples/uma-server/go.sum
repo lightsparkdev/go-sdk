@@ -827,6 +827,7 @@ github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4d
 github.com/ugorji/go/codec v1.2.11/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/uma-universal-money-address/uma-go-sdk v0.3.0 h1:0y5Uf3BsrkIsyaOvzOoGNlrdg3uivdOI2T5Pg6D2xMo=
 github.com/uma-universal-money-address/uma-go-sdk v0.3.0/go.mod h1:zetY83ALBb9QISA/gSeqSN/ouQmLeKGSyRA0L1ahyXY=
+github.com/uma-universal-money-address/uma-go-sdk v0.4.0 h1:wtR78GX2lmAZoWX+YB699FhdPLWHXRIXiEMKISv/5m0=
 github.com/uma-universal-money-address/uma-go-sdk v0.4.0/go.mod h1:zetY83ALBb9QISA/gSeqSN/ouQmLeKGSyRA0L1ahyXY=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
 github.com/urfave/cli/v2 v2.10.2/go.mod h1:f8iq5LtQ/bLxafbdBSLPPNsgaW0l/2fYYEHhAyPlwvo=
