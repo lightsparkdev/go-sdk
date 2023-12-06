@@ -188,7 +188,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 				MillisatoshiPerUnit: 34_150,
 				MinSendable:         1,
 				MaxSendable:         10_000_000,
-				DisplayDecimals:     &displayDecimals,
+				Decimals:            &displayDecimals,
 			},
 		},
 		uma.KycStatusVerified,
