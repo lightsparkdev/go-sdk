@@ -23,13 +23,15 @@ type Requester struct {
 	ApiTokenClientSecret string
 
 	BaseUrl *string
+
+	HTTPClient *http.Client
 }
 
 const DEFAULT_BASE_URL = "https://api.lightspark.com/graphql/server/2023-09-13"
 
 func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{},
-	signingKey SigningKey) (map[string]interface{}, error) {
-
+	signingKey SigningKey,
+) (map[string]interface{}, error) {
 	re := regexp.MustCompile(`(?i)\s*(?:query|mutation)\s+(?P<OperationName>\w+)`)
 	matches := re.FindStringSubmatch(query)
 	index := re.SubexpIndex("OperationName")
@@ -91,7 +93,10 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		request.Header.Add("X-Lightspark-Signing", bytes.NewBuffer(signaturePayloadBytes).String())
 	}
 
-	httpClient := &http.Client{}
+	httpClient := r.HTTPClient
+	if httpClient == nil {
+		httpClient = &http.Client{}
+	}
 	response, err := httpClient.Do(request)
 	if err != nil {
 		return nil, err
