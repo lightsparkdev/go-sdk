@@ -40,14 +40,15 @@ func NewVasp1(config *UmaConfig, pubKeyCache uma.PublicKeyCache) *Vasp1 {
 
 func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverAddress := context.Param("receiver")
-	addressParts := strings.Split(receiverAddress, "@")
-	if len(addressParts) != 2 {
+	err := ValidateUmaAddress(receiverAddress)
+	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": "Invalid receiver address",
 		})
 		return
 	}
+	addressParts := strings.Split(receiverAddress, "@")
 	receiverId := addressParts[0]
 	receiverVasp := addressParts[1]
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
