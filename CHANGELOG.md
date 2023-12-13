@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.7.1
+- Make remote signing encode OSK signatures in DER format
+- Some minor security hardenning
+
 # 0.7.0
 - Add a function for cancelling unpaid invoices.
 - Add UMA invites support.
