@@ -35,14 +35,10 @@ type LightsparkClient struct {
 //
 //	apiTokenClientId: the client id of the API token
 //	apiTokenClientSecret: the client secret of the API token
-//	baseUrl: the base url of the Lightspark API
+//	baseUrl: the base url of the Lightspark API. Should usually be nil to use the default value.
 func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
 	baseUrl *string, options ...Option) *LightsparkClient {
-	gqlRequester := &requester.Requester{
-		ApiTokenClientId:     apiTokenClientId,
-		ApiTokenClientSecret: apiTokenClientSecret,
-		BaseUrl:              baseUrl,
-	}
+	gqlRequester := requester.NewRequesterWithBaseUrl(apiTokenClientId, apiTokenClientSecret, baseUrl)
 	client := &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]SigningKeyLoader{}}
 	for _, option := range options {
 		option(client)
