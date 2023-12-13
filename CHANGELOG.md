@@ -2,7 +2,7 @@
 
 # 0.7.1
 - Make remote signing encode OSK signatures in DER format
-- Some minor security hardenning
+- Some minor security hardening (CVE-2023-39325, CVE-2022-28948, SSRF protection in demos)
 
 # 0.7.0
 - Add a function for cancelling unpaid invoices.
