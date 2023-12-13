@@ -123,6 +123,14 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		return nil, true
 	}
 
+	vaspDomainValidationErr := ValidateDomain(query.VaspDomain)
+	if vaspDomainValidationErr != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Invalid sending VASP domain: %v", vaspDomainValidationErr),
+		})
+		return nil, true
+	}
 	pubKeys, err := uma.FetchPublicKeyForVasp(query.VaspDomain, v.pubKeyCache)
 	if err != nil || pubKeys == nil {
 		context.JSON(http.StatusBadRequest, gin.H{
@@ -289,7 +297,8 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	}
 
 	sendingVaspDomain, err := uma.GetVaspDomainFromUmaAddress(request.PayerData.Identifier)
-	if err != nil {
+	addressValidationError := ValidateUmaAddress(request.PayerData.Identifier)
+	if err != nil || addressValidationError != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": fmt.Sprintf("Invalid sender indentifier. UMA address required in the format $alice@vasp.com: %v", err),
