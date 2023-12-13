@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"net/url"
 	"regexp"
 	"runtime"
 	"time"
@@ -25,6 +26,38 @@ type Requester struct {
 	BaseUrl *string
 
 	HTTPClient *http.Client
+}
+
+func NewRequester(apiTokenClientId string, apiTokenClientSecret string) *Requester {
+	return &Requester{
+		ApiTokenClientId:     apiTokenClientId,
+		ApiTokenClientSecret: apiTokenClientSecret,
+	}
+}
+
+func NewRequesterWithBaseUrl(apiTokenClientId string, apiTokenClientSecret string, baseUrl *string) *Requester {
+	if baseUrl == nil {
+		return NewRequester(apiTokenClientId, apiTokenClientSecret)
+	}
+	if err := ValidateBaseUrl(*baseUrl); err != nil {
+		panic(err)
+	}
+	return &Requester{
+		ApiTokenClientId:     apiTokenClientId,
+		ApiTokenClientSecret: apiTokenClientSecret,
+		BaseUrl:              baseUrl,
+	}
+}
+
+func ValidateBaseUrl(baseUrl string) error {
+	parsedUrl, err := url.Parse(baseUrl)
+	if err != nil {
+		return errors.New("invalid base url. Not a valid URL")
+	}
+	if parsedUrl.Scheme != "https" && parsedUrl.Hostname() != "localhost" {
+		return errors.New("invalid base url. Must be https:// if not targeting localhost")
+	}
+	return nil
 }
 
 const DEFAULT_BASE_URL = "https://api.lightspark.com/graphql/server/2023-09-13"
@@ -72,6 +105,9 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		serverUrl = DEFAULT_BASE_URL
 	} else {
 		serverUrl = *r.BaseUrl
+	}
+	if err := ValidateBaseUrl(serverUrl); err != nil {
+		return nil, err
 	}
 
 	request, err := http.NewRequest("POST", serverUrl, bytes.NewBuffer(encodedPayload))
