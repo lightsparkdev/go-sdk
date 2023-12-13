@@ -297,11 +297,18 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	}
 
 	sendingVaspDomain, err := uma.GetVaspDomainFromUmaAddress(request.PayerData.Identifier)
-	addressValidationError := ValidateUmaAddress(request.PayerData.Identifier)
-	if err != nil || addressValidationError != nil {
+	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": fmt.Sprintf("Invalid sender indentifier. UMA address required in the format $alice@vasp.com: %v", err),
+		})
+		return
+	}
+	addressValidationError := ValidateUmaAddress(request.PayerData.Identifier)
+	if addressValidationError != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Invalid sender indentifier. UMA address required in the format $alice@vasp.com: %v", addressValidationError),
 		})
 		return
 	}
