@@ -54,7 +54,8 @@ func ValidateBaseUrl(baseUrl string) error {
 	if err != nil {
 		return errors.New("invalid base url. Not a valid URL")
 	}
-	if parsedUrl.Scheme != "https" && parsedUrl.Hostname() != "localhost" {
+	isWhitelistedLocalHost := parsedUrl.Hostname() == "localhost" || parsedUrl.Hostname() == "app.minikube.local"
+	if parsedUrl.Scheme != "https" && !isWhitelistedLocalHost {
 		return errors.New("invalid base url. Must be https:// if not targeting localhost")
 	}
 	return nil
