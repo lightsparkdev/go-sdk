@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
-	"encoding/hex"
 	"errors"
 
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
@@ -17,21 +16,11 @@ type SigningKey interface {
 }
 
 type Secp256k1SigningKey struct {
-	MasterSeedBytes []byte
-	Network         lightspark_crypto.BitcoinNetwork
+	PrivateKey []byte
 }
 
 func (s *Secp256k1SigningKey) Sign(payload []byte) ([]byte, error) {
-	derivationPath := "m/5"
-	key, error := lightspark_crypto.DerivePrivateKey(s.MasterSeedBytes, s.Network, derivationPath)
-	if error != nil {
-		return nil, error
-	}
-	keyBytes, error := hex.DecodeString(key)
-	if error != nil {
-		return nil, error
-	}
-	return lightspark_crypto.SignEcdsa(payload, keyBytes)
+	return lightspark_crypto.SignEcdsa(s.PrivateKey, payload)
 }
 
 type RsaSigningKey struct {
