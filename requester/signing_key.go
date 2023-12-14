@@ -20,7 +20,7 @@ type Secp256k1SigningKey struct {
 }
 
 func (s *Secp256k1SigningKey) Sign(payload []byte) ([]byte, error) {
-	return lightspark_crypto.SignEcdsa(s.PrivateKey, payload)
+	return lightspark_crypto.SignEcdsa(payload, s.PrivateKey)
 }
 
 type RsaSigningKey struct {
