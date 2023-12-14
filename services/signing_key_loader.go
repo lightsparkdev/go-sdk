@@ -1,7 +1,9 @@
 package services
 
 import (
+	"encoding/hex"
 	"errors"
+
 	"github.com/lightsparkdev/go-sdk/crypto"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
@@ -76,7 +78,16 @@ func (s *SigningKeyLoader) loadSigningKeyFromMasterSeed() (requester.SigningKey,
 		return nil, errors.New("invalid network")
 	}
 
-	return &requester.Secp256k1SigningKey{MasterSeedBytes: s.masterSeedAndNetwork.masterSeed, Network: network}, nil
+    derivationPath := "m/5"
+    key, error := lightspark_crypto.DerivePrivateKey(s.masterSeedAndNetwork.masterSeed, network, derivationPath)
+    if error != nil {
+        return nil, error
+    }
+    keyBytes, error := hex.DecodeString(key)
+    if error != nil {
+        return nil, error
+    }
+	return &requester.Secp256k1SigningKey{PrivateKey: keyBytes}, nil
 }
 
 func (s *SigningKeyLoader) loadSigningKeyFromIdAndPassword(req requester.Requester) (requester.SigningKey, error) {

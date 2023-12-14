@@ -26,7 +26,7 @@ func WithHTTPClient(c *http.Client) Option {
 
 type LightsparkClient struct {
 	Requester *requester.Requester
-	nodeKeys  map[string]SigningKeyLoader
+	nodeKeys  map[string]requester.SigningKey
 }
 
 // NewLightsparkClient creates a new LightsparkClient instance
@@ -39,10 +39,11 @@ type LightsparkClient struct {
 func NewLightsparkClient(apiTokenClientId string, apiTokenClientSecret string,
 	baseUrl *string, options ...Option) *LightsparkClient {
 	gqlRequester := requester.NewRequesterWithBaseUrl(apiTokenClientId, apiTokenClientSecret, baseUrl)
-	client := &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]SigningKeyLoader{}}
+	client := &LightsparkClient{Requester: gqlRequester, nodeKeys: map[string]requester.SigningKey{}}
 	for _, option := range options {
 		option(client)
 	}
+
 	return client
 }
 
@@ -767,7 +768,21 @@ func (client *LightsparkClient) ExecuteGraphqlRequest(document string,
 //	nodeId: The ID of the node.
 //	loader: The SigningKeyLoader that can load the node's key.
 func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, loader SigningKeyLoader) {
-	client.nodeKeys[nodeId] = loader
+	nodeKey, err := loader.LoadSigningKey(*client.Requester)
+	if err != nil {
+		return
+	}
+	client.nodeKeys[nodeId] = nodeKey
+}
+
+// setNodesigningKey directly sets the signing key of a node in the client.
+//
+// Args:
+//
+//	nodeId: The ID of the node.
+//	key: The SigningKey of the node.
+func (client *LightsparkClient) setNodesigningKey(nodeId string, key requester.SigningKey) {
+	client.nodeKeys[nodeId] = key
 }
 
 // CreateUmaInvitation creates a new uma invitation.
@@ -972,13 +987,9 @@ func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
 //
 //	nodeId: The ID of the node.
 func (client *LightsparkClient) getNodeSigningKey(nodeId string) (requester.SigningKey, error) {
-	loader, ok := client.nodeKeys[nodeId]
+	nodeKey, ok := client.nodeKeys[nodeId]
 	if !ok {
 		return nil, errors.New("we did not find the signing key for node. Please call LoadNodeSigningKey first")
-	}
-	nodeKey, err := loader.LoadSigningKey(*client.Requester)
-	if err != nil {
-		return nil, err
 	}
 	return nodeKey, nil
 }
