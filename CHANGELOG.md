@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.7.2
+- Fix an issue with 0.7.1's remote signing DER encoding.
+- Some minor build fixes to get integration tests working again.
+
 # 0.7.1
 - Make remote signing encode OSK signatures in DER format
 - Some minor security hardening (CVE-2023-39325, CVE-2022-28948, SSRF protection in demos)
