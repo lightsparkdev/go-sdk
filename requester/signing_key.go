@@ -31,7 +31,7 @@ func (s *Secp256k1SigningKey) Sign(payload []byte) ([]byte, error) {
 	if error != nil {
 		return nil, error
 	}
-	return lightspark_crypto.SignEcdsa(keyBytes, payload)
+	return lightspark_crypto.SignEcdsa(payload, keyBytes)
 }
 
 type RsaSigningKey struct {
