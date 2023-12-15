@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.7.3
+- Add ability to load operation signing key directly.
+
 # 0.7.2
 - Fix an issue with 0.7.1's remote signing DER encoding.
 - Some minor build fixes to get integration tests working again.
