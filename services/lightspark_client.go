@@ -775,13 +775,13 @@ func (client *LightsparkClient) LoadNodeSigningKey(nodeId string, loader Signing
 	client.nodeKeys[nodeId] = nodeKey
 }
 
-// setNodesigningKey directly sets the signing key of a node in the client.
+// SetNodeSigningKey directly sets the signing key of a node in the client.
 //
 // Args:
 //
 //	nodeId: The ID of the node.
 //	key: The SigningKey of the node.
-func (client *LightsparkClient) setNodesigningKey(nodeId string, key requester.SigningKey) {
+func (client *LightsparkClient) SetNodeSigningKey(nodeId string, key requester.SigningKey) {
 	client.nodeKeys[nodeId] = key
 }
 
