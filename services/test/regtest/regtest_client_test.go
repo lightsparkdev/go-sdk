@@ -188,10 +188,10 @@ func waitForPaymentCompletion(
 			if outgoingPayment.FailureReason != nil {
 				t.Errorf("Payment failed due to: %s", outgoingPayment.FailureReason.StringValue())
 			} else {
-				t.Error("Payment failed with failure reaseon unavailable.")
+				t.Error("Payment failed with failure reason unavailable.")
 			}
 		} else {
-			t.Error("Payment failed with failure reaseon unavailable.")
+			t.Error("Payment failed with failure reason unavailable.")
 		}
 	}
 
