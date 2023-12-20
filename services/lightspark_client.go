@@ -1041,3 +1041,9 @@ func (client *LightsparkClient) getNodeSigningKey(nodeId string) (requester.Sign
 	}
 	return nodeKey, nil
 }
+
+func (client *LightsparkClient) ExecuteGraphql(query string, variables map[string]interface{},
+	signingKey requester.SigningKey,
+) (map[string]interface{}, error) {
+	return client.Requester.ExecuteGraphql(query, variables, signingKey)
+}
