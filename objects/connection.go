@@ -35,6 +35,12 @@ func ConnectionUnmarshal(data map[string]interface{}) (Connection, error) {
 			return nil, err
 		}
 		return accountToApiTokensConnection, nil
+	case "AccountToChannelsConnection":
+		var accountToChannelsConnection AccountToChannelsConnection
+		if err := json.Unmarshal(dataJSON, &accountToChannelsConnection); err != nil {
+			return nil, err
+		}
+		return accountToChannelsConnection, nil
 	case "AccountToNodesConnection":
 		var accountToNodesConnection AccountToNodesConnection
 		if err := json.Unmarshal(dataJSON, &accountToNodesConnection); err != nil {

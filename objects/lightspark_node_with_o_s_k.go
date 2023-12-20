@@ -478,3 +478,48 @@ func (obj LightsparkNodeWithOSK) GetChannels(requester *requester.Requester, fir
 	json.Unmarshal(jsonString, &result)
 	return result, nil
 }
+
+func (obj LightsparkNodeWithOSK) GetDailyLiquidityForecasts(requester *requester.Requester, fromDate types.Date, toDate types.Date, direction LightningPaymentDirection) (*LightsparkNodeToDailyLiquidityForecastsConnection, error) {
+	query := `query FetchLightsparkNodeToDailyLiquidityForecastsConnection($entity_id: ID!, $from_date: Date!, $to_date: Date!, $direction: LightningPaymentDirection!) {
+    entity(id: $entity_id) {
+        ... on LightsparkNodeWithOSK {
+            daily_liquidity_forecasts(, from_date: $from_date, to_date: $to_date, direction: $direction) {
+                __typename
+                lightspark_node_to_daily_liquidity_forecasts_connection_from_date: from_date
+                lightspark_node_to_daily_liquidity_forecasts_connection_to_date: to_date
+                lightspark_node_to_daily_liquidity_forecasts_connection_direction: direction
+                lightspark_node_to_daily_liquidity_forecasts_connection_entities: entities {
+                    __typename
+                    daily_liquidity_forecast_date: date
+                    daily_liquidity_forecast_direction: direction
+                    daily_liquidity_forecast_amount: amount {
+                        __typename
+                        currency_amount_original_value: original_value
+                        currency_amount_original_unit: original_unit
+                        currency_amount_preferred_currency_unit: preferred_currency_unit
+                        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                    }
+                }
+            }
+        }
+    }
+}`
+	variables := map[string]interface{}{
+		"entity_id": obj.Id,
+		"from_date": fromDate,
+		"to_date":   toDate,
+		"direction": direction,
+	}
+
+	response, err := requester.ExecuteGraphql(query, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["entity"].(map[string]interface{})["daily_liquidity_forecasts"].(map[string]interface{})
+	var result *LightsparkNodeToDailyLiquidityForecastsConnection
+	jsonString, err := json.Marshal(output)
+	json.Unmarshal(jsonString, &result)
+	return result, nil
+}
