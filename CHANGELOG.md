@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.7.4
+- Add `DailyLiquidityForecast` to objects.
+
 # 0.7.3
 - Add ability to load operation signing key directly.
 
