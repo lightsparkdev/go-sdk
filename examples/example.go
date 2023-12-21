@@ -342,6 +342,15 @@ func main() {
 	fmt.Printf("Invoice canceled: %v\n", canceledInvoice.Id)
 	fmt.Println()
 
+	// Withdraw fee estimation
+	estimate, err := client.GetWithdrawalFeeEstimate(nodeId, 100000, objects.WithdrawalModeWalletThenChannels)
+	if err != nil {
+		fmt.Printf("get withdrawal fee estimate failed: %v", err)
+		return
+	}
+	fmt.Printf("Estimated fee for the withdrawal: %v %v\n", estimate.FeeEstimate.OriginalValue, estimate.FeeEstimate.OriginalUnit.StringValue())
+	fmt.Println()
+
 	// Withdraw funds
 	fmt.Println("Withdraw funds...")
 	bitcoinAddress := "<your bitcoin address for withdrawal>"
