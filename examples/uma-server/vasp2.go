@@ -174,7 +174,6 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		return nil, true
 	}
 
-	displayDecimals := 2
 	signedResponse, err := uma.GetLnurlpResponse(
 		query,
 		umaPrivateKey,
@@ -182,7 +181,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		v.getLnurlpCallback(context),
 		metadata,
 		1,
-		10_000_000,
+		100_000_000,
 		uma.PayerDataOptions{
 			NameRequired:       false,
 			EmailRequired:      false,
@@ -191,12 +190,21 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		[]uma.Currency{
 			{
 				Code:                "USD",
-				Name:                "US Dollar",
+				Name:                "US Dollars",
 				Symbol:              "$",
-				MillisatoshiPerUnit: 34_150,
+				MillisatoshiPerUnit: 23_025, // msats per USD cent
 				MinSendable:         1,
-				MaxSendable:         10_000_000,
-				Decimals:            &displayDecimals,
+				MaxSendable:         1_000,
+				Decimals:            2,
+			},
+			{
+				Code:                "SAT",
+				Name:                "Satoshis",
+				Symbol:              "SAT",
+				MillisatoshiPerUnit: 1000,
+				MinSendable:         1,
+				MaxSendable:         100_000_000,
+				Decimals:            0,
 			},
 		},
 		uma.KycStatusVerified,
