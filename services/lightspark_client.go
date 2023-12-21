@@ -991,6 +991,28 @@ func (client *LightsparkClient) GetWithdrawalFeeEstimate(nodeId string, amountSa
 	return &feeEstimate, nil
 }
 
+func (client *LightsparkClient) FetchOutgoingPaymentsByInvoice(encodedInvoice string, 
+	statuses *[]objects.TransactionStatus) (*objects.OutgoingPaymentsForInvoiceQueryOutput, error) {
+	variables := map[string]interface{}{
+		"encoded_invoice": encodedInvoice,
+		"statuses": statuses,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.OUTGOING_PAYMENTS_FOR_INVOICE_QUERY, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["outgoing_payments_for_invoice"].(map[string]interface{})
+	var payments objects.OutgoingPaymentsForInvoiceQueryOutput
+	paymentsJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing payments")
+	}
+	json.Unmarshal(paymentsJson, &payments)
+	return &payments, nil
+}
+
 func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
 	e164PhoneRegex, err := regexp.Compile(`^\+?[1-9]\d{1,14}$`)
 	if err != nil {
