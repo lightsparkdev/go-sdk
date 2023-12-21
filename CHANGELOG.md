@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.8.0
+- Add 'OutgoingPaymentsForInvoice' query to the client.
+- Add 'WithdrawalFeeEstimate' query to the client.
+
 # 0.7.4
 - Add `DailyLiquidityForecast` to objects.
 
