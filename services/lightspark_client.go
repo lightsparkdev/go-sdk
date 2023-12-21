@@ -968,6 +968,29 @@ func (client *LightsparkClient) FetchUmaInvitation(invitationCode string) (*obje
 	return &invitation, nil
 }
 
+func (client *LightsparkClient) GetWithdrawalFeeEstimate(nodeId string, amountSats int64, 
+	withdrawMode objects.WithdrawalMode) (*objects.WithdrawalFeeEstimateOutput, error) {
+	variables := map[string]interface{}{
+		"node_id":         nodeId,
+		"amount_sats":     amountSats,
+		"withdrawal_mode": withdrawMode,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.WITHDRAWAL_FEE_ESTIMATE_QUERY, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["withdrawal_fee_estimate"].(map[string]interface{})
+	var feeEstimate objects.WithdrawalFeeEstimateOutput
+	feeEstimateJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing fee estimate")
+	}
+	json.Unmarshal(feeEstimateJson, &feeEstimate)
+	return &feeEstimate, nil
+}
+
 func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
 	e164PhoneRegex, err := regexp.Compile(`^\+?[1-9]\d{1,14}$`)
 	if err != nil {
