@@ -21,6 +21,9 @@ type Vasp2 struct {
 	pubKeyCache uma.PublicKeyCache
 }
 
+// Note: In a real application, this exchange rate would come from some real oracle.
+const MillisatoshiPerUsd = 22883.56
+
 func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 	scheme := "https://"
 	if strings.HasPrefix(context.Request.Host, "localhost:") {
@@ -365,7 +368,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 
 	conversionRate := 1000.0
 	if request.CurrencyCode == "USD" {
-		conversionRate = 22883.56
+		conversionRate = MillisatoshiPerUsd
 	}
 	exchangeFees := int64(100_000)
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
