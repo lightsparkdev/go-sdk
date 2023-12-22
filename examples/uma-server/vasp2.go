@@ -195,7 +195,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 				Code:                "USD",
 				Name:                "US Dollars",
 				Symbol:              "$",
-				MillisatoshiPerUnit: 22883.56, // msats per USD cent
+				MillisatoshiPerUnit: MillisatoshiPerUsd,
 				MinSendable:         1,
 				MaxSendable:         1_000,
 				Decimals:            2,
