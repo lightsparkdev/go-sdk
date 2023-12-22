@@ -207,7 +207,7 @@ func ensureEnoughNodeFunds(
 	require.NoError(t, err)
 	castNode, didCast := (*nodeEntity).(objects.LightsparkNode)
 	require.True(t, didCast)
-	balanceMilliSats, err := utils.ValueMilliSatoshi(*castNode.GetLocalBalance())
+	balanceMilliSats, err := utils.ValueMilliSatoshi(*castNode.GetBalances().AvailableToSendBalance)
 	require.NoError(t, err)
 	log.Printf("Check if node id, %s, has enough local balance as of, %d msats, to send, %d msats, before funding.", nodeId, balanceMilliSats, amountMillisatoshis)
 	if balanceMilliSats < amountMillisatoshis {
