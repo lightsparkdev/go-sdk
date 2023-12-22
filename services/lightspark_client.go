@@ -740,6 +740,9 @@ func (client *LightsparkClient) GetEntity(id string) (*objects.Entity, error) {
 	if err != nil {
 		return nil, err
 	}
+	if response["entity"] == nil {
+		return nil, errors.New("entity not found")
+	}
 
 	output := response["entity"].(map[string]interface{})
 	entity, err := objects.EntityUnmarshal(output)
@@ -968,7 +971,7 @@ func (client *LightsparkClient) FetchUmaInvitation(invitationCode string) (*obje
 	return &invitation, nil
 }
 
-func (client *LightsparkClient) GetWithdrawalFeeEstimate(nodeId string, amountSats int64, 
+func (client *LightsparkClient) GetWithdrawalFeeEstimate(nodeId string, amountSats int64,
 	withdrawMode objects.WithdrawalMode) (*objects.WithdrawalFeeEstimateOutput, error) {
 	variables := map[string]interface{}{
 		"node_id":         nodeId,
@@ -991,11 +994,11 @@ func (client *LightsparkClient) GetWithdrawalFeeEstimate(nodeId string, amountSa
 	return &feeEstimate, nil
 }
 
-func (client *LightsparkClient) FetchOutgoingPaymentsByInvoice(encodedInvoice string, 
+func (client *LightsparkClient) FetchOutgoingPaymentsByInvoice(encodedInvoice string,
 	statuses *[]objects.TransactionStatus) (*objects.OutgoingPaymentsForInvoiceQueryOutput, error) {
 	variables := map[string]interface{}{
 		"encoded_invoice": encodedInvoice,
-		"statuses": statuses,
+		"statuses":        statuses,
 	}
 
 	response, err := client.Requester.ExecuteGraphql(scripts.OUTGOING_PAYMENTS_FOR_INVOICE_QUERY, variables, nil)
