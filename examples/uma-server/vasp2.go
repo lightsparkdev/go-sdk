@@ -21,6 +21,9 @@ type Vasp2 struct {
 	pubKeyCache uma.PublicKeyCache
 }
 
+// Note: In a real application, this exchange rate would come from some real oracle.
+const MillisatoshiPerUsd = 22883.56
+
 func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 	scheme := "https://"
 	if strings.HasPrefix(context.Request.Host, "localhost:") {
@@ -192,7 +195,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 				Code:                "USD",
 				Name:                "US Dollars",
 				Symbol:              "$",
-				MillisatoshiPerUnit: 23_025, // msats per USD cent
+				MillisatoshiPerUnit: MillisatoshiPerUsd,
 				MinSendable:         1,
 				MaxSendable:         1_000,
 				Decimals:            2,
@@ -363,7 +366,10 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		ExpirySecs:       &expirySecs,
 	}
 
-	conversionRate := int64(34_150)
+	conversionRate := 1000.0
+	if request.CurrencyCode == "USD" {
+		conversionRate = MillisatoshiPerUsd
+	}
 	exchangeFees := int64(100_000)
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	receiverUtxos, err := lsClient.GetNodeChannelUtxos(v.config.NodeUUID)
@@ -375,11 +381,16 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
+	decimals := 0
+	if request.CurrencyCode == "USD" {
+		decimals = 2
+	}
 	response, err := uma.GetPayReqResponse(
 		request,
 		invoiceCreator,
 		metadata,
-		"USD",
+		request.CurrencyCode,
+		decimals,
 		conversionRate,
 		exchangeFees,
 		receiverUtxos,
