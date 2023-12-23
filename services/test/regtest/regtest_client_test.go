@@ -207,11 +207,21 @@ func ensureEnoughNodeFunds(
 	require.NoError(t, err)
 	castNode, didCast := (*nodeEntity).(objects.LightsparkNode)
 	require.True(t, didCast)
-	balanceMilliSats, err := utils.ValueMilliSatoshi(*castNode.GetBalances().AvailableToSendBalance)
-	require.NoError(t, err)
+	balanceMilliSats := int64(0)
+	balances := castNode.GetBalances()
+	if balances != nil {
+		balanceMilliSats, err = utils.ValueMilliSatoshi(balances.AvailableToSendBalance)
+		require.NoError(t, err)
+	}
 	log.Printf("Check if node id, %s, has enough local balance as of, %d msats, to send, %d msats, before funding.", nodeId, balanceMilliSats, amountMillisatoshis)
-	if balanceMilliSats < amountMillisatoshis {
-		invoice, err := client.CreateInvoice(nodeId, amountMillisatoshis*5, nil, nil, nil)
+
+	// Requiring 10x the amount to be sent to ensure we have enough to pay the invoice. Note that we really shouldn't
+	// need this much of a buffer, but even 2x is proving to be insufficient in some cases. This means our
+	// availableToSendBalance is not actually returning what's available to send. See
+	// https://linear.app/lightsparkdev/issue/LIG-4098 for more info.
+	balanceBufferFactor := int64(10)
+	if balanceMilliSats < amountMillisatoshis*balanceBufferFactor {
+		invoice, err := client.CreateInvoice(nodeId, amountMillisatoshis*balanceBufferFactor, nil, nil, nil)
 		require.NoError(t, err)
 		payment, err := client.CreateTestModePayment(nodeId, invoice.Data.EncodedPaymentRequest, nil)
 		require.NoError(t, err)
@@ -224,8 +234,12 @@ func ensureEnoughNodeFunds(
 			require.NoError(t, err)
 			castNode, didCast := (*nodeEntity).(objects.LightsparkNode)
 			require.True(t, didCast)
-			balanceMilliSats, err := utils.ValueMilliSatoshi(*castNode.GetBalances().AvailableToSendBalance)
-			require.NoError(t, err)
+			balanceMilliSats = int64(0)
+			balances := castNode.GetBalances()
+			if balances != nil {
+				balanceMilliSats, err = utils.ValueMilliSatoshi(balances.AvailableToSendBalance)
+				require.NoError(t, err)
+			}
 			log.Printf("Check if node id, %s, has enough local balance as of, %d msats, to send, %d msats, after funding.", nodeId, balanceMilliSats, amountMillisatoshis)
 			if balanceMilliSats >= amountMillisatoshis {
 				break
