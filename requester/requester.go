@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"regexp"
 	"runtime"
+	"strings"
 	"time"
 
 	lightspark "github.com/lightsparkdev/go-sdk"
@@ -54,8 +55,11 @@ func ValidateBaseUrl(baseUrl string) error {
 	if err != nil {
 		return errors.New("invalid base url. Not a valid URL")
 	}
+	hostNameParts := strings.Split(parsedUrl.Hostname(), ".")
+	hostNameTld := hostNameParts[len(hostNameParts)-1]
 	isWhitelistedLocalHost := parsedUrl.Hostname() == "localhost" ||
-		parsedUrl.Hostname() == "app.minikube.local" ||
+		hostNameTld == "local" ||
+		hostNameTld == "internal" ||
 		parsedUrl.Hostname() == "127.0.0.1"
 	if parsedUrl.Scheme != "https" && !isWhitelistedLocalHost {
 		return errors.New("invalid base url. Must be https:// if not targeting localhost")
