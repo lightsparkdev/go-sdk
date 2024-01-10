@@ -1,16 +1,19 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
+
+
 
 type ReleasePaymentPreimageOutput struct {
 
-	// Invoice The invoice of the transaction.
-	Invoice types.EntityWrapper `json:"release_payment_preimage_output_invoice"`
+    // Invoice The invoice of the transaction.
+    Invoice types.EntityWrapper `json:"release_payment_preimage_output_invoice"`
+
 }
 
 const (
-	ReleasePaymentPreimageOutputFragment = `
+    ReleasePaymentPreimageOutputFragment = `
 fragment ReleasePaymentPreimageOutputFragment on ReleasePaymentPreimageOutput {
     __typename
     release_payment_preimage_output_invoice: invoice {
@@ -19,3 +22,10 @@ fragment ReleasePaymentPreimageOutputFragment on ReleasePaymentPreimageOutput {
 }
 `
 )
+
+
+
+
+
+
+

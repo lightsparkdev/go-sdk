@@ -1,20 +1,25 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
+
 type WithdrawalRequestToChannelClosingTransactionsConnection struct {
 
-	// PageInfo An object that holds pagination information about the objects in this connection.
-	PageInfo PageInfo `json:"withdrawal_request_to_channel_closing_transactions_connection_page_info"`
+    // PageInfo An object that holds pagination information about the objects in this connection.
+    PageInfo PageInfo `json:"withdrawal_request_to_channel_closing_transactions_connection_page_info"`
 
-	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
-	Count int64 `json:"withdrawal_request_to_channel_closing_transactions_connection_count"`
+    // Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+    Count int64 `json:"withdrawal_request_to_channel_closing_transactions_connection_count"`
 
-	// Entities The channel closing transactions for the current page of this connection.
-	Entities []ChannelClosingTransaction `json:"withdrawal_request_to_channel_closing_transactions_connection_entities"`
+    // Entities The channel closing transactions for the current page of this connection.
+    Entities []ChannelClosingTransaction `json:"withdrawal_request_to_channel_closing_transactions_connection_entities"`
+
 }
 
 const (
-	WithdrawalRequestToChannelClosingTransactionsConnectionFragment = `
+    WithdrawalRequestToChannelClosingTransactionsConnectionFragment = `
 fragment WithdrawalRequestToChannelClosingTransactionsConnectionFragment on WithdrawalRequestToChannelClosingTransactionsConnection {
     __typename
     withdrawal_request_to_channel_closing_transactions_connection_page_info: page_info {
@@ -31,3 +36,10 @@ fragment WithdrawalRequestToChannelClosingTransactionsConnectionFragment on With
 }
 `
 )
+
+
+
+
+
+
+

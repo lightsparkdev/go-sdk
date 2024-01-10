@@ -1,23 +1,28 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
+
 type ChannelToTransactionsConnection struct {
 
-	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
-	Count int64 `json:"channel_to_transactions_connection_count"`
+    // Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+    Count int64 `json:"channel_to_transactions_connection_count"`
 
-	// AverageFee The average fee for the transactions that transited through this channel, according to the filters and constraints of the connection.
-	AverageFee *CurrencyAmount `json:"channel_to_transactions_connection_average_fee"`
+    // AverageFee The average fee for the transactions that transited through this channel, according to the filters and constraints of the connection.
+    AverageFee *CurrencyAmount `json:"channel_to_transactions_connection_average_fee"`
 
-	// TotalAmountTransacted The total amount transacted for the transactions that transited through this channel, according to the filters and constraints of the connection.
-	TotalAmountTransacted *CurrencyAmount `json:"channel_to_transactions_connection_total_amount_transacted"`
+    // TotalAmountTransacted The total amount transacted for the transactions that transited through this channel, according to the filters and constraints of the connection.
+    TotalAmountTransacted *CurrencyAmount `json:"channel_to_transactions_connection_total_amount_transacted"`
 
-	// TotalFees The total amount of fees for the transactions that transited through this channel, according to the filters and constraints of the connection.
-	TotalFees *CurrencyAmount `json:"channel_to_transactions_connection_total_fees"`
+    // TotalFees The total amount of fees for the transactions that transited through this channel, according to the filters and constraints of the connection.
+    TotalFees *CurrencyAmount `json:"channel_to_transactions_connection_total_fees"`
+
 }
 
 const (
-	ChannelToTransactionsConnectionFragment = `
+    ChannelToTransactionsConnectionFragment = `
 fragment ChannelToTransactionsConnectionFragment on ChannelToTransactionsConnection {
     __typename
     channel_to_transactions_connection_count: count
@@ -48,3 +53,10 @@ fragment ChannelToTransactionsConnectionFragment on ChannelToTransactionsConnect
 }
 `
 )
+
+
+
+
+
+
+
