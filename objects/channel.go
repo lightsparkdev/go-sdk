@@ -1,77 +1,73 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // Channel This is an object representing a channel on the Lightning Network. You can retrieve this object to get detailed information on a specific Lightning Network channel.
 type Channel struct {
 
-	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
-	Id string `json:"channel_id"`
+    // Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+    Id string `json:"channel_id"`
 
-	// CreatedAt The date and time when the entity was first created.
-	CreatedAt time.Time `json:"channel_created_at"`
+    // CreatedAt The date and time when the entity was first created.
+    CreatedAt time.Time `json:"channel_created_at"`
 
-	// UpdatedAt The date and time when the entity was last updated.
-	UpdatedAt time.Time `json:"channel_updated_at"`
+    // UpdatedAt The date and time when the entity was last updated.
+    UpdatedAt time.Time `json:"channel_updated_at"`
 
-	// FundingTransaction The transaction that funded the channel upon channel opening.
-	FundingTransaction *types.EntityWrapper `json:"channel_funding_transaction"`
+    // FundingTransaction The transaction that funded the channel upon channel opening.
+    FundingTransaction *types.EntityWrapper `json:"channel_funding_transaction"`
 
-	// Capacity The total amount of funds in this channel, including the channel balance on the local node, the channel balance on the remote node and the on-chain fees to close the channel.
-	Capacity *CurrencyAmount `json:"channel_capacity"`
+    // Capacity The total amount of funds in this channel, including the channel balance on the local node, the channel balance on the remote node and the on-chain fees to close the channel.
+    Capacity *CurrencyAmount `json:"channel_capacity"`
 
-	// LocalBalance The channel balance on the local node.
-	LocalBalance *CurrencyAmount `json:"channel_local_balance"`
+    // LocalBalance The channel balance on the local node.
+    LocalBalance *CurrencyAmount `json:"channel_local_balance"`
 
-	// LocalUnsettledBalance The channel balance on the local node that is currently allocated to in-progress payments.
-	LocalUnsettledBalance *CurrencyAmount `json:"channel_local_unsettled_balance"`
+    // LocalUnsettledBalance The channel balance on the local node that is currently allocated to in-progress payments.
+    LocalUnsettledBalance *CurrencyAmount `json:"channel_local_unsettled_balance"`
 
-	// RemoteBalance The channel balance on the remote node.
-	RemoteBalance *CurrencyAmount `json:"channel_remote_balance"`
+    // RemoteBalance The channel balance on the remote node.
+    RemoteBalance *CurrencyAmount `json:"channel_remote_balance"`
 
-	// RemoteUnsettledBalance The channel balance on the remote node that is currently allocated to in-progress payments.
-	RemoteUnsettledBalance *CurrencyAmount `json:"channel_remote_unsettled_balance"`
+    // RemoteUnsettledBalance The channel balance on the remote node that is currently allocated to in-progress payments.
+    RemoteUnsettledBalance *CurrencyAmount `json:"channel_remote_unsettled_balance"`
 
-	// UnsettledBalance The channel balance that is currently allocated to in-progress payments.
-	UnsettledBalance *CurrencyAmount `json:"channel_unsettled_balance"`
+    // UnsettledBalance The channel balance that is currently allocated to in-progress payments.
+    UnsettledBalance *CurrencyAmount `json:"channel_unsettled_balance"`
 
-	// TotalBalance The total balance in this channel, including the channel balance on both local and remote nodes.
-	TotalBalance *CurrencyAmount `json:"channel_total_balance"`
+    // TotalBalance The total balance in this channel, including the channel balance on both local and remote nodes.
+    TotalBalance *CurrencyAmount `json:"channel_total_balance"`
 
-	// Status The current status of this channel.
-	Status *ChannelStatus `json:"channel_status"`
+    // Status The current status of this channel.
+    Status *ChannelStatus `json:"channel_status"`
 
-	// EstimatedForceClosureWaitMinutes The estimated time to wait for the channel's hash timelock contract to expire when force closing the channel. It is in unit of minutes.
-	EstimatedForceClosureWaitMinutes *int64 `json:"channel_estimated_force_closure_wait_minutes"`
+    // EstimatedForceClosureWaitMinutes The estimated time to wait for the channel's hash timelock contract to expire when force closing the channel. It is in unit of minutes.
+    EstimatedForceClosureWaitMinutes *int64 `json:"channel_estimated_force_closure_wait_minutes"`
 
-	// CommitFee The amount to be paid in fees for the current set of commitment transactions.
-	CommitFee *CurrencyAmount `json:"channel_commit_fee"`
+    // CommitFee The amount to be paid in fees for the current set of commitment transactions.
+    CommitFee *CurrencyAmount `json:"channel_commit_fee"`
 
-	// Fees The fees charged for routing payments through this channel.
-	Fees *ChannelFees `json:"channel_fees"`
+    // Fees The fees charged for routing payments through this channel.
+    Fees *ChannelFees `json:"channel_fees"`
 
-	// RemoteNode If known, the remote node of the channel.
-	RemoteNode *types.EntityWrapper `json:"channel_remote_node"`
+    // RemoteNode If known, the remote node of the channel.
+    RemoteNode *types.EntityWrapper `json:"channel_remote_node"`
 
-	// LocalNode The local Lightspark node of the channel.
-	LocalNode types.EntityWrapper `json:"channel_local_node"`
+    // LocalNode The local Lightspark node of the channel.
+    LocalNode types.EntityWrapper `json:"channel_local_node"`
 
-	// ShortChannelId The unique identifier of the channel on Lightning Network, which is the location in the chain that the channel was confirmed. The format is <block-height>:<tx-index>:<tx-output>.
-	ShortChannelId *string `json:"channel_short_channel_id"`
+    // ShortChannelId The unique identifier of the channel on Lightning Network, which is the location in the chain that the channel was confirmed. The format is <block-height>:<tx-index>:<tx-output>.
+    ShortChannelId *string `json:"channel_short_channel_id"`
 
-	// Typename The typename of the object
-	Typename string `json:"__typename"`
+    // Typename The typename of the object
+    Typename string `json:"__typename"`
+
 }
 
 const (
-	ChannelFragment = `
+    ChannelFragment = `
 fragment ChannelFragment on Channel {
     __typename
     channel_id: id
@@ -169,53 +165,60 @@ fragment ChannelFragment on Channel {
 `
 )
 
+
+
+
 // GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj Channel) GetId() string {
-	return obj.Id
+    return obj.Id
 }
 
 // GetCreatedAt The date and time when the entity was first created.
 func (obj Channel) GetCreatedAt() time.Time {
-	return obj.CreatedAt
+    return obj.CreatedAt
 }
 
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Channel) GetUpdatedAt() time.Time {
-	return obj.UpdatedAt
+    return obj.UpdatedAt
 }
 
-func (obj Channel) GetTypename() string {
-	return obj.Typename
-}
 
-func (obj Channel) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time) (*int64, error) {
-	query := `query FetchChannelUptimePercentage($entity_id: ID!, $after_date: DateTime, $before_date: DateTime) {
+    func (obj Channel) GetTypename() string {
+        return obj.Typename
+    }
+
+
+
+    func (obj Channel) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time) (*int64, error) {
+        query := `query FetchChannelUptimePercentage($entity_id: ID!, $after_date: DateTime, $before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Channel {
             uptime_percentage(, after_date: $after_date, before_date: $before_date)
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":   obj.Id,
-		"after_date":  afterDate,
-		"before_date": beforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"after_date": afterDate,
+"before_date": beforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["uptime_percentage"]
-	var result *int64
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["uptime_percentage"]
+        var result *int64
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Channel) GetTransactions(requester *requester.Requester, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time) (*ChannelToTransactionsConnection, error) {
-	query := `query FetchChannelToTransactionsConnection($entity_id: ID!, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime) {
+    func (obj Channel) GetTransactions(requester *requester.Requester, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time) (*ChannelToTransactionsConnection, error) {
+        query := `query FetchChannelToTransactionsConnection($entity_id: ID!, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Channel {
             transactions(, types: $types, after_date: $after_date, before_date: $before_date) {
@@ -249,21 +252,25 @@ func (obj Channel) GetTransactions(requester *requester.Requester, types *[]Tran
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":   obj.Id,
-		"types":       types,
-		"after_date":  afterDate,
-		"before_date": beforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"types": types,
+"after_date": afterDate,
+"before_date": beforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["transactions"].(map[string]interface{})
-	var result *ChannelToTransactionsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["transactions"].(map[string]interface{})
+        var result *ChannelToTransactionsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
+
+
+

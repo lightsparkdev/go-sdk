@@ -1,12 +1,30 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
+
 type ClaimUmaInvitationWithIncentivesInput struct {
-	InvitationCode string `json:"claim_uma_invitation_with_incentives_input_invitation_code"`
 
-	InviteeUma string `json:"claim_uma_invitation_with_incentives_input_invitee_uma"`
+    
+    InvitationCode string `json:"claim_uma_invitation_with_incentives_input_invitation_code"`
 
-	InviteePhoneHash string `json:"claim_uma_invitation_with_incentives_input_invitee_phone_hash"`
+    
+    InviteeUma string `json:"claim_uma_invitation_with_incentives_input_invitee_uma"`
 
-	InviteeRegion RegionCode `json:"claim_uma_invitation_with_incentives_input_invitee_region"`
+    
+    InviteePhoneHash string `json:"claim_uma_invitation_with_incentives_input_invitee_phone_hash"`
+
+    
+    InviteeRegion RegionCode `json:"claim_uma_invitation_with_incentives_input_invitee_region"`
+
 }
+
+
+
+
+
+
+
+

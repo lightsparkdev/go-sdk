@@ -1,47 +1,43 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // Wallet This object represents a Lightspark Wallet, tied to your Lightspark account. Wallets can be used to send or receive funds over the Lightning Network. You can retrieve this object to receive information about a specific wallet tied to your Lightspark account.
 type Wallet struct {
 
-	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
-	Id string `json:"wallet_id"`
+    // Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+    Id string `json:"wallet_id"`
 
-	// CreatedAt The date and time when the entity was first created.
-	CreatedAt time.Time `json:"wallet_created_at"`
+    // CreatedAt The date and time when the entity was first created.
+    CreatedAt time.Time `json:"wallet_created_at"`
 
-	// UpdatedAt The date and time when the entity was last updated.
-	UpdatedAt time.Time `json:"wallet_updated_at"`
+    // UpdatedAt The date and time when the entity was last updated.
+    UpdatedAt time.Time `json:"wallet_updated_at"`
 
-	// LastLoginAt The date and time when the wallet user last logged in.
-	LastLoginAt *time.Time `json:"wallet_last_login_at"`
+    // LastLoginAt The date and time when the wallet user last logged in.
+    LastLoginAt *time.Time `json:"wallet_last_login_at"`
 
-	// Balances The balances that describe the funds in this wallet.
-	Balances *Balances `json:"wallet_balances"`
+    // Balances The balances that describe the funds in this wallet.
+    Balances *Balances `json:"wallet_balances"`
 
-	// ThirdPartyIdentifier The unique identifier of this wallet, as provided by the Lightspark Customer during login.
-	ThirdPartyIdentifier string `json:"wallet_third_party_identifier"`
+    // ThirdPartyIdentifier The unique identifier of this wallet, as provided by the Lightspark Customer during login.
+    ThirdPartyIdentifier string `json:"wallet_third_party_identifier"`
 
-	// Account The account this wallet belongs to.
-	Account *types.EntityWrapper `json:"wallet_account"`
+    // Account The account this wallet belongs to.
+    Account *types.EntityWrapper `json:"wallet_account"`
 
-	// Status The status of this wallet.
-	Status WalletStatus `json:"wallet_status"`
+    // Status The status of this wallet.
+    Status WalletStatus `json:"wallet_status"`
 
-	// Typename The typename of the object
-	Typename string `json:"__typename"`
+    // Typename The typename of the object
+    Typename string `json:"__typename"`
+
 }
 
 const (
-	WalletFragment = `
+    WalletFragment = `
 fragment WalletFragment on Wallet {
     __typename
     wallet_id: id
@@ -84,27 +80,35 @@ fragment WalletFragment on Wallet {
 `
 )
 
+
+
+
+
+
 // GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj Wallet) GetId() string {
-	return obj.Id
+    return obj.Id
 }
 
 // GetCreatedAt The date and time when the entity was first created.
 func (obj Wallet) GetCreatedAt() time.Time {
-	return obj.CreatedAt
+    return obj.CreatedAt
 }
 
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Wallet) GetUpdatedAt() time.Time {
-	return obj.UpdatedAt
+    return obj.UpdatedAt
 }
 
-func (obj Wallet) GetTypename() string {
-	return obj.Typename
-}
 
-func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, after *string, createdAfterDate *time.Time, createdBeforeDate *time.Time, statuses *[]TransactionStatus, types *[]TransactionType) (*WalletToTransactionsConnection, error) {
-	query := `query FetchWalletToTransactionsConnection($entity_id: ID!, $first: Int, $after: ID, $created_after_date: DateTime, $created_before_date: DateTime, $statuses: [TransactionStatus!], $types: [TransactionType!]) {
+    func (obj Wallet) GetTypename() string {
+        return obj.Typename
+    }
+
+
+
+    func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, after *string, createdAfterDate *time.Time, createdBeforeDate *time.Time, statuses *[]TransactionStatus, types *[]TransactionType) (*WalletToTransactionsConnection, error) {
+        query := `query FetchWalletToTransactionsConnection($entity_id: ID!, $first: Int, $after: ID, $created_after_date: DateTime, $created_before_date: DateTime, $statuses: [TransactionStatus!], $types: [TransactionType!]) {
     entity(id: $entity_id) {
         ... on Wallet {
             transactions(, first: $first, after: $after, created_after_date: $created_after_date, created_before_date: $created_before_date, statuses: $statuses, types: $types) {
@@ -666,30 +670,31 @@ func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, 
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":           obj.Id,
-		"first":               first,
-		"after":               after,
-		"created_after_date":  createdAfterDate,
-		"created_before_date": createdBeforeDate,
-		"statuses":            statuses,
-		"types":               types,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"created_after_date": createdAfterDate,
+"created_before_date": createdBeforeDate,
+"statuses": statuses,
+"types": types,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["transactions"].(map[string]interface{})
-	var result *WalletToTransactionsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["transactions"].(map[string]interface{})
+        var result *WalletToTransactionsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Wallet) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*WalletToPaymentRequestsConnection, error) {
-	query := `query FetchWalletToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: ID, $created_after_date: DateTime, $created_before_date: DateTime) {
+    func (obj Wallet) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*WalletToPaymentRequestsConnection, error) {
+        query := `query FetchWalletToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: ID, $created_after_date: DateTime, $created_before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Wallet {
             payment_requests(, first: $first, after: $after, created_after_date: $created_after_date, created_before_date: $created_before_date) {
@@ -1015,28 +1020,29 @@ func (obj Wallet) GetPaymentRequests(requester *requester.Requester, first *int6
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":           obj.Id,
-		"first":               first,
-		"after":               after,
-		"created_after_date":  createdAfterDate,
-		"created_before_date": createdBeforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"created_after_date": createdAfterDate,
+"created_before_date": createdBeforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["payment_requests"].(map[string]interface{})
-	var result *WalletToPaymentRequestsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["payment_requests"].(map[string]interface{})
+        var result *WalletToPaymentRequestsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*CurrencyAmount, error) {
-	query := `query FetchWalletTotalAmountReceived($entity_id: ID!, $created_after_date: DateTime, $created_before_date: DateTime) {
+    func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*CurrencyAmount, error) {
+        query := `query FetchWalletTotalAmountReceived($entity_id: ID!, $created_after_date: DateTime, $created_before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Wallet {
             total_amount_received(, created_after_date: $created_after_date, created_before_date: $created_before_date) {
@@ -1050,26 +1056,27 @@ func (obj Wallet) GetTotalAmountReceived(requester *requester.Requester, created
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":           obj.Id,
-		"created_after_date":  createdAfterDate,
-		"created_before_date": createdBeforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"created_after_date": createdAfterDate,
+"created_before_date": createdBeforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["total_amount_received"].(map[string]interface{})
-	var result *CurrencyAmount
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["total_amount_received"].(map[string]interface{})
+        var result *CurrencyAmount
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Wallet) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, statuses *[]WithdrawalRequestStatus, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*WalletToWithdrawalRequestsConnection, error) {
-	query := `query FetchWalletToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: ID, $statuses: [WithdrawalRequestStatus!], $created_after_date: DateTime, $created_before_date: DateTime) {
+    func (obj Wallet) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, statuses *[]WithdrawalRequestStatus, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*WalletToWithdrawalRequestsConnection, error) {
+        query := `query FetchWalletToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: ID, $statuses: [WithdrawalRequestStatus!], $created_after_date: DateTime, $created_before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Wallet {
             withdrawal_requests(, first: $first, after: $after, statuses: $statuses, created_after_date: $created_after_date, created_before_date: $created_before_date) {
@@ -1131,29 +1138,30 @@ func (obj Wallet) GetWithdrawalRequests(requester *requester.Requester, first *i
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":           obj.Id,
-		"first":               first,
-		"after":               after,
-		"statuses":            statuses,
-		"created_after_date":  createdAfterDate,
-		"created_before_date": createdBeforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"statuses": statuses,
+"created_after_date": createdAfterDate,
+"created_before_date": createdBeforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["withdrawal_requests"].(map[string]interface{})
-	var result *WalletToWithdrawalRequestsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["withdrawal_requests"].(map[string]interface{})
+        var result *WalletToWithdrawalRequestsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*CurrencyAmount, error) {
-	query := `query FetchWalletTotalAmountSent($entity_id: ID!, $created_after_date: DateTime, $created_before_date: DateTime) {
+    func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, createdAfterDate *time.Time, createdBeforeDate *time.Time) (*CurrencyAmount, error) {
+        query := `query FetchWalletTotalAmountSent($entity_id: ID!, $created_after_date: DateTime, $created_before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Wallet {
             total_amount_sent(, created_after_date: $created_after_date, created_before_date: $created_before_date) {
@@ -1167,20 +1175,24 @@ func (obj Wallet) GetTotalAmountSent(requester *requester.Requester, createdAfte
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":           obj.Id,
-		"created_after_date":  createdAfterDate,
-		"created_before_date": createdBeforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"created_after_date": createdAfterDate,
+"created_before_date": createdBeforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["total_amount_sent"].(map[string]interface{})
-	var result *CurrencyAmount
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["total_amount_sent"].(map[string]interface{})
+        var result *CurrencyAmount
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
+
+
+

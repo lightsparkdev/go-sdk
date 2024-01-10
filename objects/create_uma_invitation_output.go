@@ -1,14 +1,19 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
+
+
 
 type CreateUmaInvitationOutput struct {
-	Invitation types.EntityWrapper `json:"create_uma_invitation_output_invitation"`
+
+    
+    Invitation types.EntityWrapper `json:"create_uma_invitation_output_invitation"`
+
 }
 
 const (
-	CreateUmaInvitationOutputFragment = `
+    CreateUmaInvitationOutputFragment = `
 fragment CreateUmaInvitationOutputFragment on CreateUmaInvitationOutput {
     __typename
     create_uma_invitation_output_invitation: invitation {
@@ -17,3 +22,10 @@ fragment CreateUmaInvitationOutputFragment on CreateUmaInvitationOutput {
 }
 `
 )
+
+
+
+
+
+
+
