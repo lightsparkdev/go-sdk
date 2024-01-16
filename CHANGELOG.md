@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.8.1
+- Add 'NodeId' field to remote sigining requests.
+
 # 0.8.0
 - Add 'OutgoingPaymentsForInvoice' query to the client.
 - Add 'WithdrawalFeeEstimate' query to the client.
