@@ -101,6 +101,11 @@ func ParseGetPerCommitmentPointRequest(webhook webhooks.WebhookEvent) (*GetPerCo
 
 	channelId := webhook.EntityId
 
+	nodeID := (*webhook.Data)["node_id"]
+	if nodeID == nil {
+		return nil, errors.New("missing node_id in webhook")
+	}
+
 	network, err := bitcoinNetworkFromWebhookData(*webhook.Data)
 	if err != nil {
 		return nil, err
@@ -110,6 +115,7 @@ func ParseGetPerCommitmentPointRequest(webhook webhooks.WebhookEvent) (*GetPerCo
 		ChannelId:             channelId,
 		DerivationPath:        derivationPath.(string),
 		PerCommitmentPointIdx: uint64(perCommitmentPointIdxInt),
+		NodeId:                nodeID.(string),
 		BitcoinNetwork:        network,
 	}
 
@@ -142,6 +148,11 @@ func ParseReleasePerCommitmentSecretRequest(webhook webhooks.WebhookEvent) (*Rel
 
 	channelId := webhook.EntityId
 
+	nodeID := (*webhook.Data)["node_id"]
+	if nodeID == nil {
+		return nil, errors.New("missing node_id in webhook")
+	}
+
 	network, err := bitcoinNetworkFromWebhookData(*webhook.Data)
 	if err != nil {
 		return nil, err
@@ -151,6 +162,7 @@ func ParseReleasePerCommitmentSecretRequest(webhook webhooks.WebhookEvent) (*Rel
 		ChannelId:             channelId,
 		DerivationPath:        derivationPath.(string),
 		PerCommitmentPointIdx: uint64(perCommitmentPointIdx),
+		NodeId:                nodeID.(string),
 		BitcoinNetwork:        network,
 	}
 
@@ -312,12 +324,18 @@ func ParseReleaseCounterpartyPerCommitmentSecretRequest(webhook webhooks.Webhook
 		return nil, errors.New("missing per_commitment_secret in webhook")
 	}
 
+	nodeID := (*webhook.Data)["node_id"]
+	if nodeID == nil {
+		return nil, errors.New("missing node_id in webhook")
+	}
+
 	channelId := webhook.EntityId
 
 	request := ReleaseCounterpartyPerCommitmentSecretRequest{
 		ChannelId:              channelId,
 		PerCommitmentSecretIdx: uint64(perCommitmentSecretIdxInt),
 		PerCommitmentSecret:    perCommitmentSecret.(string),
+		NodeId:                 nodeID.(string),
 	}
 
 	return &request, nil
@@ -363,6 +381,7 @@ type GetPerCommitmentPointRequest struct {
 	ChannelId             string
 	DerivationPath        string
 	PerCommitmentPointIdx uint64
+	NodeId                string
 	BitcoinNetwork        objects.BitcoinNetwork
 }
 
@@ -378,6 +397,7 @@ type ReleasePerCommitmentSecretRequest struct {
 	ChannelId             string
 	DerivationPath        string
 	PerCommitmentPointIdx uint64
+	NodeId                string
 	BitcoinNetwork        objects.BitcoinNetwork
 }
 
@@ -436,6 +456,7 @@ type ReleaseCounterpartyPerCommitmentSecretRequest struct {
 	ChannelId              string
 	PerCommitmentSecretIdx uint64
 	PerCommitmentSecret    string
+	NodeId                string
 }
 
 func (r *ReleaseCounterpartyPerCommitmentSecretRequest) Type() objects.RemoteSigningSubEventType {
