@@ -7,3 +7,6 @@ lnurl-server
 !lnurl-server/
 remote-signing-server
 !remote-signing-server/
+
+local.env
+env.local
