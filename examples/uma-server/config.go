@@ -7,18 +7,19 @@ import (
 )
 
 type UmaConfig struct {
-	ApiClientID             string
-	ApiClientSecret         string
-	NodeUUID                string
-	Username                string
-	UserID                  string
-	UmaEncryptionPubKeyHex  string
-	UmaEncryptionPrivKeyHex string
-	UmaSigningPubKeyHex     string
-	UmaSigningPrivKeyHex    string
-	NodeMasterSeedHex       string
-	ClientBaseURL           string
-	SenderVaspDomain        string
+	ApiClientID                    string
+	ApiClientSecret                string
+	NodeUUID                       string
+	Username                       string
+	UserID                         string
+	UmaEncryptionPubKeyHex         string
+	UmaEncryptionPrivKeyHex        string
+	UmaSigningPubKeyHex            string
+	UmaSigningPrivKeyHex           string
+	RemoteSigningNodeMasterSeedHex string
+	OskNodeSigningKeyPassword      string
+	ClientBaseURL                  string
+	SenderVaspDomain               string
 }
 
 func (c *UmaConfig) UmaEncryptionPubKeyBytes() ([]byte, error) {
@@ -38,7 +39,7 @@ func (c *UmaConfig) UmaSigningPrivKeyBytes() ([]byte, error) {
 }
 
 func (c *UmaConfig) NodeMasterSeedBytes() ([]byte, error) {
-	return hex.DecodeString(c.NodeMasterSeedHex)
+	return hex.DecodeString(c.RemoteSigningNodeMasterSeedHex)
 }
 
 /**
@@ -71,13 +72,14 @@ func NewConfig() UmaConfig {
 		NodeUUID:        os.Getenv("LIGHTSPARK_UMA_NODE_ID"),
 		Username:        username,
 		// Static UUID so that callback URLs are always the same.
-		UserID:                  "4b41ae03-01b8-4974-8d26-26a35d28851b",
-		UmaEncryptionPubKeyHex:  os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_PUBKEY"),
-		UmaEncryptionPrivKeyHex: os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_PRIVKEY"),
-		UmaSigningPubKeyHex:     os.Getenv("LIGHTSPARK_UMA_SIGNING_PUBKEY"),
-		UmaSigningPrivKeyHex:    os.Getenv("LIGHTSPARK_UMA_SIGNING_PRIVKEY"),
-		NodeMasterSeedHex:       os.Getenv("LIGHTSPARK_UMA_MASTER_SEED"),
-		ClientBaseURL:           fmt.Sprintf("https://%s/graphql/server/rc", os.Getenv("LIGHTSPARK_EXAMPLE_BASE_URL")),
-		SenderVaspDomain:        os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
+		UserID:                         "4b41ae03-01b8-4974-8d26-26a35d28851b",
+		UmaEncryptionPubKeyHex:         os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_PUBKEY"),
+		UmaEncryptionPrivKeyHex:        os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_PRIVKEY"),
+		UmaSigningPubKeyHex:            os.Getenv("LIGHTSPARK_UMA_SIGNING_PUBKEY"),
+		UmaSigningPrivKeyHex:           os.Getenv("LIGHTSPARK_UMA_SIGNING_PRIVKEY"),
+		RemoteSigningNodeMasterSeedHex: os.Getenv("LIGHTSPARK_UMA_REMOTE_SIGNING_NODE_MASTER_SEED"),
+		OskNodeSigningKeyPassword:      os.Getenv("LIGHTSPARK_UMA_OSK_NODE_SIGNING_KEY_PASSWORD"),
+		ClientBaseURL:                  fmt.Sprintf("https://%s/graphql/server/rc", os.Getenv("LIGHTSPARK_EXAMPLE_BASE_URL")),
+		SenderVaspDomain:               os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
 }
