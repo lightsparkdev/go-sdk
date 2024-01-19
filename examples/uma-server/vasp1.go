@@ -26,14 +26,17 @@ type Vasp1 struct {
 	config       *UmaConfig
 	pubKeyCache  uma.PublicKeyCache
 	requestCache *Vasp1RequestCache
+	nonceCache   uma.NonceCache
 	client       *services.LightsparkClient
 }
 
 func NewVasp1(config *UmaConfig, pubKeyCache uma.PublicKeyCache) *Vasp1 {
+	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	return &Vasp1{
 		config:       config,
 		pubKeyCache:  pubKeyCache,
 		requestCache: NewVasp1RequestCache(),
+		nonceCache:   uma.NewInMemoryNonceCache(oneDayAgo),
 		client:       services.NewLightsparkClient(config.ApiClientID, config.ApiClientSecret, &config.ClientBaseURL),
 	}
 }
@@ -52,12 +55,9 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverId := addressParts[0]
 	receiverVasp := addressParts[1]
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8081"
-	}
+
 	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(
-		signingKey, receiverAddress, "localhost:"+port, true, nil)
+		signingKey, receiverAddress, v.getVaspDomain(context), true, nil)
 
 	resp, err := http.Get(lnurlpRequest.String())
 	if err != nil {
@@ -120,7 +120,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		})
 		return
 	}
-	err = uma.VerifyUmaLnurlpResponseSignature(lnurlpResponse, receiverSigningPubKey)
+	err = uma.VerifyUmaLnurlpResponseSignature(lnurlpResponse, receiverSigningPubKey, v.nonceCache)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -168,14 +168,11 @@ func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signin
 		})
 		return nil, true
 	}
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8081"
-	}
+
 	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(
 		signingKey,
 		receiverAddress,
-		"localhost:"+port,
+		v.getVaspDomain(context),
 		true,
 		highestSupportedVersion,
 	)
@@ -201,7 +198,7 @@ func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signin
 
 func (v *Vasp1) getUtxoCallback(context *gin.Context, txId string) string {
 	scheme := "https://"
-	if strings.HasPrefix(context.Request.Host, "localhost:") {
+	if uma.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
@@ -630,6 +627,23 @@ func (v *Vasp1) handleNonUmaPayReq(
 		"currencyCode":   "mSAT",
 		"expiresAt":      invoiceData.ExpiresAt.Unix(),
 	})
+}
+
+func (v *Vasp1) getVaspDomain(context *gin.Context) string {
+	envVaspDomain := v.config.SenderVaspDomain
+	if envVaspDomain != "" {
+		return envVaspDomain
+	}
+	requestHost := context.Request.Host
+	requestHostWithoutPort := strings.Split(requestHost, ":")[0]
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
+	}
+	if port != "80" && port != "443" {
+		return fmt.Sprintf("%s:%s", requestHostWithoutPort, port)
+	}
+	return requestHostWithoutPort
 }
 
 type PayerInfo struct {

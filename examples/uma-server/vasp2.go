@@ -11,7 +11,6 @@ import (
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -19,6 +18,7 @@ import (
 type Vasp2 struct {
 	config      *UmaConfig
 	pubKeyCache uma.PublicKeyCache
+	nonceCache  uma.NonceCache
 }
 
 // Note: In a real application, this exchange rate would come from some real oracle.
@@ -26,7 +26,7 @@ const MillisatoshiPerUsd = 22883.56
 
 func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 	scheme := "https://"
-	if strings.HasPrefix(context.Request.Host, "localhost:") {
+	if uma.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/payreq/%s", scheme, context.Request.Host, v.config.UserID)
@@ -34,7 +34,7 @@ func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 
 func (v *Vasp2) getUtxoCallback(context *gin.Context, txId string) string {
 	scheme := "https://"
-	if strings.HasPrefix(context.Request.Host, "localhost:") {
+	if uma.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
@@ -151,7 +151,7 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		})
 		return nil, true
 	}
-	if err := uma.VerifyUmaLnurlpQuerySignature(query, sendingVaspSigningPubKey); err != nil {
+	if err := uma.VerifyUmaLnurlpQuerySignature(query, sendingVaspSigningPubKey, v.nonceCache); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -341,7 +341,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		})
 		return
 	}
-	if err := uma.VerifyPayReqSignature(request, sendingVaspSigningPubKey); err != nil {
+	if err := uma.VerifyPayReqSignature(request, sendingVaspSigningPubKey, v.nonceCache); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
