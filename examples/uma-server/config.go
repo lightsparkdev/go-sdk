@@ -18,6 +18,7 @@ type UmaConfig struct {
 	UmaSigningPrivKeyHex    string
 	NodeMasterSeedHex       string
 	ClientBaseURL           string
+	SenderVaspDomain        string
 }
 
 func (c *UmaConfig) UmaEncryptionPubKeyBytes() ([]byte, error) {
@@ -77,5 +78,6 @@ func NewConfig() UmaConfig {
 		UmaSigningPrivKeyHex:    os.Getenv("LIGHTSPARK_UMA_SIGNING_PRIVKEY"),
 		NodeMasterSeedHex:       os.Getenv("LIGHTSPARK_UMA_MASTER_SEED"),
 		ClientBaseURL:           fmt.Sprintf("https://%s/graphql/server/rc", os.Getenv("LIGHTSPARK_EXAMPLE_BASE_URL")),
+		SenderVaspDomain:        os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
 }

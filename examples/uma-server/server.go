@@ -5,6 +5,7 @@ import (
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	"log"
 	"os"
+	"time"
 )
 
 /**
@@ -27,10 +28,12 @@ func main() {
 	log.Printf("Starting server with config: %+v", config)
 	engine := gin.Default()
 	pubKeyCache := uma.NewInMemoryPublicKeyCache()
+	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	vasp1 := NewVasp1(&config, pubKeyCache)
 	vasp2 := Vasp2{
 		config:      &config,
 		pubKeyCache: pubKeyCache,
+		nonceCache:  uma.NewInMemoryNonceCache(oneDayAgo),
 	}
 
 	// VASP1 Routes:
