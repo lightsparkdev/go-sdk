@@ -37,7 +37,7 @@ func NewVasp1(config *UmaConfig, pubKeyCache uma.PublicKeyCache) *Vasp1 {
 		pubKeyCache:  pubKeyCache,
 		requestCache: NewVasp1RequestCache(),
 		nonceCache:   uma.NewInMemoryNonceCache(oneDayAgo),
-		client:       services.NewLightsparkClient(config.ApiClientID, config.ApiClientSecret, &config.ClientBaseURL),
+		client:       services.NewLightsparkClient(config.ApiClientID, config.ApiClientSecret, config.ClientBaseURL),
 	}
 }
 
@@ -135,11 +135,11 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	// have anything to do with that data in this demo, though.
 
 	context.JSON(http.StatusOK, gin.H{
-		"currencies":        lnurlpResponse.Currencies,
-		"minSendSats":       lnurlpResponse.MinSendable,
-		"maxSendSats":       lnurlpResponse.MaxSendable,
-		"callbackUuid":      callbackUuid,
-		"receiverKYCStatus": lnurlpResponse.Compliance.KycStatus, // You might not actually send this to a client in practice.
+		"receiverCurrencies": lnurlpResponse.Currencies,
+		"minSendSats":        lnurlpResponse.MinSendable,
+		"maxSendSats":        lnurlpResponse.MaxSendable,
+		"callbackUuid":       callbackUuid,
+		"receiverKYCStatus":  lnurlpResponse.Compliance.KycStatus, // You might not actually send this to a client in practice.
 	})
 }
 
@@ -273,10 +273,11 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 
-	payerInfo := getPayerInfo(initialRequestData.umaLnurlpResponse.RequiredPayerData)
+	payerInfo := v.getPayerInfo(initialRequestData.umaLnurlpResponse.RequiredPayerData, context)
 	trInfo := "Here is some fake travel rule info. It's up to you to actually implement this."
 	senderUtxos, err := v.client.GetNodeChannelUtxos(v.config.NodeUUID)
 	if err != nil {
+		log.Printf("Failed to get prescreening UTXOs: %v", err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
 			"reason": "Failed to get prescreening UTXOs",
@@ -654,18 +655,18 @@ type PayerInfo struct {
 
 // NOTE: In a real application, you'd want to use the authentication context to pull out this information. It's not actually
 // always Alice sending the money ;-).
-func getPayerInfo(options uma.PayerDataOptions) PayerInfo {
+func (v *Vasp1) getPayerInfo(options uma.PayerDataOptions, context *gin.Context) PayerInfo {
 	var name string
 	if options.NameRequired {
 		name = "Alice FakeName"
 	}
 	var email string
 	if options.EmailRequired {
-		email = "$alice@vasp1.com"
+		email = "$alice@" + v.getVaspDomain(context)
 	}
 	return PayerInfo{
 		Name:       &name,
 		Email:      &email,
-		Identifier: "$alice@vasp1.com",
+		Identifier: "$alice@" + v.getVaspDomain(context),
 	}
 }

@@ -18,7 +18,7 @@ type UmaConfig struct {
 	UmaSigningPrivKeyHex           string
 	RemoteSigningNodeMasterSeedHex string
 	OskNodeSigningKeyPassword      string
-	ClientBaseURL                  string
+	ClientBaseURL                  *string
 	SenderVaspDomain               string
 }
 
@@ -66,6 +66,13 @@ func NewConfig() UmaConfig {
 		username = "ls_test"
 	}
 
+	baseUrlEnv := os.Getenv("LIGHTSPARK_EXAMPLE_BASE_URL")
+	baseUrlStr := fmt.Sprintf("https://%s/graphql/server/rc", baseUrlEnv)
+	baseUrl := &baseUrlStr
+	if baseUrlEnv == "" {
+		baseUrl = nil
+	}
+
 	return UmaConfig{
 		ApiClientID:     os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_ID"),
 		ApiClientSecret: os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_SECRET"),
@@ -79,7 +86,7 @@ func NewConfig() UmaConfig {
 		UmaSigningPrivKeyHex:           os.Getenv("LIGHTSPARK_UMA_SIGNING_PRIVKEY"),
 		RemoteSigningNodeMasterSeedHex: os.Getenv("LIGHTSPARK_UMA_REMOTE_SIGNING_NODE_MASTER_SEED"),
 		OskNodeSigningKeyPassword:      os.Getenv("LIGHTSPARK_UMA_OSK_NODE_SIGNING_KEY_PASSWORD"),
-		ClientBaseURL:                  fmt.Sprintf("https://%s/graphql/server/rc", os.Getenv("LIGHTSPARK_EXAMPLE_BASE_URL")),
+		ClientBaseURL:                  baseUrl,
 		SenderVaspDomain:               os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
 }

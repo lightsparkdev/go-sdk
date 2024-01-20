@@ -262,7 +262,7 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 		return
 	}
 
-	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
+	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, v.config.ClientBaseURL)
 	lsInvoice, err := lsClient.CreateLnurlInvoice(v.config.NodeUUID, int64(amountMsats), metadata, nil)
 
 	if err != nil {
@@ -358,7 +358,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, &v.config.ClientBaseURL)
+	lsClient := services.NewLightsparkClient(v.config.ApiClientID, v.config.ApiClientSecret, v.config.ClientBaseURL)
 	expirySecs := int32(600) // Expire in 10 minutes
 	invoiceCreator := lsuma.LightsparkClientUmaInvoiceCreator{
 		LightsparkClient: *lsClient,
