@@ -292,8 +292,14 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		})
 		return
 	}
-	// This is the node pub key of the sender's node. In practice, you'd want to get this from the sender's node.
-	senderNodePubKey := "abcdef12345"
+	senderNode, err := GetNode(v.client, v.config.NodeUUID)
+	if err != nil || senderNode == nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to get sender node pub key",
+		})
+		return
+	}
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	// If you are using a standardized travel rule format, you can set this to something like:
 	// "IVMS@101.2023".
@@ -310,7 +316,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		trFormat,
 		uma.KycStatusVerified,
 		&senderUtxos,
-		&senderNodePubKey,
+		(*senderNode).GetPublicKey(),
 		v.getUtxoCallback(context, txID),
 	)
 	if err != nil {

@@ -381,6 +381,15 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
+	receiverNode, err := GetNode(lsClient, v.config.NodeUUID)
+	if err != nil || receiverNode == nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Error getting receiver node: %v", err),
+		})
+		return
+	}
+
 	decimals := 0
 	if request.CurrencyCode == "USD" {
 		decimals = 2
@@ -394,7 +403,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		conversionRate,
 		exchangeFees,
 		receiverUtxos,
-		nil,
+		(*receiverNode).GetPublicKey(),
 		v.getUtxoCallback(context, txID),
 	)
 	if err != nil {
