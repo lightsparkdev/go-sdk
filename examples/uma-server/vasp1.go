@@ -477,7 +477,20 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		log.Fatalf("Failed to marshal UTXOs: %v", err)
 	} else if payReqData.utxoCallback != nil {
 		log.Printf("Sending UTXOs to %s: %s", payReqData.utxoCallback, utxosWithAmountsBytes)
-		// This is where you would actually send the UTXOs to the receiver's UTXO callback URL.
+		// Wrap the UTXOS in a json structure with { "utxos": [...] } to match the format expected by the receiver.
+		requestBody := fmt.Sprintf(`{"utxos": %s}`, utxosWithAmountsBytes)
+		utxoCallbackResponse, err := http.Post(
+			*payReqData.utxoCallback,
+			"application/json",
+			bytes.NewBuffer([]byte(requestBody)),
+		)
+		if err != nil {
+			log.Printf("Failed to send UTXOs to receiver: %v", err)
+		} else if utxoCallbackResponse.StatusCode != http.StatusOK {
+			log.Printf("Failed to send UTXOs to receiver: %d", utxoCallbackResponse.StatusCode)
+		} else {
+			log.Printf("Sent UTXOs to receiver")
+		}
 	}
 
 	context.JSON(http.StatusOK, gin.H{
