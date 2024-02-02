@@ -66,6 +66,9 @@ type Channel struct {
 	// ShortChannelId The unique identifier of the channel on Lightning Network, which is the location in the chain that the channel was confirmed. The format is <block-height>:<tx-index>:<tx-output>.
 	ShortChannelId *string `json:"channel_short_channel_id"`
 
+    // Typename The typename of the object
+	ChannelPoint *string `json:"channel_channel_point"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -165,6 +168,7 @@ fragment ChannelFragment on Channel {
         id
     }
     channel_short_channel_id: short_channel_id
+    channel_channel_point: channel_point
 }
 `
 )

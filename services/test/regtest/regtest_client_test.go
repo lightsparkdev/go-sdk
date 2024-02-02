@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package regtest_test
 
 import (
@@ -10,6 +7,7 @@ import (
 	"time"
 
 	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/scripts"
 	"github.com/lightsparkdev/go-sdk/services"
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/lightsparkdev/go-sdk/utils"
@@ -154,6 +152,133 @@ func TestGetFundingAddress(t *testing.T) {
 	address, err := client.CreateNodeWalletAddress(env.NodeID2)
 	require.NoError(t, err)
 	t.Log(address)
+}
+
+// TestRipcordMultipleUpdates makes multiple payments, and confirms the ripcord state updates makes sense for each payment
+func TestRipcordMultipleUpdates(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+
+	variables := map[string]interface{}{
+		"node_id": env.NodeID,
+		"ripcord_address": "bcrt1qdvqqntu9kxq996ur477un3z4y8z4yky0ex3yye", // random test regtest bitcoin wallet address
+	}
+	_, err := client.Requester.ExecuteGraphql(scripts.SET_RIPCORD_ADDRESS_SPARKNODE_MUTATION, variables, nil)
+	if err != nil {
+		t.Fatalf("Failed to set ripcord address on the sparknode. %v\n", err)
+	}
+
+	// We initially get a snapshot of the state of the updates table because this can vary depending on how and when this test runs.
+	// The main things we care about are the channel point and commitment number which can uniquely identify succesful state updates
+	nodeEntity, err := client.GetEntity(env.NodeID)
+	require.NoError(t, err)
+	castNode, didCast := (*nodeEntity).(objects.LightsparkNodeWithRemoteSigning)
+	require.True(t, didCast)
+	limit := 1
+	updates, err := castNode.GetRipcordUpdates(client.Requester, &limit, nil)
+	require.NoError(t, err)
+	initialUpdateLength := len(updates.Entities)
+	var initialChannelPoint string
+	var initialCommitmentNumber int
+	if initialUpdateLength > 0 {
+		initialChannelPoint = *updates.Entities[0].Channel.ChannelPoint
+		initialCommitmentNumber = *updates.Entities[0].CommitmentNumber
+	}
+
+	// Payment 1
+	invoice, err := createInvoiceForNode(client, env.NodeID)
+	require.NoError(t, err)
+	t.Logf("Created invoice %v", invoice)
+	payment, err := client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
+	require.NoError(t, err)
+	t.Logf("Created payment %v", payment)
+	tx := *waitForPaymentCompletion(t, client, payment.Id)
+	if tx != nil {
+		require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
+		t.Log(tx)
+	}
+
+	var lastUpdate objects.RipcordUpdate
+	compareRipcordUpdates := func(initialChannelPoint string, initialCommitmentNumber int) {
+		// If the initial snapshot of the ripcord state is not empty, which is likely to be the case, we continuously poll
+		// for the latest updates until either the channel point is different or the commitment number is different. Right
+		// now we cannot force the payment through a specific channel easily. As such, if the channel points are not the
+		// same, we know that we do not need to compare the two updates, we can simply do a status check and return indicating
+		// that the ripcord update was successful. If the channel point stays the same, we break out of the below loop when
+		// the commitment number changes, indicating that a new commitment was received. We then compare the commitment numbers
+		// of the previous two states and check if they are related in the correct way. If no new update happens, this section
+		// will timeout the test, causing it to fail. This polling section seems sturdier than sleeping a default amount.
+		updates, err = castNode.GetRipcordUpdates(client.Requester, &limit, nil)
+		require.NoError(t, err)
+		lastUpdate = updates.Entities[0]
+		if lastUpdate.Channel.ChannelPoint == nil {
+			t.Fatalf("Channel point should be set.")
+		}
+		if lastUpdate.CommitmentNumber == nil {
+			t.Fatalf("Commitment number should be set.")
+		}
+		for initialChannelPoint == *lastUpdate.Channel.ChannelPoint && initialCommitmentNumber == *lastUpdate.CommitmentNumber {
+			updates, err = castNode.GetRipcordUpdates(client.Requester, &limit, nil)
+			require.NoError(t, err)
+			lastUpdate = updates.Entities[0]
+		}
+		if initialChannelPoint == *lastUpdate.Channel.ChannelPoint {
+			if *lastUpdate.CommitmentNumber >= initialCommitmentNumber {
+				t.Fatalf("Commitment Numbers for newer states should be strictly decreasing.")
+			}
+			if initialCommitmentNumber - *lastUpdate.CommitmentNumber > 2 {
+				t.Fatalf("These should not differ by more than 2. There will be two new updates every payment, one for htlc and one for the main payment.")
+			}
+		}
+		if *lastUpdate.RipcordUpdateStatus != "SUCCESS" {
+			t.Fatalf("Ripcord Update status should be successful to indicate proper storing in the db.")
+		}
+	}
+	if initialUpdateLength == 0 {
+		// If the initial snapshot of the ripcord state for this node is nonexistent, we just wait and poll until there
+		// exists updates. When there is an update that exists, we wait to see if it is the status we expect.
+		updates, err = castNode.GetRipcordUpdates(client.Requester, &limit, nil)
+		require.NoError(t, err)
+		
+		for len(updates.Entities) == 0 {
+			nodeEntity, err := client.GetEntity(env.NodeID)
+			require.NoError(t, err)
+			castNode, didCast = (*nodeEntity).(objects.LightsparkNodeWithRemoteSigning)
+			require.True(t, didCast)
+			updates, err = castNode.GetRipcordUpdates(client.Requester, &limit, nil)
+			require.NoError(t, err)
+			time.Sleep(100 * time.Millisecond)
+		}
+		lastUpdate = updates.Entities[0]
+		if lastUpdate.RipcordUpdateStatus == nil {
+			t.Fatalf("Ripcord Update Status should be set.")
+		}
+		if *lastUpdate.RipcordUpdateStatus != "SUCCESS" {
+			t.Fatalf("Ripcord Update status should be successful to indicate proper storing in the db.")
+		}
+	} else {
+		compareRipcordUpdates(initialChannelPoint, initialCommitmentNumber)
+	}
+
+	// Once again, after the first round of payments we get the intermediate state information to compare with the second round
+	// of payments.
+	initialCommitmentNumber = *lastUpdate.CommitmentNumber
+	initialChannelPoint = *lastUpdate.Channel.ChannelPoint
+
+	// Payment 2
+	invoice, err = createInvoiceForNode(client, env.NodeID)
+	require.NoError(t, err)
+	t.Logf("Created invoice %v", invoice)
+	payment, err = client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
+	require.NoError(t, err)
+	t.Logf("Created payment %v", payment)
+	tx = *waitForPaymentCompletion(t, client, payment.Id)
+	if tx != nil {
+		require.Equal(t, objects.TransactionStatusSuccess, tx.GetStatus())
+		t.Log(tx)
+	}
+
+	compareRipcordUpdates(initialChannelPoint, initialCommitmentNumber)
 }
 
 func createInvoiceForNode(client *services.LightsparkClient, nodeID string) (*objects.Invoice, error) {

@@ -706,6 +706,7 @@ func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork Bi
                         id
                     }
                     channel_short_channel_id: short_channel_id
+                    channel_channel_point: channel_point
                 }
             }
         }
