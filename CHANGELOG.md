@@ -1,7 +1,10 @@
 # Changelog
 
+# 0.9.0
+- Remove the deprecated `payment` field from the `CreateTestModePayment` request.
+
 # 0.8.1
-- Add 'NodeId' field to remote sigining requests.
+- Add 'NodeId' field to remote signing requests.
 
 # 0.8.0
 - Add 'OutgoingPaymentsForInvoice' query to the client.
