@@ -20,4 +20,4 @@ mutation CreateTestModePayment(
     }
 }
 
-` + objects.OutgoingPaymentFragment + objects.IncomingPaymentFragment
+` + objects.IncomingPaymentFragment
