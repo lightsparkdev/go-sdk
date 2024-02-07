@@ -14,9 +14,6 @@ mutation CreateTestModePayment(
         encoded_invoice: $encoded_invoice
         amount_msats: $amount_msats
     }) {
-        payment {
-            ...OutgoingPaymentFragment
-        }
 		incoming_payment {
 			...IncomingPaymentFragment
 		}
