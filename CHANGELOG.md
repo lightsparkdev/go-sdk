@@ -2,6 +2,7 @@
 
 # 0.9.0
 - Remove the deprecated `payment` field from the `CreateTestModePayment` request.
+- Remove the unused fragment
 
 # 0.8.1
 - Add 'NodeId' field to remote signing requests.
