@@ -82,7 +82,7 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 
 	var nonce uint64
 	if signingKey != nil {
-		randomBigInt, err := rand.Int(rand.Reader, big.NewInt(0xFFFFFFFFFFFFFFFF))
+		randomBigInt, err := rand.Int(rand.Reader, big.NewInt(0x7FFFFFFFFFFFFFFF))
 		if err != nil {
 			return nil, err
 		}
