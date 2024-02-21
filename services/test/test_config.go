@@ -2,6 +2,7 @@ package services_test
 
 import "os"
 
+
 type TestConfig struct {
 	ApiClientEndpoint string
 	ApiClientID       string
@@ -21,7 +22,7 @@ func NewConfig() TestConfig {
 		endpoint = "https://api.dev.dev.sparkinfra.net/graphql/server/rc"
 	}
 
-	return TestConfig{
+	config := TestConfig{
 		ApiClientEndpoint: endpoint,
 		ApiClientID:       os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_ID"),
 		ApiClientSecret:   os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_SECRET"),
@@ -33,4 +34,10 @@ func NewConfig() TestConfig {
 		MasterSeedHex2:    os.Getenv("LIGHTSPARK_MASTER_SEED_HEX_2"),
 		UmaVaspDomain:     os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
+
+	if len(config.MasterSeedHex) == 0 || len(config.MasterSeedHex2) == 0 {
+		panic("Missing master seed. Did you setup LIGHTSPARK_MASTER_SEED_HEX and LIGHTSPARK_MASTER_SEED_HEX_2 correctly in your environment?")
+	}
+
+	return config
 }
