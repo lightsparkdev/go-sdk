@@ -80,13 +80,13 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	}
 	operationName := matches[index]
 
-	var nonce uint32
+	var nonce uint64
 	if signingKey != nil {
-		randomBigInt, err := rand.Int(rand.Reader, big.NewInt(0xFFFFFFFF))
+		randomBigInt, err := rand.Int(rand.Reader, big.NewInt(0x7FFFFFFFFFFFFFFF))
 		if err != nil {
 			return nil, err
 		}
-		nonce = uint32(randomBigInt.Uint64())
+		nonce = randomBigInt.Uint64()
 	}
 
 	var expiresAt string
