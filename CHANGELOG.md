@@ -1,5 +1,8 @@
 # Changelog
 
+# 0.9.1
+- Fix a bug for fetching outgoing payments for an invoice.
+
 # 0.9.0
 - Remove the deprecated `payment` field from the `CreateTestModePayment` request.
 - Remove the unused fragment
