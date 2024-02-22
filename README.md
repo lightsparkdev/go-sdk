@@ -1,4 +1,4 @@
-# Lightspark Go SDK - v0.9.0
+# Lightspark Go SDK - v0.9.1
 
 The Lightspark Go SDK provides a convenient way to interact with the Lightspark services from applications written in
 the Go.
