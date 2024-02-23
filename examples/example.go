@@ -326,6 +326,14 @@ func main() {
 	fmt.Printf("Invoice paid with a simulated payment %v\n", testPayment.Id)
 	fmt.Println()
 
+	// Fetch the payment by invoice id:
+	paymentResponse, err := client.FetchIncomingPaymentsByInvoice(invoice.Id, nil)
+	if err != nil {
+		fmt.Printf("fetch incoming payments by invoice failed: %v", err)
+		return
+	}
+	fmt.Printf("We found %v incoming payments for the invoice.\n", len(paymentResponse.Payments))
+
 	// Create and cancel an invoice
 	fmt.Println("Creating an invoice...")
 	invoiceToCancel, err := client.CreateInvoice(nodeId, 100000, nil, nil, nil)

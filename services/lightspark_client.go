@@ -1016,6 +1016,31 @@ func (client *LightsparkClient) FetchOutgoingPaymentsByInvoice(encodedInvoice st
 	return &payments, nil
 }
 
+func (client *LightsparkClient) FetchIncomingPaymentsByInvoice(invoiceId string,
+	statuses *[]objects.TransactionStatus) (*objects.IncomingPaymentsForInvoiceQueryOutput, error) {
+	variables := map[string]interface{}{
+		"invoice_id": invoiceId,
+		"statuses":   statuses,
+	}
+
+	response, err := client.Requester.ExecuteGraphql(scripts.INCOMING_PAYMENTS_FOR_INVOICE_QUERY, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["incoming_payments_for_invoice"].(map[string]interface{})
+	var payments objects.IncomingPaymentsForInvoiceQueryOutput
+	paymentsJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing payments")
+	}
+	err = json.Unmarshal(paymentsJson, &payments)
+	if err != nil {
+		return nil, err
+	}
+	return &payments, nil
+}
+
 func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
 	e164PhoneRegex, err := regexp.Compile(`^\+?[1-9]\d{1,14}$`)
 	if err != nil {
