@@ -7,7 +7,7 @@ toolchain go1.21.0
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
-	github.com/lightsparkdev/go-sdk v0.9.0
+	github.com/lightsparkdev/go-sdk v0.10.0
 	github.com/uma-universal-money-address/uma-go-sdk v0.6.2
 )
 
