@@ -1,5 +1,11 @@
 # Changelog
 
+# 0.10.0
+- Add `FetchIncomingPaymentsByInvoice` to the client.
+- Return the whole payment object when fetching payments for an invoice.
+- Some tweaks to the `ChannelSnapshot` object.
+- Adding more documentation.
+
 # 0.9.1
 - Fix a bug for fetching outgoing payments for an invoice.
 
