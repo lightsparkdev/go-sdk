@@ -8,7 +8,8 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
 	github.com/lightsparkdev/go-sdk v0.10.0
-	github.com/uma-universal-money-address/uma-go-sdk v0.6.2
+	// Run go get github.com/uma-universal-money-address/uma-go-sdk@release/v1.0 to update:
+	github.com/uma-universal-money-address/uma-go-sdk v0.6.3-0.20240223211106-661bd445f2fd
 )
 
 require (

@@ -318,6 +318,11 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		&senderUtxos,
 		(*senderNode).GetPublicKey(),
 		v.getUtxoCallback(context, txID),
+		&uma.CounterPartyDataOptions{
+			uma.CounterPartyDataFieldName.String():  {Mandatory: false},
+			uma.CounterPartyDataFieldEmail.String(): {Mandatory: false},
+			// Compliance and Identifier are mandatory fields added automatically.
+		},
 	)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -384,10 +389,15 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 	invoiceData := (*invoice).(objects.InvoiceData)
+	compliance, err := payreqResponse.PayeeData.Compliance()
+	var utxoCallback = ""
+	if compliance != nil && compliance.UtxoCallback != "" {
+		utxoCallback = compliance.UtxoCallback
+	}
 	v.requestCache.SavePayReqData(
 		callbackUuid,
 		payreqResponse.EncodedInvoice,
-		&payreqResponse.Compliance.UtxoCallback,
+		&utxoCallback,
 		&invoiceData,
 	)
 
@@ -650,7 +660,7 @@ func (v *Vasp1) handleNonUmaPayReq(
 }
 
 func (v *Vasp1) getVaspDomain(context *gin.Context) string {
-	envVaspDomain := v.config.SenderVaspDomain
+	envVaspDomain := v.config.OwnVaspDomain
 	if envVaspDomain != "" {
 		return envVaspDomain
 	}
@@ -674,18 +684,18 @@ type PayerInfo struct {
 
 // NOTE: In a real application, you'd want to use the authentication context to pull out this information. It's not actually
 // always Alice sending the money ;-).
-func (v *Vasp1) getPayerInfo(options uma.PayerDataOptions, context *gin.Context) PayerInfo {
+func (v *Vasp1) getPayerInfo(options uma.CounterPartyDataOptions, context *gin.Context) PayerInfo {
 	var name string
-	if options.NameRequired {
-		name = "Alice FakeName"
+	if options[uma.CounterPartyDataFieldName.String()].Mandatory {
+		name = v.config.Username
 	}
 	var email string
-	if options.EmailRequired {
-		email = "$alice@" + v.getVaspDomain(context)
+	if options[uma.CounterPartyDataFieldEmail.String()].Mandatory {
+		email = v.config.Username + "@" + v.getVaspDomain(context)
 	}
 	return PayerInfo{
 		Name:       &name,
 		Email:      &email,
-		Identifier: "$alice@" + v.getVaspDomain(context),
+		Identifier: "$" + v.config.Username + "@" + v.getVaspDomain(context),
 	}
 }

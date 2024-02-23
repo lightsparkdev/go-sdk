@@ -19,7 +19,7 @@ type UmaConfig struct {
 	RemoteSigningNodeMasterSeedHex string
 	OskNodeSigningKeyPassword      string
 	ClientBaseURL                  *string
-	SenderVaspDomain               string
+	OwnVaspDomain                  string
 }
 
 func (c *UmaConfig) UmaEncryptionPubKeyBytes() ([]byte, error) {
@@ -87,6 +87,6 @@ func NewConfig() UmaConfig {
 		RemoteSigningNodeMasterSeedHex: os.Getenv("LIGHTSPARK_UMA_REMOTE_SIGNING_NODE_MASTER_SEED"),
 		OskNodeSigningKeyPassword:      os.Getenv("LIGHTSPARK_UMA_OSK_NODE_SIGNING_KEY_PASSWORD"),
 		ClientBaseURL:                  baseUrl,
-		SenderVaspDomain:               os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
+		OwnVaspDomain:                  os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
 }

@@ -10,7 +10,9 @@ import (
 	lsuma "github.com/lightsparkdev/go-sdk/uma"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -185,10 +187,11 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 		metadata,
 		1,
 		100_000_000,
-		uma.PayerDataOptions{
-			NameRequired:       false,
-			EmailRequired:      false,
-			ComplianceRequired: true,
+		uma.CounterPartyDataOptions{
+			uma.CounterPartyDataFieldIdentifier.String(): {Mandatory: true},
+			uma.CounterPartyDataFieldCompliance.String(): {Mandatory: true},
+			uma.CounterPartyDataFieldName.String():       {Mandatory: false},
+			uma.CounterPartyDataFieldEmail.String():      {Mandatory: false},
 		},
 		[]uma.Currency{
 			{
@@ -307,7 +310,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	sendingVaspDomain, err := uma.GetVaspDomainFromUmaAddress(request.PayerData.Identifier)
+	sendingVaspDomain, err := uma.GetVaspDomainFromUmaAddress(*request.PayerData.Identifier())
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
@@ -315,7 +318,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		})
 		return
 	}
-	addressValidationError := ValidateUmaAddress(request.PayerData.Identifier)
+	addressValidationError := ValidateUmaAddress(*request.PayerData.Identifier())
 	if addressValidationError != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
@@ -394,6 +397,16 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	if request.CurrencyCode == "USD" {
 		decimals = 2
 	}
+	receiverUma := "$" + v.config.Username + "@" + v.getVaspDomain(context)
+	signingKey, err := v.config.UmaSigningPrivKeyBytes()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
+	payeeInfo := v.getPayeeInfo(request.RequestedPayeeData, context)
 	response, err := uma.GetPayReqResponse(
 		request,
 		invoiceCreator,
@@ -405,6 +418,13 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		receiverUtxos,
 		(*receiverNode).GetPublicKey(),
 		v.getUtxoCallback(context, txID),
+		&uma.PayeeData{
+			uma.CounterPartyDataFieldIdentifier.String(): payeeInfo.Identifier,
+			uma.CounterPartyDataFieldName.String():       payeeInfo.Name,
+			uma.CounterPartyDataFieldEmail.String():      payeeInfo.Email,
+		},
+		signingKey,
+		receiverUma,
 	)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -443,4 +463,43 @@ func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, response)
+}
+
+func (v *Vasp2) getVaspDomain(context *gin.Context) string {
+	envVaspDomain := v.config.OwnVaspDomain
+	if envVaspDomain != "" {
+		return envVaspDomain
+	}
+	requestHost := context.Request.Host
+	requestHostWithoutPort := strings.Split(requestHost, ":")[0]
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
+	}
+	if port != "80" && port != "443" {
+		return fmt.Sprintf("%s:%s", requestHostWithoutPort, port)
+	}
+	return requestHostWithoutPort
+}
+
+type PayeeInfo struct {
+	Name       *string `json:"name"`
+	Email      *string `json:"email"`
+	Identifier string  `json:"identifier"`
+}
+
+func (v *Vasp2) getPayeeInfo(options *uma.CounterPartyDataOptions, context *gin.Context) PayeeInfo {
+	var name string
+	if options != nil && (*options)[uma.CounterPartyDataFieldName.String()].Mandatory {
+		name = v.config.Username
+	}
+	var email string
+	if options != nil && (*options)[uma.CounterPartyDataFieldEmail.String()].Mandatory {
+		email = v.config.Username + "@" + v.getVaspDomain(context)
+	}
+	return PayeeInfo{
+		Name:       &name,
+		Email:      &email,
+		Identifier: "$" + v.config.Username + "@" + v.getVaspDomain(context),
+	}
 }
