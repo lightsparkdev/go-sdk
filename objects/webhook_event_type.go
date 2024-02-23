@@ -36,6 +36,8 @@ const (
 	WebhookEventTypeRemoteSigning
 
 	WebhookEventTypeLowBalance
+
+	WebhookEventTypeHighBalance
 )
 
 func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
@@ -72,6 +74,8 @@ func (a *WebhookEventType) UnmarshalJSON(b []byte) error {
 		*a = WebhookEventTypeRemoteSigning
 	case "LOW_BALANCE":
 		*a = WebhookEventTypeLowBalance
+	case "HIGH_BALANCE":
+		*a = WebhookEventTypeHighBalance
 
 	}
 	return nil
@@ -108,6 +112,8 @@ func (a WebhookEventType) StringValue() string {
 		s = "REMOTE_SIGNING"
 	case WebhookEventTypeLowBalance:
 		s = "LOW_BALANCE"
+	case WebhookEventTypeHighBalance:
+		s = "HIGH_BALANCE"
 
 	}
 	return s

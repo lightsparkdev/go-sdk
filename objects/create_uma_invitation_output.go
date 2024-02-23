@@ -4,6 +4,8 @@ package objects
 import "github.com/lightsparkdev/go-sdk/types"
 
 type CreateUmaInvitationOutput struct {
+
+	// Invitation The created invitation in the form of a string identifier.
 	Invitation types.EntityWrapper `json:"create_uma_invitation_output_invitation"`
 }
 

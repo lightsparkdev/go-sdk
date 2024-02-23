@@ -18,6 +18,8 @@ const (
 	WithdrawalRequestStatusInProgress
 
 	WithdrawalRequestStatusSuccessful
+
+	WithdrawalRequestStatusPartiallySuccessful
 )
 
 func (a *WithdrawalRequestStatus) UnmarshalJSON(b []byte) error {
@@ -36,6 +38,8 @@ func (a *WithdrawalRequestStatus) UnmarshalJSON(b []byte) error {
 		*a = WithdrawalRequestStatusInProgress
 	case "SUCCESSFUL":
 		*a = WithdrawalRequestStatusSuccessful
+	case "PARTIALLY_SUCCESSFUL":
+		*a = WithdrawalRequestStatusPartiallySuccessful
 
 	}
 	return nil
@@ -54,6 +58,8 @@ func (a WithdrawalRequestStatus) StringValue() string {
 		s = "IN_PROGRESS"
 	case WithdrawalRequestStatusSuccessful:
 		s = "SUCCESSFUL"
+	case WithdrawalRequestStatusPartiallySuccessful:
+		s = "PARTIALLY_SUCCESSFUL"
 
 	}
 	return s

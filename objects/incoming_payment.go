@@ -33,6 +33,9 @@ type IncomingPayment struct {
 	// TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 	TransactionHash *string `json:"incoming_payment_transaction_hash"`
 
+	// IsUma Whether this payment is an UMA payment or not. NOTE: this field is only set if the invoice that is being paid has been created using the recommended `create_uma_invoice` function.
+	IsUma bool `json:"incoming_payment_is_uma"`
+
 	// Destination The recipient Lightspark node this payment was sent to.
 	Destination types.EntityWrapper `json:"incoming_payment_destination"`
 
@@ -64,6 +67,7 @@ fragment IncomingPaymentFragment on IncomingPayment {
         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
     }
     incoming_payment_transaction_hash: transaction_hash
+    incoming_payment_is_uma: is_uma
     incoming_payment_destination: destination {
         id
     }

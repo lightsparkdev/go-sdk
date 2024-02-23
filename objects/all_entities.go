@@ -20,6 +20,9 @@ const (
         ... on ChannelOpeningTransaction {
             ...ChannelOpeningTransactionFragment
         }
+        ... on ChannelSnapshot {
+            ...ChannelSnapshotFragment
+        }
         ... on Deposit {
             ...DepositFragment
         }
@@ -78,6 +81,7 @@ const (
 		ChannelFragment +
 		ChannelClosingTransactionFragment +
 		ChannelOpeningTransactionFragment +
+		ChannelSnapshotFragment +
 		DepositFragment +
 		GraphNodeFragment +
 		HopFragment +

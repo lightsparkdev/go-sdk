@@ -64,6 +64,12 @@ func EntityUnmarshal(data map[string]interface{}) (Entity, error) {
 			return nil, err
 		}
 		return channelOpeningTransaction, nil
+	case "ChannelSnapshot":
+		var channelSnapshot ChannelSnapshot
+		if err := json.Unmarshal(dataJSON, &channelSnapshot); err != nil {
+			return nil, err
+		}
+		return channelSnapshot, nil
 	case "Deposit":
 		var deposit Deposit
 		if err := json.Unmarshal(dataJSON, &deposit); err != nil {
