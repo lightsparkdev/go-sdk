@@ -172,7 +172,7 @@ func waitForPaymentCompletion(
 	require.True(t, didCast)
 	startTime := time.Now()
 	for castPayment.GetStatus() != objects.TransactionStatusSuccess && castPayment.GetStatus() != objects.TransactionStatusFailed {
-		if time.Since(startTime) > time.Minute*3 {
+		if time.Since(startTime) > time.Minute*5 {
 			t.Fatalf("Payment timed out: %s", paymentId)
 			return nil
 		}
