@@ -24,6 +24,9 @@ type ApiToken struct {
 	// Permissions A list of permissions granted to the token.
 	Permissions []Permission `json:"api_token_permissions"`
 
+	// IsDeleted Whether the api token has been deleted.
+	IsDeleted bool `json:"api_token_is_deleted"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -38,6 +41,7 @@ fragment ApiTokenFragment on ApiToken {
     api_token_client_id: client_id
     api_token_name: name
     api_token_permissions: permissions
+    api_token_is_deleted: is_deleted
 }
 `
 )

@@ -26,6 +26,8 @@ type ChannelSnapshot struct {
 
 	RemoteUnsettledBalance *CurrencyAmount `json:"channel_snapshot_remote_unsettled_balance"`
 
+	Status *string `json:"channel_snapshot_status"`
+
 	Channel types.EntityWrapper `json:"channel_snapshot_channel"`
 
 	// Deprecated: Use channel.local_channel_reserve instead.
@@ -77,6 +79,7 @@ fragment ChannelSnapshotFragment on ChannelSnapshot {
         currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
     }
+    channel_snapshot_status: status
     channel_snapshot_channel: channel {
         id
     }

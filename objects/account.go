@@ -80,6 +80,7 @@ func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, af
                     api_token_client_id: client_id
                     api_token_name: name
                     api_token_permissions: permissions
+                    api_token_is_deleted: is_deleted
                 }
             }
         }
