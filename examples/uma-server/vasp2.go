@@ -199,18 +199,22 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 				Name:                "US Dollars",
 				Symbol:              "$",
 				MillisatoshiPerUnit: MillisatoshiPerUsd,
-				MinSendable:         1,
-				MaxSendable:         1_000,
-				Decimals:            2,
+				Convertible: uma.ConvertibleCurrency{
+					MinSendable: 1,
+					MaxSendable: 1_000,
+				},
+				Decimals: 2,
 			},
 			{
 				Code:                "SAT",
 				Name:                "Satoshis",
 				Symbol:              "SAT",
 				MillisatoshiPerUnit: 1000,
-				MinSendable:         1,
-				MaxSendable:         100_000_000,
-				Decimals:            0,
+				Convertible: uma.ConvertibleCurrency{
+					MinSendable: 1,
+					MaxSendable: 100_000_000,
+				},
+				Decimals: 0,
 			},
 		},
 		uma.KycStatusVerified,
@@ -370,7 +374,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	}
 
 	conversionRate := 1000.0
-	if request.CurrencyCode == "USD" {
+	if request.ReceivingCurrencyCode == "USD" {
 		conversionRate = MillisatoshiPerUsd
 	}
 	exchangeFees := int64(100_000)
@@ -394,7 +398,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	}
 
 	decimals := 0
-	if request.CurrencyCode == "USD" {
+	if request.ReceivingCurrencyCode == "USD" {
 		decimals = 2
 	}
 	receiverUma := "$" + v.config.Username + "@" + v.getVaspDomain(context)
@@ -411,7 +415,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		request,
 		invoiceCreator,
 		metadata,
-		request.CurrencyCode,
+		request.ReceivingCurrencyCode,
 		decimals,
 		conversionRate,
 		exchangeFees,

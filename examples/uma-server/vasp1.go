@@ -284,6 +284,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		})
 		return
 	}
+	isAmountInMsats := strings.ToLower(context.Query("isAmountInMsats")) == "true"
 	vasp2EncryptionPubKey, err := vasp2PubKeys.EncryptionPubKey()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -308,6 +309,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		vasp2EncryptionPubKey,
 		umaSigningPrivateKey,
 		currencyCode,
+		!isAmountInMsats,
 		amountInt64,
 		payerInfo.Identifier,
 		payerInfo.Name,
@@ -402,12 +404,14 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	)
 
 	context.JSON(http.StatusOK, gin.H{
-		"encodedInvoice": payreqResponse.EncodedInvoice,
-		"callbackUuid":   callbackUuid,
-		"amount":         invoiceData.Amount,
-		"conversionRate": payreqResponse.PaymentInfo.Multiplier,
-		"currencyCode":   payreqResponse.PaymentInfo.CurrencyCode,
-		"expiresAt":      invoiceData.ExpiresAt.Unix(),
+		"encodedInvoice":          payreqResponse.EncodedInvoice,
+		"callbackUuid":            callbackUuid,
+		"amountMsats":             invoiceData.Amount,
+		"amountReceivingCurrency": payreqResponse.PaymentInfo.Amount,
+		"conversionRate":          payreqResponse.PaymentInfo.Multiplier,
+		"currencyCode":            payreqResponse.PaymentInfo.CurrencyCode,
+		"exchangeFeesMsats":       payreqResponse.PaymentInfo.ExchangeFeesMillisatoshi,
+		"expiresAt":               invoiceData.ExpiresAt.Unix(),
 	})
 }
 
