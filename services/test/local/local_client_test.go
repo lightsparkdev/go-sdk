@@ -4,12 +4,13 @@
 package local_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 const TEST_NETWORK = objects.BitcoinNetworkRegtest
@@ -122,6 +123,14 @@ func TestPayInvoice(t *testing.T) {
 		t.Errorf("Payment failed: %s", payment.FailureReason.StringValue())
 	}
 	t.Log(payment)
+}
+
+func TestGetNodeWalletAddressWithKeys(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+	address, err := client.CreateNodeWalletAddress(env.NodeID)
+	require.NoError(t, err)
+	t.Log(address)
 }
 
 func TestGetChannelUtxos(t *testing.T) {
