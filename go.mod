@@ -3,7 +3,7 @@ module github.com/lightsparkdev/go-sdk
 go 1.20
 
 require (
-	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.1.1-0.20240314055424-18da33bf497e
+	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.1.1-0.20240314064527-ce31fe70cd2d
 	github.com/stretchr/testify v1.8.4
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/crypto v0.16.0

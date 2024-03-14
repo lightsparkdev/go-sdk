@@ -26,7 +26,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
-	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.1.1-0.20240314055424-18da33bf497e // indirect
+	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.1.1-0.20240314064527-ce31fe70cd2d // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
