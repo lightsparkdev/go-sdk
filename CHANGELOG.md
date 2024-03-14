@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.11.1
+- Update "lightspark-crypto-go" to v0.2.0 to fix build on some linux versions.
+
 # v0.11.0
 - Add `CreateNodeWalletAddressWithKeys` to the client to return the public keys for the L1 address.
 - Add a utility function to create a 2-of-2 multisig L1 address based on 2 public keys.
