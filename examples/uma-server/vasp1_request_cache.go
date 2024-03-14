@@ -7,10 +7,9 @@ import (
 )
 
 type Vasp1InitialRequestData struct {
-	umaLnurlpResponse    *uma.LnurlpResponse
-	nonUmaLnurlpResponse *NonUmaLnurlpResponse
-	receiverId           string
-	vasp2Domain          string
+	lnurlpResponse uma.LnurlpResponse
+	receiverId     string
+	vasp2Domain    string
 }
 
 type Vasp1PayReqData struct {
@@ -48,20 +47,9 @@ func (c *Vasp1RequestCache) SaveLnurlpResponseData(lnurlpResponse uma.LnurlpResp
 	// Generate a UUID for this request
 	requestUUID := uuid.New().String()
 	c.umaRequestCache[requestUUID] = Vasp1InitialRequestData{
-		umaLnurlpResponse: &lnurlpResponse,
-		receiverId:        receiverId,
-		vasp2Domain:       vasp2Domain,
-	}
-	return requestUUID
-}
-
-func (c *Vasp1RequestCache) SaveNonUmaLnurlpResponseData(lnurlpResponse NonUmaLnurlpResponse, receiverId string, vasp2Domain string) string {
-	// Generate a UUID for this request
-	requestUUID := uuid.New().String()
-	c.umaRequestCache[requestUUID] = Vasp1InitialRequestData{
-		nonUmaLnurlpResponse: &lnurlpResponse,
-		receiverId:           receiverId,
-		vasp2Domain:          vasp2Domain,
+		lnurlpResponse: lnurlpResponse,
+		receiverId:     receiverId,
+		vasp2Domain:    vasp2Domain,
 	}
 	return requestUUID
 }
