@@ -11,6 +11,8 @@ import (
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/lightsparkdev/go-sdk/utils"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
+	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"io"
 	"log"
 	"net/http"
@@ -205,7 +207,7 @@ func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signin
 
 func (v *Vasp1) getUtxoCallback(context *gin.Context, txId string) string {
 	scheme := "https://"
-	if uma.IsDomainLocalhost(context.Request.Host) {
+	if umautils.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
@@ -239,7 +241,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	currencySupported := false
 	receiverCurrencies := initialRequestData.lnurlpResponse.Currencies
 	if receiverCurrencies == nil {
-		receiverCurrencies = &[]uma.Currency{SatsCurrency}
+		receiverCurrencies = &[]umaprotocol.Currency{SatsCurrency}
 	}
 	for i := range *receiverCurrencies {
 		if (*receiverCurrencies)[i].Code == currencyCode {
@@ -319,10 +321,22 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		})
 		return
 	}
+	umaMajorVersion := uma.MAJOR_VERSION
+	if initialRequestData.lnurlpResponse.UmaVersion != nil {
+		umaVersion, err := uma.ParseVersion(*initialRequestData.lnurlpResponse.UmaVersion)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{
+				"status": "ERROR",
+				"reason": "Failed to parse uma version",
+			})
+			return
+		}
+		umaMajorVersion = umaVersion.Major
+	}
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	// If you are using a standardized travel rule format, you can set this to something like:
 	// "IVMS@101.2023".
-	var trFormat *uma.TravelRuleFormat
+	var trFormat *umaprotocol.TravelRuleFormat
 	payReq, err := uma.GetUmaPayRequest(
 		amountInt64,
 		vasp2EncryptionPubKey,
@@ -330,17 +344,18 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		currencyCode,
 		!isAmountInMsats,
 		payerInfo.Identifier,
+		umaMajorVersion,
 		payerInfo.Name,
 		payerInfo.Email,
 		&trInfo,
 		trFormat,
-		uma.KycStatusVerified,
+		umaprotocol.KycStatusVerified,
 		&senderUtxos,
 		(*senderNode).GetPublicKey(),
 		v.getUtxoCallback(context, txID),
-		&uma.CounterPartyDataOptions{
-			uma.CounterPartyDataFieldName.String():  {Mandatory: false},
-			uma.CounterPartyDataFieldEmail.String(): {Mandatory: false},
+		&umaprotocol.CounterPartyDataOptions{
+			umaprotocol.CounterPartyDataFieldName.String():  {Mandatory: false},
+			umaprotocol.CounterPartyDataFieldEmail.String(): {Mandatory: false},
 			// Compliance and Identifier are mandatory fields added automatically.
 		},
 		nil,
@@ -494,13 +509,13 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 
 	// In practice, you'd want to send the UTXOs to the receiver's UTXO callback URL here.
 	// For this demo, we'll just log them.
-	var utxosWithAmounts []uma.UtxoWithAmount
+	var utxosWithAmounts []umaprotocol.UtxoWithAmount
 	for _, postTransactionData := range *payment.UmaPostTransactionData {
 		amountMilliSatoshi, err := utils.ValueMilliSatoshi(postTransactionData.Amount)
 		if err != nil {
 			continue
 		}
-		utxosWithAmounts = append(utxosWithAmounts, uma.UtxoWithAmount{
+		utxosWithAmounts = append(utxosWithAmounts, umaprotocol.UtxoWithAmount{
 			Utxo:   postTransactionData.Utxo,
 			Amount: amountMilliSatoshi,
 		})
@@ -574,7 +589,7 @@ func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
 
 	twoWeeksFromNow := time.Now().AddDate(0, 0, 14)
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
-	response := uma.PubKeyResponse{
+	response := umaprotocol.PubKeyResponse{
 		SigningPubKeyHex:    hex.EncodeToString(signingPubKeyBytes),
 		EncryptionPubKeyHex: hex.EncodeToString(encryptionPubKeyBytes),
 		ExpirationTimestamp: &twoWeeksFromNowSec,
@@ -584,7 +599,7 @@ func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
 }
 
 func (v *Vasp1) handleNonUmaLnurlpResponse(
-	lnurlpResponse uma.LnurlpResponse, receiverId string, receiverDomain string, context *gin.Context) {
+	lnurlpResponse umaprotocol.LnurlpResponse, receiverId string, receiverDomain string, context *gin.Context) {
 	callbackUuid := v.requestCache.SaveLnurlpResponseData(lnurlpResponse, receiverId, receiverDomain)
 	var serializedCurrencies = []byte("[]")
 	if lnurlpResponse.Currencies != nil && len(*lnurlpResponse.Currencies) == 0 {
@@ -603,7 +618,7 @@ func (v *Vasp1) handleNonUmaLnurlpResponse(
 		"callbackUuid":       callbackUuid,
 		"maxSendSats":        lnurlpResponse.MaxSendable,
 		"minSendSats":        lnurlpResponse.MinSendable,
-		"receiverKYCStatus":  uma.KycStatusNotVerified,
+		"receiverKYCStatus":  umaprotocol.KycStatusNotVerified,
 	})
 }
 
@@ -625,19 +640,19 @@ func (v *Vasp1) handleNonUmaPayReq(
 		})
 		return
 	}
-	var payerData *uma.PayerData
+	var payerData *umaprotocol.PayerData
 	if payerInfo != nil {
-		payerData = &uma.PayerData{
-			uma.CounterPartyDataFieldName.String():       payerInfo.Name,
-			uma.CounterPartyDataFieldEmail.String():      payerInfo.Email,
-			uma.CounterPartyDataFieldIdentifier.String(): payerInfo.Identifier,
+		payerData = &umaprotocol.PayerData{
+			umaprotocol.CounterPartyDataFieldName.String():       payerInfo.Name,
+			umaprotocol.CounterPartyDataFieldEmail.String():      payerInfo.Email,
+			umaprotocol.CounterPartyDataFieldIdentifier.String(): payerInfo.Identifier,
 		}
 	}
 	var sendingAmountCurrencyCode *string
 	if !isAmountInMsats {
 		*sendingAmountCurrencyCode = currencyCode
 	}
-	payreq := uma.PayRequest{
+	payreq := umaprotocol.PayRequest{
 		SendingAmountCurrencyCode: sendingAmountCurrencyCode,
 		ReceivingCurrencyCode:     &currencyCode,
 		Amount:                    amountInt64,
@@ -690,7 +705,7 @@ func (v *Vasp1) handleNonUmaPayReq(
 		return
 	}
 
-	var payreqResponse uma.PayReqResponse
+	var payreqResponse umaprotocol.PayReqResponse
 	err = json.Unmarshal(payreqResultBytes, &payreqResponse)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
@@ -758,13 +773,13 @@ type PayerInfo struct {
 
 // NOTE: In a real application, you'd want to use the authentication context to pull out this information. It's not actually
 // always Alice sending the money ;-).
-func (v *Vasp1) getPayerInfo(options uma.CounterPartyDataOptions, context *gin.Context) PayerInfo {
+func (v *Vasp1) getPayerInfo(options umaprotocol.CounterPartyDataOptions, context *gin.Context) PayerInfo {
 	var name string
-	if options[uma.CounterPartyDataFieldName.String()].Mandatory {
+	if options[umaprotocol.CounterPartyDataFieldName.String()].Mandatory {
 		name = v.config.Username
 	}
 	var email string
-	if options[uma.CounterPartyDataFieldEmail.String()].Mandatory {
+	if options[umaprotocol.CounterPartyDataFieldEmail.String()].Mandatory {
 		email = v.config.Username + "@" + v.getVaspDomain(context)
 	}
 	return PayerInfo{
