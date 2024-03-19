@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
+	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"net/http"
 	"os"
 	"strings"
@@ -26,7 +28,7 @@ const MillisatoshiPerUsd = 22883.56
 
 func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 	scheme := "https://"
-	if uma.IsDomainLocalhost(context.Request.Host) {
+	if umautils.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/payreq/%s", scheme, context.Request.Host, v.config.UserID)
@@ -34,7 +36,7 @@ func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 
 func (v *Vasp2) getUtxoCallback(context *gin.Context, txId string) string {
 	scheme := "https://"
-	if uma.IsDomainLocalhost(context.Request.Host) {
+	if umautils.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
 	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
@@ -102,7 +104,7 @@ func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 	context.JSON(http.StatusOK, responseJson)
 }
 
-func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma.LnurlpRequest) {
+func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest umaprotocol.LnurlpRequest) {
 	callback := v.getLnurlpCallback(context)
 	metadata, err := v.getMetadata()
 
@@ -122,7 +124,7 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 		nil,
 		nil,
 		nil,
-		&[]uma.Currency{
+		&[]umaprotocol.Currency{
 			UsdCurrency,
 			SatsCurrency,
 		},
@@ -134,7 +136,7 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 	context.JSON(http.StatusOK, response)
 }
 
-func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest uma.UmaLnurlpRequest) ([]byte, bool) {
+func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotocol.UmaLnurlpRequest) ([]byte, bool) {
 	vaspDomainValidationErr := ValidateDomain(lnurlpRequest.VaspDomain)
 	if vaspDomainValidationErr != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
@@ -187,7 +189,7 @@ func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest uma.UmaLn
 	}
 
 	isSubjectToTravelRule := true
-	kycStatus := uma.KycStatusVerified
+	kycStatus := umaprotocol.KycStatusVerified
 	signedResponse, err := uma.GetLnurlpResponse(
 		lnurlpRequest.LnurlpRequest,
 		v.getLnurlpCallback(context),
@@ -196,13 +198,13 @@ func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest uma.UmaLn
 		100_000_000,
 		&umaPrivateKey,
 		&isSubjectToTravelRule,
-		&uma.CounterPartyDataOptions{
-			uma.CounterPartyDataFieldIdentifier.String(): {Mandatory: true},
-			uma.CounterPartyDataFieldCompliance.String(): {Mandatory: true},
-			uma.CounterPartyDataFieldName.String():       {Mandatory: false},
-			uma.CounterPartyDataFieldEmail.String():      {Mandatory: false},
+		&umaprotocol.CounterPartyDataOptions{
+			umaprotocol.CounterPartyDataFieldIdentifier.String(): {Mandatory: true},
+			umaprotocol.CounterPartyDataFieldCompliance.String(): {Mandatory: true},
+			umaprotocol.CounterPartyDataFieldName.String():       {Mandatory: false},
+			umaprotocol.CounterPartyDataFieldEmail.String():      {Mandatory: false},
 		},
-		&[]uma.Currency{
+		&[]umaprotocol.Currency{
 			UsdCurrency,
 			SatsCurrency,
 		},
@@ -241,7 +243,7 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 		return
 	}
 
-	payreq, err := uma.ParsePayRequestFromQueryParams(context.Request.URL.Query())
+	payreq, err := umaprotocol.ParsePayRequestFromQueryParams(context.Request.URL.Query())
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
@@ -440,10 +442,10 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		&receiverUtxos,
 		(*receiverNode).GetPublicKey(),
 		&utxoCallback,
-		&uma.PayeeData{
-			uma.CounterPartyDataFieldIdentifier.String(): payeeInfo.Identifier,
-			uma.CounterPartyDataFieldName.String():       payeeInfo.Name,
-			uma.CounterPartyDataFieldEmail.String():      payeeInfo.Email,
+		&umaprotocol.PayeeData{
+			umaprotocol.CounterPartyDataFieldIdentifier.String(): payeeInfo.Identifier,
+			umaprotocol.CounterPartyDataFieldName.String():       payeeInfo.Name,
+			umaprotocol.CounterPartyDataFieldEmail.String():      payeeInfo.Email,
 		},
 		&signingKey,
 		&receiverUma,
@@ -480,7 +482,7 @@ func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
 
 	twoWeeksFromNow := time.Now().AddDate(0, 0, 14)
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
-	response := uma.PubKeyResponse{
+	response := umaprotocol.PubKeyResponse{
 		SigningPubKeyHex:    hex.EncodeToString(signingPubKeyBytes),
 		EncryptionPubKeyHex: hex.EncodeToString(encryptionPubKeyBytes),
 		ExpirationTimestamp: &twoWeeksFromNowSec,
@@ -512,13 +514,13 @@ type PayeeInfo struct {
 	Identifier string  `json:"identifier"`
 }
 
-func (v *Vasp2) getPayeeInfo(options *uma.CounterPartyDataOptions, context *gin.Context) PayeeInfo {
+func (v *Vasp2) getPayeeInfo(options *umaprotocol.CounterPartyDataOptions, context *gin.Context) PayeeInfo {
 	var name string
-	if options != nil && (*options)[uma.CounterPartyDataFieldName.String()].Mandatory {
+	if options != nil && (*options)[umaprotocol.CounterPartyDataFieldName.String()].Mandatory {
 		name = v.config.Username
 	}
 	var email string
-	if options != nil && (*options)[uma.CounterPartyDataFieldEmail.String()].Mandatory {
+	if options != nil && (*options)[umaprotocol.CounterPartyDataFieldEmail.String()].Mandatory {
 		email = v.config.Username + "@" + v.getVaspDomain(context)
 	}
 	return PayeeInfo{

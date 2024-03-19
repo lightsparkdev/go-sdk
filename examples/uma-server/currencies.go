@@ -1,25 +1,27 @@
 package main
 
-import "github.com/uma-universal-money-address/uma-go-sdk/uma"
+import (
+	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
+)
 
-var SatsCurrency = uma.Currency{
+var SatsCurrency = umaprotocol.Currency{
 	Code:                "SAT",
 	Name:                "Satoshis",
 	Symbol:              "SAT",
 	MillisatoshiPerUnit: 1000,
-	Convertible: uma.ConvertibleCurrency{
+	Convertible: umaprotocol.ConvertibleCurrency{
 		MinSendable: 1,
 		MaxSendable: 100_000_000,
 	},
 	Decimals: 0,
 }
 
-var UsdCurrency = uma.Currency{
+var UsdCurrency = umaprotocol.Currency{
 	Code:                "USD",
 	Name:                "US Dollars",
 	Symbol:              "$",
 	MillisatoshiPerUnit: MillisatoshiPerUsd,
-	Convertible: uma.ConvertibleCurrency{
+	Convertible: umaprotocol.ConvertibleCurrency{
 		MinSendable: 1,
 		MaxSendable: 1_000,
 	},

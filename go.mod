@@ -1,11 +1,13 @@
 module github.com/lightsparkdev/go-sdk
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
-	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.0.3
+	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.2.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 )
 
 require (
