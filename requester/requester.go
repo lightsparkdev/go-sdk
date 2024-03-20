@@ -3,6 +3,7 @@ package requester
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -108,6 +109,11 @@ const DEFAULT_BASE_URL = "https://api.lightspark.com/graphql/server/2023-09-13"
 func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{},
 	signingKey SigningKey,
 ) (map[string]interface{}, error) {
+	return r.ExecuteGraphqlWithContext(context.Background(), query, variables, signingKey)
+}
+func (r *Requester) ExecuteGraphqlWithContext(ctx context.Context, query string, variables map[string]interface{},
+	signingKey SigningKey,
+) (map[string]interface{}, error) {
 	re := regexp.MustCompile(`(?i)\s*(?:query|mutation)\s+(?P<OperationName>\w+)`)
 	matches := re.FindStringSubmatch(query)
 	index := re.SubexpIndex("OperationName")
@@ -163,10 +169,11 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", serverUrl, bytes.NewBuffer(body))
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, serverUrl, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
+
 	request.SetBasicAuth(r.ApiTokenClientId, r.ApiTokenClientSecret)
 	request.Header.Add("Content-Type", "application/json")
 	if compressed {
