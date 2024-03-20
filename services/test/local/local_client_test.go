@@ -125,14 +125,6 @@ func TestPayInvoice(t *testing.T) {
 	t.Log(payment)
 }
 
-func TestGetNodeWalletAddressWithKeys(t *testing.T) {
-	env := servicestest.NewConfig()
-	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	address, err := client.CreateNodeWalletAddress(env.NodeID)
-	require.NoError(t, err)
-	t.Log(address)
-}
-
 func TestGetChannelUtxos(t *testing.T) {
 	env := servicestest.NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
