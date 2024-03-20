@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/DataDog/zstd"
 
 	lightspark "github.com/lightsparkdev/go-sdk"
@@ -26,7 +27,7 @@ import (
 // It could be due to a service outage or a network error.
 // The request should be retried if RequestError is returned with server errors (500-599).
 type RequestError struct {
-	Message string
+	Message    string
 	StatusCode int
 }
 
@@ -35,7 +36,7 @@ func (e RequestError) Error() string {
 }
 
 // GraphQLInternalError indicates there's a failure in the Lightspark API.
-// It could be due to a bug on Ligthspark's side. 
+// It could be due to a bug on Ligthspark's side.
 // The request can be retried, because the error might be transient.
 type GraphQLInternalError struct {
 	Message string
@@ -49,11 +50,11 @@ func (e GraphQLInternalError) Error() string {
 // The request should not be retried, because the error is due to the user's input.
 type GraphQLError struct {
 	Message string
-	Type string
+	Type    string
 }
 
 func (e GraphQLError) Error() string {
-	return  e.Type + ": " + e.Message
+	return e.Type + ": " + e.Message
 }
 
 type Requester struct {
@@ -111,6 +112,7 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 ) (map[string]interface{}, error) {
 	return r.ExecuteGraphqlWithContext(context.Background(), query, variables, signingKey)
 }
+
 func (r *Requester) ExecuteGraphqlWithContext(ctx context.Context, query string, variables map[string]interface{},
 	signingKey SigningKey,
 ) (map[string]interface{}, error) {
@@ -149,7 +151,7 @@ func (r *Requester) ExecuteGraphqlWithContext(ctx context.Context, query string,
 		return nil, errors.New("error when encoding payload")
 	}
 
-	body := encodedPayload;
+	body := encodedPayload
 	compressed := false
 	if len(encodedPayload) > 1024 {
 		compressed = true
@@ -209,7 +211,7 @@ func (r *Requester) ExecuteGraphqlWithContext(ctx context.Context, query string,
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		return nil, RequestError { Message: response.Status, StatusCode: response.StatusCode }
+		return nil, RequestError{Message: response.Status, StatusCode: response.StatusCode}
 	}
 
 	data, err := io.ReadAll(response.Body)
