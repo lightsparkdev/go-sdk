@@ -711,6 +711,10 @@ github.com/uma-universal-money-address/uma-go-sdk v0.6.2 h1:9hRq7NWN/0sjbapNBN19
 github.com/uma-universal-money-address/uma-go-sdk v0.6.2/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
 github.com/uma-universal-money-address/uma-go-sdk v0.6.3 h1:xs96/PxvWVCjXUfbybJCDSBbINj1qU1FZlQoBfaWnFk=
 github.com/uma-universal-money-address/uma-go-sdk v0.6.3/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
+github.com/uma-universal-money-address/uma-go-sdk v0.6.4-0.20240321004618-174ef3115001 h1:8uzBwmwhR0AOPBQlFlAND0vz2HVbmNdztxE2mWTSRSU=
+github.com/uma-universal-money-address/uma-go-sdk v0.6.4-0.20240321004618-174ef3115001/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
+github.com/uma-universal-money-address/uma-go-sdk v0.6.4 h1:wAqh2xzt+lAPEzqS67b65tk6PFGZmrWLlH+SJp7e91E=
+github.com/uma-universal-money-address/uma-go-sdk v0.6.4/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
 github.com/urfave/cli/v2 v2.10.2/go.mod h1:f8iq5LtQ/bLxafbdBSLPPNsgaW0l/2fYYEHhAyPlwvo=
 github.com/urfave/cli/v2 v2.24.1/go.mod h1:GHupkWPMM0M/sj1a2b4wUrWBPzazNrIjouW6fmdJLxc=
