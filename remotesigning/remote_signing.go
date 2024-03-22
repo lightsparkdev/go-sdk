@@ -34,32 +34,12 @@ func HandleRemoteSigningWebhook(
 	webhook webhooks.WebhookEvent,
 	seedBytes []byte,
 ) (string, error) {
-	if webhook.EventType != objects.WebhookEventTypeRemoteSigning {
-		return "", errors.New("webhook event is not for remote signing")
-	}
-	if webhook.Data == nil {
-		return "", errors.New("webhook data is missing")
-	}
-	var subtype objects.RemoteSigningSubEventType
-	subEventTypeStr := (*webhook.Data)["sub_event_type"].(string)
-	log.Printf("Received remote signing webhook with sub_event_type %s", subEventTypeStr)
-	err := subtype.UnmarshalJSON([]byte(`"` + subEventTypeStr + `"`))
-	if err != nil {
-		return "", errors.New("invalid remote signing sub_event_type")
-	}
-
-	if !validator.ShouldSign(webhook) {
-		return DeclineToSignMessages(client, webhook)
-	}
-
-	request, err := ParseRemoteSigningRequest(webhook)
-	if err != nil {
-		return "", err
-	}
-
-	response, err := HandleSigningRequest(request, seedBytes)
+	response, err := GraphQLResponseForRemoteSigningWebhook(validator, webhook, seedBytes)
 
 	if err != nil {
+		if err.Error() == "declined to sign messages" {
+			DeclineToSignMessages(client, webhook)
+		}
 		return "", err
 	}
 
@@ -69,6 +49,43 @@ func HandleRemoteSigningWebhook(
 	}
 
 	return HandleSigningResponse(client, response)
+}
+
+func GraphQLResponseForRemoteSigningWebhook(
+	validator Validator,
+	webhook webhooks.WebhookEvent,
+	seedBytes []byte,
+) (SigningResponse, error) {
+	if !validator.ShouldSign(webhook) {
+		return nil, errors.New("declined to sign messages")
+	}
+
+	if webhook.EventType != objects.WebhookEventTypeRemoteSigning {
+		return nil, errors.New("webhook event is not for remote signing")
+	}
+	if webhook.Data == nil {
+		return nil, errors.New("webhook data is missing")
+	}
+	var subtype objects.RemoteSigningSubEventType
+	subEventTypeStr := (*webhook.Data)["sub_event_type"].(string)
+	log.Printf("Received remote signing webhook with sub_event_type %s", subEventTypeStr)
+	err := subtype.UnmarshalJSON([]byte(`"` + subEventTypeStr + `"`))
+	if err != nil {
+		return nil, errors.New("invalid remote signing sub_event_type")
+	}
+
+	request, err := ParseRemoteSigningRequest(webhook)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := HandleSigningRequest(request, seedBytes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func HandleSigningRequest(request SigningRequest, seedBytes []byte) (SigningResponse, error) {
