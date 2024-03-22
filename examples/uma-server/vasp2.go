@@ -9,6 +9,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/services"
 	lsuma "github.com/lightsparkdev/go-sdk/uma"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -109,7 +110,8 @@ func (v *Vasp2) parseUmaQueryData(context *gin.Context) ([]byte, bool) {
 	requestUrl.Host = context.Request.Host
 	query, err := uma.ParseLnurlpRequest(*requestUrl)
 	if err != nil {
-		var unsupportedVersionErr *uma.UnsupportedVersionError
+		log.Printf("Error parsing UMA query: %v", err)
+		var unsupportedVersionErr uma.UnsupportedVersionError
 		if errors.As(err, &unsupportedVersionErr) {
 			context.JSON(http.StatusPreconditionFailed, gin.H{
 				"status":                 "ERROR",
