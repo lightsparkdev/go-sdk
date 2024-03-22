@@ -64,21 +64,37 @@ func main() {
 
 		switch event.EventType {
 		case objects.WebhookEventTypeRemoteSigning:
-			resp, err := remotesigning.HandleRemoteSigningWebhook(
-				lsClient, remotesigning.PositiveValidator{}, *event, config.MasterSeed)
-			if err != nil {
-				log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
+			if config.RespondDirectly {
+				resp, err := remotesigning.GraphQLResponseForRemoteSigningWebhook(
+					remotesigning.PositiveValidator{}, *event, config.MasterSeed)
+				if err != nil {
+					log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
 
-			if resp != "" {
-				log.Printf("Webhook complete with response: %s", resp)
+				if resp != nil {
+					c.JSON(http.StatusOK, resp.GraphqlResponse().Variables)
+				} else {
+					c.Status(http.StatusNoContent)
+				}
 			} else {
-				log.Printf("Webhook complete")
-			}
+				resp, err := remotesigning.HandleRemoteSigningWebhook(
+					lsClient, remotesigning.PositiveValidator{}, *event, config.MasterSeed)
+				if err != nil {
+					log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
 
-			c.Status(http.StatusNoContent)
+				if resp != "" {
+					log.Printf("Webhook complete with response: %s", resp)
+				} else {
+					log.Printf("Webhook complete")
+				}
+
+				c.Status(http.StatusNoContent)
+			}
 		default:
 			c.Status(http.StatusNoContent)
 		}

@@ -13,6 +13,7 @@ const API_CLIENT_ID = "API_CLIENT_ID"
 const API_CLIENT_SECRET = "API_CLIENT_SECRET"
 const WEBHOOK_SECRET = "WEBHOOK_SECRET"
 const MASTER_SEED_HEX = "MASTER_SEED_HEX"
+const RESPOND_DIRECTLY = "RESPOND_DIRECTLY"
 
 type Config struct {
 	ApiEndpoint     *string
@@ -20,6 +21,7 @@ type Config struct {
 	ApiClientSecret string
 	WebhookSecret   string
 	MasterSeed      []byte
+	RespondDirectly bool
 }
 
 func NewConfigFromEnv() (*Config, error) {
@@ -54,6 +56,8 @@ func NewConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("invalid master seed: %s", err)
 	}
 
+	_, respondDirectly := os.LookupEnv(RESPOND_DIRECTLY)
+
 	log.Print("Loaded configuration:")
 	log.Printf("  - API_ENDPOINT: %s", showEmpty(apiEndpointStr))
 	log.Printf("  - API_CLIENT_ID: %s", showEmpty(apiClientId))
@@ -67,6 +71,7 @@ func NewConfigFromEnv() (*Config, error) {
 		ApiClientSecret: apiClientSecret,
 		WebhookSecret:   webhookSecret,
 		MasterSeed:      masterSeed,
+		RespondDirectly: respondDirectly,
 	}, nil
 }
 
