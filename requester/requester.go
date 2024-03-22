@@ -3,11 +3,12 @@ package requester
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net/http"
 	"net/url"
@@ -72,6 +73,12 @@ const DEFAULT_BASE_URL = "https://api.lightspark.com/graphql/server/2023-09-13"
 func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{},
 	signingKey SigningKey,
 ) (map[string]interface{}, error) {
+	return r.ExecuteGraphqlWithContext(context.Background(), query, variables, signingKey)
+}
+
+func (r *Requester) ExecuteGraphqlWithContext(ctx context.Context, query string, variables map[string]interface{},
+	signingKey SigningKey,
+) (map[string]interface{}, error) {
 	re := regexp.MustCompile(`(?i)\s*(?:query|mutation)\s+(?P<OperationName>\w+)`)
 	matches := re.FindStringSubmatch(query)
 	index := re.SubexpIndex("OperationName")
@@ -117,7 +124,11 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", serverUrl, bytes.NewBuffer(encodedPayload))
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, serverUrl, bytes.NewBuffer(encodedPayload))
+	if err != nil {
+		return nil, err
+	}
+
 	request.SetBasicAuth(r.ApiTokenClientId, r.ApiTokenClientSecret)
 	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("X-GraphQL-Operation", operationName)
@@ -133,6 +144,9 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 			"v":         1,
 			"signature": base64.StdEncoding.EncodeToString(signature),
 		})
+		if err != nil {
+			return nil, err
+		}
 		request.Header.Add("X-Lightspark-Signing", bytes.NewBuffer(signaturePayloadBytes).String())
 	}
 
@@ -149,7 +163,11 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, errors.New("lightspark request failed: " + response.Status)
 	}
 
-	data, err := ioutil.ReadAll(response.Body)
+	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	var result map[string]interface{}
 	err = json.Unmarshal(data, &result)
 	if err != nil {
