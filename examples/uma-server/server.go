@@ -72,6 +72,11 @@ func main() {
 		vasp2.handlePubKeyRequest(c)
 	})
 
+	engine.GET("api/uma/utxocallback", func(c *gin.Context) {
+		// It doesn't matter which vasp protocol handles this since they share a config and cache.
+		vasp2.handleUtxoCallback(c)
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8081"
