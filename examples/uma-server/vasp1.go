@@ -511,17 +511,38 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 			Amount: amountMilliSatoshi,
 		})
 	}
-	utxosWithAmountsBytes, err := json.Marshal(utxosWithAmounts)
 	if err != nil {
 		log.Fatalf("Failed to marshal UTXOs: %v", err)
 	} else if payReqData.utxoCallback != nil {
-		log.Printf("Sending UTXOs to %s: %s", payReqData.utxoCallback, utxosWithAmountsBytes)
-		// Wrap the UTXOS in a json structure with { "utxos": [...] } to match the format expected by the receiver.
-		requestBody := fmt.Sprintf(`{"utxos": %s}`, utxosWithAmountsBytes)
+		log.Printf("Sending UTXOs to %s: %s", *payReqData.utxoCallback, utxosWithAmounts)
+		signingPrivateKey, err := v.config.UmaSigningPrivKeyBytes()
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{
+				"status": "ERROR",
+				"reason": err.Error(),
+			})
+			return
+		}
+		postTxCallback, err := uma.GetPostTransactionCallback(utxosWithAmounts, v.getVaspDomain(context), signingPrivateKey)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{
+				"status": "ERROR",
+				"reason": err.Error(),
+			})
+			return
+		}
+		requestBody, err := json.Marshal(postTxCallback)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{
+				"status": "ERROR",
+				"reason": err.Error(),
+			})
+			return
+		}
 		utxoCallbackResponse, err := http.Post(
 			*payReqData.utxoCallback,
 			"application/json",
-			bytes.NewBuffer([]byte(requestBody)),
+			bytes.NewBuffer(requestBody),
 		)
 		if err != nil {
 			log.Printf("Failed to send UTXOs to receiver: %v", err)

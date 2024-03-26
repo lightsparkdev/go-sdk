@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/gin-gonic/gin"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
@@ -450,6 +451,38 @@ func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, response)
+}
+
+func (v *Vasp2) handleUtxoCallback(context *gin.Context) {
+	txId := context.Query("txid")
+	if txId == "" {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": "Missing txid query parameter",
+		})
+		return
+	}
+
+	requestBody, err := context.GetRawData()
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Invalid request body: %v", err),
+		})
+		return
+	}
+	callbackData, err := uma.ParsePostTransactionCallback(requestBody)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Invalid request body: %v", err),
+		})
+		return
+	}
+
+	log.Info("Received UTXO callback", "txId", txId, "callbackData", callbackData)
+
+	context.Status(http.StatusOK)
 }
 
 func (v *Vasp2) getVaspDomain(context *gin.Context) string {
