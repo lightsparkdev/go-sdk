@@ -12,8 +12,10 @@ type UmaConfig struct {
 	NodeUUID                       string
 	Username                       string
 	UserID                         string
+	UmaEncryptionCertChain         string
 	UmaEncryptionPubKeyHex         string
 	UmaEncryptionPrivKeyHex        string
+	UmaSigningCertChain            string
 	UmaSigningPubKeyHex            string
 	UmaSigningPrivKeyHex           string
 	RemoteSigningNodeMasterSeedHex string
@@ -22,16 +24,8 @@ type UmaConfig struct {
 	OwnVaspDomain                  string
 }
 
-func (c *UmaConfig) UmaEncryptionPubKeyBytes() ([]byte, error) {
-	return hex.DecodeString(c.UmaEncryptionPubKeyHex)
-}
-
 func (c *UmaConfig) UmaEncryptionPrivKeyBytes() ([]byte, error) {
 	return hex.DecodeString(c.UmaEncryptionPrivKeyHex)
-}
-
-func (c *UmaConfig) UmaSigningPubKeyBytes() ([]byte, error) {
-	return hex.DecodeString(c.UmaSigningPubKeyHex)
 }
 
 func (c *UmaConfig) UmaSigningPrivKeyBytes() ([]byte, error) {
@@ -80,8 +74,10 @@ func NewConfig() UmaConfig {
 		Username:        username,
 		// Static UUID so that callback URLs are always the same.
 		UserID:                         "4b41ae03-01b8-4974-8d26-26a35d28851b",
+		UmaEncryptionCertChain:         os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_CERT_CHAIN"),
 		UmaEncryptionPubKeyHex:         os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_PUBKEY"),
 		UmaEncryptionPrivKeyHex:        os.Getenv("LIGHTSPARK_UMA_ENCRYPTION_PRIVKEY"),
+		UmaSigningCertChain:            os.Getenv("LIGHTSPARK_UMA_SIGNING_CERT_CHAIN"),
 		UmaSigningPubKeyHex:            os.Getenv("LIGHTSPARK_UMA_SIGNING_PUBKEY"),
 		UmaSigningPrivKeyHex:           os.Getenv("LIGHTSPARK_UMA_SIGNING_PRIVKEY"),
 		RemoteSigningNodeMasterSeedHex: os.Getenv("LIGHTSPARK_UMA_REMOTE_SIGNING_NODE_MASTER_SEED"),

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -121,15 +120,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		return
 	}
 
-	receiverSigningPubKey, err := receivingVaspPubKey.SigningPubKey()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get signing pub key for receiving VASP",
-		})
-		return
-	}
-	err = uma.VerifyUmaLnurlpResponseSignature(*lnurlpResponse.AsUmaResponse(), receiverSigningPubKey, v.nonceCache)
+	err = uma.VerifyUmaLnurlpResponseSignature(*lnurlpResponse.AsUmaResponse(), *receivingVaspPubKey, v.nonceCache)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -570,29 +561,15 @@ func (v *Vasp1) waitForPaymentCompletion(payment *objects.OutgoingPayment) (*obj
 }
 
 func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
-	signingPubKeyBytes, err := v.config.UmaSigningPubKeyBytes()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return
-	}
-	encryptionPubKeyBytes, err := v.config.UmaEncryptionPubKeyBytes()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return
-	}
-
 	twoWeeksFromNow := time.Now().AddDate(0, 0, 14)
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
-	response := umaprotocol.PubKeyResponse{
-		SigningPubKeyHex:    hex.EncodeToString(signingPubKeyBytes),
-		EncryptionPubKeyHex: hex.EncodeToString(encryptionPubKeyBytes),
-		ExpirationTimestamp: &twoWeeksFromNowSec,
+	response, err := uma.GetPubKeyResponse(v.config.UmaSigningCertChain, v.config.UmaEncryptionCertChain, &twoWeeksFromNowSec)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
 	}
 
 	context.JSON(http.StatusOK, response)

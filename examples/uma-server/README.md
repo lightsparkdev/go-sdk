@@ -69,8 +69,10 @@ LIGHTSPARK_API_TOKEN_CLIENT_ID=<your lightspark API token client ID from https:/
 LIGHTSPARK_API_TOKEN_CLIENT_SECRET=<your lightspark API token client secret from https://app.lightspark.com/api-config>
 LIGHTSPARK_UMA_NODE_ID=<your lightspark node ID. ex: LightsparkNodeWithOSKLND:018b24d0-1c45-f96b-0000-1ed0328b72cc>
 LIGHTSPARK_UMA_RECEIVER_USER=<receiver UMA>
+LIGHTSPARK_UMA_ENCRYPTION_CERT_CHAIN=<pem-encoded x509 certificate chain containing encryption pubkey>
 LIGHTSPARK_UMA_ENCRYPTION_PUBKEY=<hex-encoded encryption pubkey>
 LIGHTSPARK_UMA_ENCRYPTION_PRIVKEY=<hex-encoded encryption privkey>
+LIGHTSPARK_UMA_SIGNING_CERT_CHAIN=<pem-encoded x509 certificate chain containing signing pubkey>
 LIGHTSPARK_UMA_SIGNING_PUBKEY=<hex-encoded signing pubkey>
 LIGHTSPARK_UMA_SIGNING_PRIVKEY=<hex-encoded signing privkey>
 

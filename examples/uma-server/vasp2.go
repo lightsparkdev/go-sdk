@@ -1,19 +1,19 @@
 package main
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
-	"net/http"
-	"os"
-	"strings"
-	"time"
 )
 
 // Vasp2 is an implementation of the receiving VASP in the UMA protocol.
@@ -97,11 +97,11 @@ func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 		return
 	}
 
-	responseJson, hadError := v.handleUmaQueryData(context, *umaLnurlpRequest)
+	lnurlpResponse, hadError := v.handleUmaQueryData(context, *umaLnurlpRequest)
 	if hadError {
 		return
 	}
-	context.JSON(http.StatusOK, responseJson)
+	context.JSON(http.StatusOK, lnurlpResponse)
 }
 
 func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest umaprotocol.LnurlpRequest) {
@@ -136,7 +136,7 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 	context.JSON(http.StatusOK, response)
 }
 
-func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotocol.UmaLnurlpRequest) ([]byte, bool) {
+func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotocol.UmaLnurlpRequest) (*umaprotocol.LnurlpResponse, bool) {
 	vaspDomainValidationErr := ValidateDomain(lnurlpRequest.VaspDomain)
 	if vaspDomainValidationErr != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
@@ -154,15 +154,7 @@ func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotoc
 		return nil, true
 	}
 
-	sendingVaspSigningPubKey, err := pubKeys.SigningPubKey()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return nil, true
-	}
-	if err := uma.VerifyUmaLnurlpQuerySignature(lnurlpRequest, sendingVaspSigningPubKey, v.nonceCache); err != nil {
+	if err := uma.VerifyUmaLnurlpQuerySignature(lnurlpRequest, *pubKeys, v.nonceCache); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -219,16 +211,7 @@ func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotoc
 		})
 		return nil, true
 	}
-
-	responseJson, err := json.Marshal(signedResponse)
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return nil, true
-	}
-	return responseJson, false
+	return signedResponse, false
 }
 
 // This is the handler for regular (non-UMA) LNURL payreq requests when the request is a GET.
@@ -359,15 +342,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		return
 	}
 
-	sendingVaspSigningPubKey, err := pubKeys.SigningPubKey()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return
-	}
-	if err := uma.VerifyPayReqSignature(request, sendingVaspSigningPubKey, v.nonceCache); err != nil {
+	if err := uma.VerifyPayReqSignature(request, *pubKeys, v.nonceCache); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{
 			"status": "ERROR",
 			"reason": err.Error(),
@@ -463,29 +438,15 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 }
 
 func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
-	signingPubKeyBytes, err := v.config.UmaSigningPubKeyBytes()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return
-	}
-	encryptionPubKeyBytes, err := v.config.UmaEncryptionPubKeyBytes()
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
-		return
-	}
-
 	twoWeeksFromNow := time.Now().AddDate(0, 0, 14)
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
-	response := umaprotocol.PubKeyResponse{
-		SigningPubKeyHex:    hex.EncodeToString(signingPubKeyBytes),
-		EncryptionPubKeyHex: hex.EncodeToString(encryptionPubKeyBytes),
-		ExpirationTimestamp: &twoWeeksFromNowSec,
+	response, err := uma.GetPubKeyResponse(v.config.UmaSigningCertChain, v.config.UmaEncryptionCertChain, &twoWeeksFromNowSec)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
 	}
 
 	context.JSON(http.StatusOK, response)
