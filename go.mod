@@ -18,6 +18,7 @@ require (
 	github.com/decred/dcrd/crypto/blake256 v1.0.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
+	github.com/uma-universal-money-address/uma-go-sdk v0.6.3-0.20240326175044-056b9d482661 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
