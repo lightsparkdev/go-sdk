@@ -373,12 +373,8 @@ func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 		"node_id":     nodeId,
 		"amount_sats": amountSats,
 	}
-	signingKey, err := client.getNodeSigningKey(nodeId)
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables, signingKey)
+	
+	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
