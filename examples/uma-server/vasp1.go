@@ -225,7 +225,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 
-	currencyCode := context.Query("currencyCode")
+	currencyCode := context.Query("receivingCurrencyCode")
 	if currencyCode == "" {
 		currencyCode = "SAT"
 	}
