@@ -428,13 +428,21 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		&invoiceData,
 	)
 
+	amountMsats, err := utils.ValueMilliSatoshi(invoiceData.Amount)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to convert amount to millisats",
+		})
+		return
+	}
 	context.JSON(http.StatusOK, gin.H{
 		"encodedInvoice":          payreqResponse.EncodedInvoice,
 		"callbackUuid":            callbackUuid,
-		"amountMsats":             invoiceData.Amount,
+		"amountMsats":             amountMsats,
 		"amountReceivingCurrency": payreqResponse.PaymentInfo.Amount,
 		"conversionRate":          payreqResponse.PaymentInfo.Multiplier,
-		"currencyCode":            payreqResponse.PaymentInfo.CurrencyCode,
+		"receivingCurrencyCode":   payreqResponse.PaymentInfo.CurrencyCode,
 		"exchangeFeesMsats":       payreqResponse.PaymentInfo.ExchangeFeesMillisatoshi,
 		"expiresAt":               invoiceData.ExpiresAt.Unix(),
 	})
