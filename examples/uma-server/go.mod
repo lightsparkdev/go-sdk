@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/lightsparkdev/go-sdk v0.10.0
 	// Run go get github.com/uma-universal-money-address/uma-go-sdk@release/v1.0 to update:
-	github.com/uma-universal-money-address/uma-go-sdk v0.6.5-0.20240328164826-f864fd905d9b
+	github.com/uma-universal-money-address/uma-go-sdk v1.0.0
 )
 
 require (
