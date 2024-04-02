@@ -709,12 +709,6 @@ github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGr
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4dU=
 github.com/ugorji/go/codec v1.2.11/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
-github.com/uma-universal-money-address/uma-go-sdk v0.6.3-0.20240317203829-cec9ac93838f h1:eUuiqr2HpHQYlFfWxnyi9HOvpvvscSnw72VSsqXLqpw=
-github.com/uma-universal-money-address/uma-go-sdk v0.6.3-0.20240317203829-cec9ac93838f/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
-github.com/uma-universal-money-address/uma-go-sdk v0.6.5-0.20240326225923-559eb03f897a h1:+BFSnMOL0xQBmMFAjUwJzPVB72JHrfovSTQYvXaPhMI=
-github.com/uma-universal-money-address/uma-go-sdk v0.6.5-0.20240326225923-559eb03f897a/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
-github.com/uma-universal-money-address/uma-go-sdk v0.6.5-0.20240328164826-f864fd905d9b h1:W+4KD+Zk/M9a092+owXCE+vaYdUieywcR3dnun0DeUg=
-github.com/uma-universal-money-address/uma-go-sdk v0.6.5-0.20240328164826-f864fd905d9b/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
 github.com/uma-universal-money-address/uma-go-sdk v1.0.0 h1:HaIsygLK2UovO5gXje4TCoHCW2O1Ab+gWjCNzm/ahvc=
 github.com/uma-universal-money-address/uma-go-sdk v1.0.0/go.mod h1:OimSKjRNT7Wm2lA0Q9C0DmxsMvqBickucUjtQmB8Cl8=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
@@ -1206,7 +1200,6 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
-gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/errgo.v2 v2.1.0/go.mod h1:hNsd1EY+bozCKY1Ytp96fpM3vjJbqLJn88ws8XvfDNI=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=

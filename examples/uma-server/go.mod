@@ -5,10 +5,10 @@ go 1.21
 toolchain go1.21.0
 
 require (
+	github.com/ethereum/go-ethereum v1.13.8
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.3.1
 	github.com/lightsparkdev/go-sdk v0.10.0
-	// Run go get github.com/uma-universal-money-address/uma-go-sdk@release/v1.0 to update:
 	github.com/uma-universal-money-address/uma-go-sdk v1.0.0
 )
 
@@ -17,7 +17,6 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/ecies/go/v2 v2.0.9 // indirect
-	github.com/ethereum/go-ethereum v1.13.8 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

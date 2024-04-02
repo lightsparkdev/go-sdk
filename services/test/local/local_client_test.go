@@ -4,12 +4,13 @@
 package local_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 const TEST_NETWORK = objects.BitcoinNetworkRegtest

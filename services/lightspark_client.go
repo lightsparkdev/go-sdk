@@ -242,6 +242,24 @@ func (client *LightsparkClient) CreateNodeWalletAddress(nodeId string) (string, 
 	return walletAddress, nil
 }
 
+func (client *LightsparkClient) CreateNodeWalletAddressWithKeys(nodeId string) (*objects.CreateNodeWalletAddressOutput, error) {
+	variables := map[string]interface{}{
+		"node_id": nodeId,
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_NODE_WALLET_ADDRESS_WITH_KEYS_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+	output := response["create_node_wallet_address"].(map[string]interface{})
+	var walletAddress objects.CreateNodeWalletAddressOutput
+	walletAddressJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing wallet address")
+	}
+	json.Unmarshal(walletAddressJson, &walletAddress)
+	return &walletAddress, nil
+}
+
 // CreateTestModeInvoice In test mode, generates a Lightning Invoice which can be paid by a local node.
 // This is useful for testing your integration with Lightspark.
 //
@@ -355,12 +373,8 @@ func (client *LightsparkClient) FundNode(nodeId string, amountSats int64) (
 		"node_id":     nodeId,
 		"amount_sats": amountSats,
 	}
-	signingKey, err := client.getNodeSigningKey(nodeId)
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables, signingKey)
+	
+	response, err := client.Requester.ExecuteGraphql(scripts.FUND_NODE_MUTATION, variables, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -836,6 +850,9 @@ func (client *LightsparkClient) CreateUmaInvitationWithIncentives(
 	inviterPhoneNumber string,
 	inviterRegion objects.RegionCode) (*objects.UmaInvitation, error) {
 	inviterPhoneHash, err := hashPhoneNumber(inviterPhoneNumber)
+	if err != nil {
+		return nil, err
+	}
 	variables := map[string]interface{}{
 		"inviter_uma":        inviterUma,
 		"inviter_phone_hash": inviterPhoneHash,
