@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"regexp"
 	"strings"
 )
@@ -35,7 +35,7 @@ func ValidateUserName(userName string) error {
 
 func ValidateDomain(domain string) error {
 	hostWithoutPort := strings.Split(domain, ":")[0]
-	isLocalDomain := uma.IsDomainLocalhost(hostWithoutPort)
+	isLocalDomain := umautils.IsDomainLocalhost(hostWithoutPort)
 	localHostWithPortRegex := regexp.MustCompile(`^localhost(:[0-9]+)?$`)
 	domainRegex := regexp.MustCompile(`^([a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*[._]?$`)
 	if !domainRegex.MatchString(domain) && !localHostWithPortRegex.MatchString(domain) && !isLocalDomain {
