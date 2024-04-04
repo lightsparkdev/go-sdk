@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.20-bookworm as builder
+FROM --platform=$BUILDPLATFORM golang:1.21-bookworm as builder
 
 ARG TARGETOS TARGETARCH
 RUN echo "$TARGETARCH" | sed 's,arm,aarch,;s,amd,x86_,' > /tmp/arch
