@@ -404,6 +404,32 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		return
 	}
 
+	pubKeys, err := uma.FetchPublicKeyForVasp(v.getVaspDomain(context), v.pubKeyCache)
+	if err != nil || pubKeys == nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
+
+	payeeIdentifier := initialRequestData.receiverId + "@" + initialRequestData.vasp2Domain
+	if umaMajorVersion > 0 {
+		if err := uma.VerifyPayReqResponseSignature(
+			payreqResponse,
+			*pubKeys,
+			v.nonceCache,
+			payerInfo.Identifier,
+			payeeIdentifier,
+		); err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{
+				"status": "ERROR",
+				"reason": err.Error(),
+			})
+			return
+		}
+	}
+
 	// TODO: Pre-screen the UTXOs from payreqResponse.Compliance.Utxos
 
 	log.Printf("Received invoice: %s", payreqResponse.EncodedInvoice)
