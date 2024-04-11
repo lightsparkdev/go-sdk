@@ -7,17 +7,52 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"math/big"
 	"net/http"
 	"net/url"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
 	lightspark "github.com/lightsparkdev/go-sdk"
 )
+
+// RequestError indicates that a request to the Lightspark API failed.
+// It could be due to a service outage or a network error.
+// The request should be retried if RequestError is returned with server errors (500-599).
+type RequestError struct {
+	Message string
+	StatusCode int
+}
+
+func (e RequestError) Error() string {
+	return "lightspark request failed: " + strconv.Itoa(e.StatusCode) + ": " + e.Message
+}
+
+// GraphQLInternalError indicates there's a failure in the Lightspark API.
+// It could be due to a bug on Ligthspark's side. 
+// The request can be retried, because the error might be transient.
+type GraphQLInternalError struct {
+	Message string
+}
+
+func (e GraphQLInternalError) Error() string {
+	return "lightspark request failed: " + e.Message
+}
+
+// GraphQLError indicates the GraphQL request succeeded, but there's a user error.
+// The request should not be retried, because the error is due to the user's input.
+type GraphQLError struct {
+	Message string
+	Type string
+}
+
+func (e GraphQLError) Error() string {
+	return  e.Type + ": " + e.Message
+}
 
 type Requester struct {
 	ApiTokenClientId string
@@ -118,6 +153,9 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	}
 
 	request, err := http.NewRequest("POST", serverUrl, bytes.NewBuffer(encodedPayload))
+	if err != nil {
+		return nil, err
+	}
 	request.SetBasicAuth(r.ApiTokenClientId, r.ApiTokenClientSecret)
 	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("X-GraphQL-Operation", operationName)
@@ -133,6 +171,9 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 			"v":         1,
 			"signature": base64.StdEncoding.EncodeToString(signature),
 		})
+		if err != nil {
+			return nil, err
+		}
 		request.Header.Add("X-Lightspark-Signing", bytes.NewBuffer(signaturePayloadBytes).String())
 	}
 
@@ -146,10 +187,14 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	}
 	defer response.Body.Close()
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		return nil, errors.New("lightspark request failed: " + response.Status)
+		return nil, RequestError { Message: response.Status, StatusCode: response.StatusCode }
 	}
 
-	data, err := ioutil.ReadAll(response.Body)
+	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
 	var result map[string]interface{}
 	err = json.Unmarshal(data, &result)
 	if err != nil {
@@ -161,14 +206,14 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		errMap := err.(map[string]interface{})
 		errorMessage := errMap["message"].(string)
 		if errMap["extensions"] == nil {
-			return nil, errors.New(errorMessage)
+			return nil, GraphQLInternalError{Message: errorMessage}
 		}
 		extensions := errMap["extensions"].(map[string]interface{})
 		if extensions["error_name"] == nil {
-			return nil, errors.New(errorMessage)
+			return nil, GraphQLInternalError{Message: errorMessage}
 		}
 		errorName := extensions["error_name"].(string)
-		return nil, errors.New(errorName + " - " + errorMessage)
+		return nil, GraphQLError{Message: errorMessage, Type: errorName}
 	}
 
 	return result["data"].(map[string]interface{}), nil
