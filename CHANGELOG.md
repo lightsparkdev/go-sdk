@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.12.0
+- Add `RequestError`, `GraphQLInternalError` and, `GraphQLError` to the client to better differentiate between different types of errors.
+
 # v0.11.1
 - Update "lightspark-crypto-go" to v0.2.0 to fix build on some linux versions.
 
