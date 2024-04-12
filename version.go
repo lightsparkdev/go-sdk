@@ -1,3 +1,3 @@
 package lightspark
 
-const VERSION = "0.11.1"
+const VERSION = "0.12.0"
