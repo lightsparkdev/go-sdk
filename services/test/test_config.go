@@ -35,7 +35,7 @@ func NewConfig() TestConfig {
 		UmaVaspDomain:     os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 	}
 
-	if len(config.MasterSeedHex) == 0 || len(config.MasterSeedHex2) == 0 {
+	if len(config.MasterSeedHex) == 0 && len(config.MasterSeedHex2) == 0 {
 		panic("Missing master seed. Did you setup LIGHTSPARK_MASTER_SEED_HEX and LIGHTSPARK_MASTER_SEED_HEX_2 correctly in your environment?")
 	}
 

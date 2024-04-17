@@ -13,7 +13,6 @@ import (
 	"github.com/lightsparkdev/go-sdk/utils"
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 	"github.com/stretchr/testify/require"
-	"github.com/tyler-smith/go-bip32"
 )
 
 func TestGetNodeWalletAddressWithKeys(t *testing.T) {
@@ -21,20 +20,20 @@ func TestGetNodeWalletAddressWithKeys(t *testing.T) {
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
 	address, err := client.CreateNodeWalletAddressWithKeys(env.NodeID)
 	require.NoError(t, err)
-	t.Log(address.WalletAddress)
-	t.Log(address.MultisigWalletAddressValidationParameters.CounterpartyFundingPubkey)
-	t.Log(address.MultisigWalletAddressValidationParameters.FundingPubkeyDerivationPath)
 
+	// Get the master xpub
 	seed := env.MasterSeedHex
-	ourPubkey, err := crypto.DerivePublicKey(seed, lightspark_crypto.Regtest, address.MultisigWalletAddressValidationParameters.FundingPubkeyDerivationPath)
+	ourMasterPubkey, err := crypto.DerivePublicKey(seed, lightspark_crypto.Regtest, "m")
 	require.NoError(t, err)
-	t.Log(ourPubkey)
 
-	pubkey1, _ := hex.DecodeString(address.MultisigWalletAddressValidationParameters.CounterpartyFundingPubkey)
-	xpub, _ := bip32.B58Deserialize(ourPubkey)
-	pubkey2 := xpub.Key
+	pubkey1, err := hex.DecodeString(address.MultisigWalletAddressValidationParameters.CounterpartyFundingPubkey)
+	require.NoError(t, err)
 
-	generatedAddress, _ := utils.GenerateMultiSigAddress(lightspark_crypto.Regtest, pubkey1, pubkey2)
-	t.Log(generatedAddress)
+	// Get the secp256k1 pubkey from the derivation path
+	pubkey2, err := lightspark_crypto.DeriveAndTweakPubkey(ourMasterPubkey, address.MultisigWalletAddressValidationParameters.FundingPubkeyDerivationPath, nil, nil)
+	require.NoError(t, err)
+
+	generatedAddress, err := utils.GenerateMultiSigAddress(lightspark_crypto.Regtest, pubkey1, pubkey2)
+	require.NoError(t, err)
 	require.Equal(t, address.WalletAddress, generatedAddress)
 }
