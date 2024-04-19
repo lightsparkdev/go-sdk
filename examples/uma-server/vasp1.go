@@ -56,9 +56,28 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverId := addressParts[0]
 	receiverVasp := addressParts[1]
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
 
-	lnurlpRequest, err := uma.GetSignedLnurlpRequestUrl(
-		signingKey, receiverAddress, v.getVaspDomain(context), true, nil)
+	var lnurlpRequest *url.URL
+	if strings.HasPrefix(receiverVasp, "$") {
+		lnurlpRequest, err = uma.GetSignedLnurlpRequestUrl(
+			signingKey, receiverAddress, v.getVaspDomain(context), true, nil)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{
+				"status": "ERROR",
+				"reason": err.Error(),
+			})
+			return
+		}
+	} else {
+		lnurlpRequest = v.getNonUmaLnurlRequestUrl(receiverId, receiverVasp, context.Request.Host)
+	}
 
 	resp, err := http.Get(lnurlpRequest.String())
 	if err != nil {
@@ -141,6 +160,19 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		"callbackUuid":       callbackUuid,
 		"receiverKYCStatus":  lnurlpResponse.Compliance.KycStatus, // You might not actually send this to a client in practice.
 	})
+}
+
+func (v *Vasp1) getNonUmaLnurlRequestUrl(receiverId string, receiverVasp string, domain string) *url.URL {
+	scheme := "https"
+	if umautils.IsDomainLocalhost(domain) {
+		scheme = "http"
+	}
+
+	return &url.URL{
+		Scheme: scheme,
+		Host:   receiverVasp,
+		Path:   fmt.Sprintf("/.well-known/lnurlp/%s", receiverId),
+	}
 }
 
 func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signingKey []byte, receiverAddress string, context *gin.Context) (*http.Response, bool) {
