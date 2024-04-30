@@ -8,6 +8,7 @@ require (
 	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.4.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.17.0
+	github.com/DataDog/zstd v1.5.5
 )
 
 require (
