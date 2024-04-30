@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/btcsuite/btcd v0.24.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5 // indirect

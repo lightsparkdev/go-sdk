@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/DataDog/zstd"
 
 	lightspark "github.com/lightsparkdev/go-sdk"
 )
@@ -142,6 +143,16 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, errors.New("error when encoding payload")
 	}
 
+	body := encodedPayload;
+	compressed := false
+	if len(encodedPayload) > 1024 {
+		compressed = true
+		body, err = zstd.Compress(nil, encodedPayload)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var serverUrl string
 	if r.BaseUrl == nil {
 		serverUrl = DEFAULT_BASE_URL
@@ -152,12 +163,16 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", serverUrl, bytes.NewBuffer(encodedPayload))
+	request, err := http.NewRequest("POST", serverUrl, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
 	request.SetBasicAuth(r.ApiTokenClientId, r.ApiTokenClientSecret)
 	request.Header.Add("Content-Type", "application/json")
+	if compressed {
+		request.Header.Add("Content-Encoding", "zstd")
+	}
+	request.Header.Add("Accept-Encoding", "zstd")
 	request.Header.Add("X-GraphQL-Operation", operationName)
 	request.Header.Add("User-Agent", r.getUserAgent())
 	request.Header.Add("X-Lightspark-SDK", r.getUserAgent())
@@ -193,6 +208,13 @@ func (r *Requester) ExecuteGraphql(query string, variables map[string]interface{
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if response.Header.Get("Content-Encoding") == "zstd" {
+		data, err = zstd.Decompress(nil, data)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var result map[string]interface{}
