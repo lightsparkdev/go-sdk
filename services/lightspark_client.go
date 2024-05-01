@@ -1058,6 +1058,18 @@ func (client *LightsparkClient) FetchIncomingPaymentsByInvoice(invoiceId string,
 	return &payments, nil
 }
 
+func (client *LightsparkClient) FailHtlc(invoiceId string) (error) {
+	variables := map[string]interface{}{
+		"invoice_id": invoiceId,
+	}
+
+	_, err := client.Requester.ExecuteGraphql(scripts.FAIL_HTLCS_MUTATION, variables, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
 	e164PhoneRegex, err := regexp.Compile(`^\+?[1-9]\d{1,14}$`)
 	if err != nil {
