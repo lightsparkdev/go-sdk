@@ -29,7 +29,7 @@ func GetPaymentHashFromScript(scriptHex string) (*string, error) {
     if len(match) > 0 {
 		return &match[1], nil
 	} else {
-		return nil, errors.New("No match found")
+		return nil, errors.New("no match found")
 	}
 }
 
