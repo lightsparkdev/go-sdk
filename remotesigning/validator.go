@@ -28,7 +28,8 @@ func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 	}
 
 	for _, signing := range request.SigningJobs {
-		if strings.HasSuffix(signing.DerivationPath, "/2") {
+		// PaymentOutput or DelayedPaymentOutput
+		if strings.HasSuffix(signing.DerivationPath, "/2") || strings.HasSuffix(signing.DerivationPath, "/3"){
 			msg, err := CalculateWitnessHashPSBT(*signing.Transaction)
 			if err != nil {
 				return false
