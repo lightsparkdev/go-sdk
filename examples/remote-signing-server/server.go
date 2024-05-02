@@ -66,7 +66,7 @@ func main() {
 		case objects.WebhookEventTypeRemoteSigning:
 			if config.RespondDirectly {
 				resp, err := remotesigning.GraphQLResponseForRemoteSigningWebhook(
-					remotesigning.PositiveValidator{}, *event, config.MasterSeed)
+					remotesigning.HashValidator{}, *event, config.MasterSeed)
 				if err != nil {
 					log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
 					c.AbortWithStatus(http.StatusInternalServerError)
@@ -80,7 +80,7 @@ func main() {
 				}
 			} else {
 				resp, err := remotesigning.HandleRemoteSigningWebhook(
-					lsClient, remotesigning.PositiveValidator{}, *event, config.MasterSeed)
+					lsClient, remotesigning.HashValidator{}, *event, config.MasterSeed)
 				if err != nil {
 					log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
 					c.AbortWithStatus(http.StatusInternalServerError)
