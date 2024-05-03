@@ -113,6 +113,18 @@ func ConnectionUnmarshal(data map[string]interface{}) (Connection, error) {
 			return nil, err
 		}
 		return walletToWithdrawalRequestsConnection, nil
+	case "WithdrawalRequestToChannelClosingTransactionsConnection":
+		var withdrawalRequestToChannelClosingTransactionsConnection WithdrawalRequestToChannelClosingTransactionsConnection
+		if err := json.Unmarshal(dataJSON, &withdrawalRequestToChannelClosingTransactionsConnection); err != nil {
+			return nil, err
+		}
+		return withdrawalRequestToChannelClosingTransactionsConnection, nil
+	case "WithdrawalRequestToChannelOpeningTransactionsConnection":
+		var withdrawalRequestToChannelOpeningTransactionsConnection WithdrawalRequestToChannelOpeningTransactionsConnection
+		if err := json.Unmarshal(dataJSON, &withdrawalRequestToChannelOpeningTransactionsConnection); err != nil {
+			return nil, err
+		}
+		return withdrawalRequestToChannelOpeningTransactionsConnection, nil
 
 	default:
 		return nil, fmt.Errorf("unknown Connection type: %s", data["__typename"])

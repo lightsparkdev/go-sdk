@@ -11,7 +11,7 @@ type OnChainTransaction interface {
 	Transaction
 	Entity
 
-	// GetFees The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
+	// GetFees The fees that were paid by the node for this transaction.
 	GetFees() *CurrencyAmount
 
 	// GetBlockHash The hash of the block that included this transaction. This will be null for unconfirmed transactions.

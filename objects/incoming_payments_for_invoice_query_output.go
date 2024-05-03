@@ -44,6 +44,7 @@ fragment IncomingPaymentsForInvoiceQueryOutputFragment on IncomingPaymentsForInv
                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
             }
         }
+        incoming_payment_is_internal_payment: is_internal_payment
     }
 }
 `

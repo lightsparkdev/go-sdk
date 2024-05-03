@@ -250,6 +250,7 @@ func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, 
                                 currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                             }
                         }
+                        incoming_payment_is_internal_payment: is_internal_payment
                     }
                     ... on OutgoingPayment {
                         __typename
@@ -594,6 +595,7 @@ func (obj Wallet) GetTransactions(requester *requester.Requester, first *int64, 
                             }
                         }
                         outgoing_payment_payment_preimage: payment_preimage
+                        outgoing_payment_is_internal_payment: is_internal_payment
                     }
                     ... on RoutingTransaction {
                         __typename
@@ -1114,6 +1116,14 @@ func (obj Wallet) GetWithdrawalRequests(requester *requester.Requester, first *i
                         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                     }
                     withdrawal_request_amount_withdrawn: amount_withdrawn {
+                        __typename
+                        currency_amount_original_value: original_value
+                        currency_amount_original_unit: original_unit
+                        currency_amount_preferred_currency_unit: preferred_currency_unit
+                        currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
+                        currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
+                    }
+                    withdrawal_request_total_fees: total_fees {
                         __typename
                         currency_amount_original_value: original_value
                         currency_amount_original_unit: original_unit

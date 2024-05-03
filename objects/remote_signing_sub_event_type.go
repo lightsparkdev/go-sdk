@@ -26,6 +26,8 @@ const (
 	RemoteSigningSubEventTypeRequestInvoicePaymentHash
 
 	RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret
+
+	RemoteSigningSubEventTypeVlsMessage
 )
 
 func (a *RemoteSigningSubEventType) UnmarshalJSON(b []byte) error {
@@ -52,6 +54,8 @@ func (a *RemoteSigningSubEventType) UnmarshalJSON(b []byte) error {
 		*a = RemoteSigningSubEventTypeRequestInvoicePaymentHash
 	case "REVEAL_COUNTERPARTY_PER_COMMITMENT_SECRET":
 		*a = RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret
+	case "VLS_MESSAGE":
+		*a = RemoteSigningSubEventTypeVlsMessage
 
 	}
 	return nil
@@ -78,6 +82,8 @@ func (a RemoteSigningSubEventType) StringValue() string {
 		s = "REQUEST_INVOICE_PAYMENT_HASH"
 	case RemoteSigningSubEventTypeRevealCounterpartyPerCommitmentSecret:
 		s = "REVEAL_COUNTERPARTY_PER_COMMITMENT_SECRET"
+	case RemoteSigningSubEventTypeVlsMessage:
+		s = "VLS_MESSAGE"
 
 	}
 	return s
