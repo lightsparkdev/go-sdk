@@ -1058,16 +1058,28 @@ func (client *LightsparkClient) FetchIncomingPaymentsByInvoice(invoiceId string,
 	return &payments, nil
 }
 
-func (client *LightsparkClient) FailHtlc(invoiceId string) (error) {
+func (client *LightsparkClient) FailHtlc(invoiceId string, cancelInvoice bool) (*objects.FailHtlcsOutput, error) {
 	variables := map[string]interface{}{
 		"invoice_id": invoiceId,
+		"cancel_invoice": cancelInvoice,
 	}
 
-	_, err := client.Requester.ExecuteGraphql(scripts.FAIL_HTLCS_MUTATION, variables, nil)
+	response, err := client.Requester.ExecuteGraphql(scripts.FAIL_HTLCS_MUTATION, variables, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	output := response["fail_htlcs"].(map[string]interface{})
+	var failHtlcs objects.FailHtlcsOutput
+	failHtlcsJson, err := json.Marshal(output)
+	if err != nil {
+		return nil, errors.New("error parsing fail htlcs")
+	}
+	err = json.Unmarshal(failHtlcsJson, &failHtlcs)
+	if err != nil {
+		return nil, err
+	}
+	return &failHtlcs, nil
 }
 
 func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
