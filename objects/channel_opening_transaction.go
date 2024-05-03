@@ -31,7 +31,7 @@ type ChannelOpeningTransaction struct {
 	// TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 	TransactionHash *string `json:"channel_opening_transaction_transaction_hash"`
 
-	// Fees The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
+	// Fees The fees that were paid by the node for this transaction.
 	Fees *CurrencyAmount `json:"channel_opening_transaction_fees"`
 
 	// BlockHash The hash of the block that included this transaction. This will be null for unconfirmed transactions.
@@ -90,7 +90,7 @@ fragment ChannelOpeningTransactionFragment on ChannelOpeningTransaction {
 `
 )
 
-// GetFees The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
+// GetFees The fees that were paid by the node for this transaction.
 func (obj ChannelOpeningTransaction) GetFees() *CurrencyAmount {
 	return obj.Fees
 }

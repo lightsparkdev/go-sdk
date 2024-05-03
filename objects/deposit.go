@@ -31,7 +31,7 @@ type Deposit struct {
 	// TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 	TransactionHash *string `json:"deposit_transaction_hash"`
 
-	// Fees The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
+	// Fees The fees that were paid by the node for this transaction.
 	Fees *CurrencyAmount `json:"deposit_fees"`
 
 	// BlockHash The hash of the block that included this transaction. This will be null for unconfirmed transactions.
@@ -90,7 +90,7 @@ fragment DepositFragment on Deposit {
 `
 )
 
-// GetFees The fees that were paid by the wallet sending the transaction to commit it to the Bitcoin blockchain.
+// GetFees The fees that were paid by the node for this transaction.
 func (obj Deposit) GetFees() *CurrencyAmount {
 	return obj.Fees
 }

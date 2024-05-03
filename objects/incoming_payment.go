@@ -45,6 +45,9 @@ type IncomingPayment struct {
 	// UmaPostTransactionData The post transaction data which can be used in KYT payment registration.
 	UmaPostTransactionData *[]PostTransactionData `json:"incoming_payment_uma_post_transaction_data"`
 
+	// IsInternalPayment Whether the payment is made from the same node.
+	IsInternalPayment bool `json:"incoming_payment_is_internal_payment"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -86,6 +89,7 @@ fragment IncomingPaymentFragment on IncomingPayment {
             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
         }
     }
+    incoming_payment_is_internal_payment: is_internal_payment
 }
 `
 )

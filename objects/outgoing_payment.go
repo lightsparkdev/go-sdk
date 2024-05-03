@@ -60,6 +60,9 @@ type OutgoingPayment struct {
 	// PaymentPreimage The preimage of the payment.
 	PaymentPreimage *string `json:"outgoing_payment_payment_preimage"`
 
+	// IsInternalPayment Whether the payment is made to the same node.
+	IsInternalPayment bool `json:"outgoing_payment_is_internal_payment"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -409,6 +412,7 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
         }
     }
     outgoing_payment_payment_preimage: payment_preimage
+    outgoing_payment_is_internal_payment: is_internal_payment
 }
 `
 )
@@ -571,6 +575,9 @@ type OutgoingPaymentJSON struct {
 	// PaymentPreimage The preimage of the payment.
 	PaymentPreimage *string `json:"outgoing_payment_payment_preimage"`
 
+	// IsInternalPayment Whether the payment is made to the same node.
+	IsInternalPayment bool `json:"outgoing_payment_is_internal_payment"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -616,6 +623,8 @@ func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
 	data.UmaPostTransactionData = temp.UmaPostTransactionData
 
 	data.PaymentPreimage = temp.PaymentPreimage
+
+	data.IsInternalPayment = temp.IsInternalPayment
 
 	data.Typename = temp.Typename
 

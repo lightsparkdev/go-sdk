@@ -348,11 +348,11 @@ func (obj LightsparkNodeWithOSK) GetAddresses(requester *requester.Requester, fi
 	return result, nil
 }
 
-func (obj LightsparkNodeWithOSK) GetChannels(requester *requester.Requester, first *int64, statuses *[]ChannelStatus, after *string) (*LightsparkNodeToChannelsConnection, error) {
-	query := `query FetchLightsparkNodeToChannelsConnection($entity_id: ID!, $first: Int, $statuses: [ChannelStatus!], $after: String) {
+func (obj LightsparkNodeWithOSK) GetChannels(requester *requester.Requester, first *int64, after *string, beforeDate *time.Time, afterDate *time.Time, statuses *[]ChannelStatus) (*LightsparkNodeToChannelsConnection, error) {
+	query := `query FetchLightsparkNodeToChannelsConnection($entity_id: ID!, $first: Int, $after: String, $before_date: DateTime, $after_date: DateTime, $statuses: [ChannelStatus!]) {
     entity(id: $entity_id) {
         ... on LightsparkNodeWithOSK {
-            channels(, first: $first, statuses: $statuses, after: $after) {
+            channels(, first: $first, after: $after, before_date: $before_date, after_date: $after_date, statuses: $statuses) {
                 __typename
                 lightspark_node_to_channels_connection_count: count
                 lightspark_node_to_channels_connection_page_info: page_info {
@@ -461,10 +461,12 @@ func (obj LightsparkNodeWithOSK) GetChannels(requester *requester.Requester, fir
     }
 }`
 	variables := map[string]interface{}{
-		"entity_id": obj.Id,
-		"first":     first,
-		"statuses":  statuses,
-		"after":     after,
+		"entity_id":   obj.Id,
+		"first":       first,
+		"after":       after,
+		"before_date": beforeDate,
+		"after_date":  afterDate,
+		"statuses":    statuses,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)

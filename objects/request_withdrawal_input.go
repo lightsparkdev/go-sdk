@@ -14,4 +14,7 @@ type RequestWithdrawalInput struct {
 
 	// WithdrawalMode The strategy that should be used to withdraw the funds from this node.
 	WithdrawalMode WithdrawalMode `json:"request_withdrawal_input_withdrawal_mode"`
+
+	// IdempotencyKey The idempotency key of the request. The same result will be returned for the same idempotency key.
+	IdempotencyKey *string `json:"request_withdrawal_input_idempotency_key"`
 }
