@@ -665,20 +665,8 @@ func (v *Vasp1) handlePubKeyRequest(context *gin.Context) {
 func (v *Vasp1) handleNonUmaLnurlpResponse(
 	lnurlpResponse umaprotocol.LnurlpResponse, receiverId string, receiverDomain string, context *gin.Context) {
 	callbackUuid := v.requestCache.SaveLnurlpResponseData(lnurlpResponse, receiverId, receiverDomain)
-	var serializedCurrencies = []byte("[]")
-	if lnurlpResponse.Currencies != nil && len(*lnurlpResponse.Currencies) == 0 {
-		var err error
-		serializedCurrencies, err = json.Marshal(lnurlpResponse.Currencies)
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"status": "ERROR",
-				"reason": "Failed to serialize currencies",
-			})
-			return
-		}
-	}
 	context.JSON(http.StatusOK, gin.H{
-		"receiverCurrencies": serializedCurrencies,
+		"receiverCurrencies": lnurlpResponse.Currencies,
 		"callbackUuid":       callbackUuid,
 		"maxSendSats":        lnurlpResponse.MaxSendable,
 		"minSendSats":        lnurlpResponse.MinSendable,
