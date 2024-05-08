@@ -65,7 +65,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	}
 
 	var lnurlpRequest *url.URL
-	if strings.HasPrefix(receiverVasp, "$") {
+	if strings.HasPrefix(receiverId, "$") {
 		lnurlpRequest, err = uma.GetSignedLnurlpRequestUrl(
 			signingKey, receiverAddress, v.getVaspDomain(context), true, nil)
 		if err != nil {
@@ -784,10 +784,18 @@ func (v *Vasp1) handleNonUmaPayReq(
 		&invoiceData,
 	)
 
+	amountMsats, err := utils.ValueMilliSatoshi(invoiceData.Amount)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": "Failed to convert amount to millisats",
+		})
+		return
+	}
 	resp := gin.H{
 		"encodedInvoice": payreqResponse.EncodedInvoice,
 		"callbackUuid":   callbackUuid,
-		"amountMsats":    invoiceData.Amount,
+		"amountMsats":    amountMsats,
 		"currencyCode":   currencyCode,
 		"expiresAt":      invoiceData.ExpiresAt.Unix(),
 	}
