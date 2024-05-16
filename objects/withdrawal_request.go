@@ -54,6 +54,9 @@ type WithdrawalRequest struct {
 	// Deprecated: Use `withdrawals` instead.
 	Withdrawal *types.EntityWrapper `json:"withdrawal_request_withdrawal"`
 
+	// IdempotencyKey The idempotency key of the withdrawal request.
+	IdempotencyKey *string `json:"withdrawal_request_idempotency_key"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -112,6 +115,7 @@ fragment WithdrawalRequestFragment on WithdrawalRequest {
     withdrawal_request_withdrawal: withdrawal {
         id
     }
+    withdrawal_request_idempotency_key: idempotency_key
 }
 `
 )

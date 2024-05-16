@@ -11,4 +11,6 @@ type PayUmaInvoiceInput struct {
 	MaximumFeesMsats int64 `json:"pay_uma_invoice_input_maximum_fees_msats"`
 
 	AmountMsats *int64 `json:"pay_uma_invoice_input_amount_msats"`
+
+	IdempotencyKey *string `json:"pay_uma_invoice_input_idempotency_key"`
 }

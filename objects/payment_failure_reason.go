@@ -32,6 +32,8 @@ const (
 	PaymentFailureReasonInvoiceCancelled
 
 	PaymentFailureReasonRiskScreeningFailed
+
+	PaymentFailureReasonInsufficientBalanceOnSinglePathInvoice
 )
 
 func (a *PaymentFailureReason) UnmarshalJSON(b []byte) error {
@@ -64,6 +66,8 @@ func (a *PaymentFailureReason) UnmarshalJSON(b []byte) error {
 		*a = PaymentFailureReasonInvoiceCancelled
 	case "RISK_SCREENING_FAILED":
 		*a = PaymentFailureReasonRiskScreeningFailed
+	case "INSUFFICIENT_BALANCE_ON_SINGLE_PATH_INVOICE":
+		*a = PaymentFailureReasonInsufficientBalanceOnSinglePathInvoice
 
 	}
 	return nil
@@ -96,6 +100,8 @@ func (a PaymentFailureReason) StringValue() string {
 		s = "INVOICE_CANCELLED"
 	case PaymentFailureReasonRiskScreeningFailed:
 		s = "RISK_SCREENING_FAILED"
+	case PaymentFailureReasonInsufficientBalanceOnSinglePathInvoice:
+		s = "INSUFFICIENT_BALANCE_ON_SINGLE_PATH_INVOICE"
 
 	}
 	return s
