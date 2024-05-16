@@ -17,4 +17,7 @@ type PayInvoiceInput struct {
 
 	// AmountMsats The amount you will pay for this invoice, expressed in msats. It should ONLY be set when the invoice amount is zero.
 	AmountMsats *int64 `json:"pay_invoice_input_amount_msats"`
+
+	// IdempotencyKey The idempotency key of the request. The same result will be returned for the same idempotency key.
+	IdempotencyKey *string `json:"pay_invoice_input_idempotency_key"`
 }

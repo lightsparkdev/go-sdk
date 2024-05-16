@@ -1251,6 +1251,7 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
                         }
                         outgoing_payment_payment_preimage: payment_preimage
                         outgoing_payment_is_internal_payment: is_internal_payment
+                        outgoing_payment_idempotency_key: idempotency_key
                     }
                     ... on RoutingTransaction {
                         __typename
@@ -1699,11 +1700,11 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 	return result, nil
 }
 
-func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, afterDate *time.Time, beforeDate *time.Time) (*AccountToWithdrawalRequestsConnection, error) {
-	query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $after_date: DateTime, $before_date: DateTime) {
+func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, idempotencyKeys *[]string, afterDate *time.Time, beforeDate *time.Time) (*AccountToWithdrawalRequestsConnection, error) {
+	query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $idempotency_keys: [String!], $after_date: DateTime, $before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Account {
-            withdrawal_requests(, first: $first, after: $after, bitcoin_networks: $bitcoin_networks, statuses: $statuses, node_ids: $node_ids, after_date: $after_date, before_date: $before_date) {
+            withdrawal_requests(, first: $first, after: $after, bitcoin_networks: $bitcoin_networks, statuses: $statuses, node_ids: $node_ids, idempotency_keys: $idempotency_keys, after_date: $after_date, before_date: $before_date) {
                 __typename
                 account_to_withdrawal_requests_connection_count: count
                 account_to_withdrawal_requests_connection_page_info: page_info {
@@ -1765,6 +1766,7 @@ func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *
                     withdrawal_request_withdrawal: withdrawal {
                         id
                     }
+                    withdrawal_request_idempotency_key: idempotency_key
                 }
             }
         }
@@ -1777,6 +1779,7 @@ func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *
 		"bitcoin_networks": bitcoinNetworks,
 		"statuses":         statuses,
 		"node_ids":         nodeIds,
+		"idempotency_keys": idempotencyKeys,
 		"after_date":       afterDate,
 		"before_date":      beforeDate,
 	}

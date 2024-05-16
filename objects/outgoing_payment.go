@@ -63,6 +63,9 @@ type OutgoingPayment struct {
 	// IsInternalPayment Whether the payment is made to the same node.
 	IsInternalPayment bool `json:"outgoing_payment_is_internal_payment"`
 
+	// IdempotencyKey The idempotency key of the payment.
+	IdempotencyKey *string `json:"outgoing_payment_idempotency_key"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -413,6 +416,7 @@ fragment OutgoingPaymentFragment on OutgoingPayment {
     }
     outgoing_payment_payment_preimage: payment_preimage
     outgoing_payment_is_internal_payment: is_internal_payment
+    outgoing_payment_idempotency_key: idempotency_key
 }
 `
 )
@@ -578,6 +582,9 @@ type OutgoingPaymentJSON struct {
 	// IsInternalPayment Whether the payment is made to the same node.
 	IsInternalPayment bool `json:"outgoing_payment_is_internal_payment"`
 
+	// IdempotencyKey The idempotency key of the payment.
+	IdempotencyKey *string `json:"outgoing_payment_idempotency_key"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -625,6 +632,8 @@ func (data *OutgoingPayment) UnmarshalJSON(dataBytes []byte) error {
 	data.PaymentPreimage = temp.PaymentPreimage
 
 	data.IsInternalPayment = temp.IsInternalPayment
+
+	data.IdempotencyKey = temp.IdempotencyKey
 
 	data.Typename = temp.Typename
 

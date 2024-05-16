@@ -17,4 +17,7 @@ type SendPaymentInput struct {
 
 	// MaximumFeesMsats The maximum amount of fees that you want to pay for this payment to be sent, expressed in msats.
 	MaximumFeesMsats int64 `json:"send_payment_input_maximum_fees_msats"`
+
+	// IdempotencyKey The idempotency key of the request. The same result will be returned for the same idempotency key.
+	IdempotencyKey *string `json:"send_payment_input_idempotency_key"`
 }
