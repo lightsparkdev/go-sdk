@@ -1153,7 +1153,7 @@ func (client *LightsparkClient) FetchIncomingPaymentsByInvoice(invoiceId string,
 func (client *LightsparkClient) FetchOutgoingPaymentsByPaymentHash(
 	paymentHash string,
 	statuses *[]objects.TransactionStatus,
-) (*objects.OutgoingPaymentsForPaymentHashQueryOutput, error) {
+) (*[]objects.OutgoingPayment, error) {
 	variables := map[string]interface{}{
 		"payment_hash": paymentHash,
 		"statuses":     statuses,
@@ -1165,16 +1165,21 @@ func (client *LightsparkClient) FetchOutgoingPaymentsByPaymentHash(
 	}
 
 	output := response["outgoing_payments_for_payment_hash"].(map[string]interface{})
-	var payments objects.OutgoingPaymentsForPaymentHashQueryOutput
-	paymentsJson, err := json.Marshal(output)
-	if err != nil {
-		return nil, errors.New("error parsing payments")
+	paymentsJson := output["payments"].([]interface{})
+	var payments []objects.OutgoingPayment
+	for _, paymentMap := range paymentsJson {
+		var payment objects.OutgoingPayment
+		paymentJson, err := json.Marshal(paymentMap)
+		if err != nil {
+			return nil, errors.New("error parsing payment")
+		}
+		json.Unmarshal(paymentJson, &payment)
+		payments = append(payments, payment)
 	}
-	json.Unmarshal(paymentsJson, &payments)
 	return &payments, nil
 }
 
-func (client *LightsparkClient) FetchOutgoingPaymentsByIdempotencyKey(idempotencyKey string) (*objects.OutgoingPaymentForIdempotencyKeyOutput, error) {
+func (client *LightsparkClient) FetchOutgoingPaymentByIdempotencyKey(idempotencyKey string) (*objects.OutgoingPayment, error) {
 	variables := map[string]interface{}{
 		"idempotency_key": idempotencyKey,
 	}
@@ -1185,16 +1190,19 @@ func (client *LightsparkClient) FetchOutgoingPaymentsByIdempotencyKey(idempotenc
 	}
 
 	output := response["outgoing_payment_for_idempotency_key"].(map[string]interface{})
-	var payments objects.OutgoingPaymentForIdempotencyKeyOutput
-	paymentsJson, err := json.Marshal(output)
+	if output["payment"] == nil {
+		return nil, errors.New("payment not found")
+	}
+	var payment objects.OutgoingPayment
+	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
 	if err != nil {
 		return nil, errors.New("error parsing payments")
 	}
-	json.Unmarshal(paymentsJson, &payments)
-	return &payments, nil
+	json.Unmarshal(paymentJson, &payment)
+	return &payment, nil
 }
 
-func (client *LightsparkClient) FetchInvoiceByPaymentHash(paymentHash string) (*objects.InvoiceForPaymentHashOutput, error) {
+func (client *LightsparkClient) FetchInvoiceByPaymentHash(paymentHash string) (*objects.Invoice, error) {
 	variables := map[string]interface{}{
 		"payment_hash": paymentHash,
 	}
@@ -1205,13 +1213,16 @@ func (client *LightsparkClient) FetchInvoiceByPaymentHash(paymentHash string) (*
 	}
 
 	output := response["invoice_for_payment_hash"].(map[string]interface{})
-	var payments objects.InvoiceForPaymentHashOutput
-	paymentsJson, err := json.Marshal(output)
+	if output["invoice"] == nil {
+		return nil, errors.New("invoice not found")
+	}
+	var invoice objects.Invoice
+	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
 	if err != nil {
 		return nil, errors.New("error parsing invoice response")
 	}
-	json.Unmarshal(paymentsJson, &payments)
-	return &payments, nil
+	json.Unmarshal(invoiceJson, &invoice)
+	return &invoice, nil
 }
 
 func (client *LightsparkClient) FailHtlc(invoiceId string, cancelInvoice bool) (*objects.FailHtlcsOutput, error) {

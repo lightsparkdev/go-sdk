@@ -1,5 +1,14 @@
 # Changelog
 
+# v0.13.0
+- Add idempotency where useful
+  - Add optional PayInvoiceWithIdempotencyKey and RequestWithdrawalWithIdempotencyKey functions to the client.
+  - Add IdempotencyKey field to OutgoingPayment and Withdrawal objects.
+  - Add new FetchOutgoingPaymentsByIdempotencyKey query.
+- Add FailHtlcs function to cancel pending htlcs (for example for HODL invoices).
+- Add FetchInvoiceByPaymentHash and FetchOutgoingPaymentsByPaymentHash to get all outgoing payments for a specific hash.
+- Update objects from graphql schema.
+
 # v0.12.0
 - Add `RequestError`, `GraphQLInternalError` and, `GraphQLError` to the client to better differentiate between different types of errors.
 

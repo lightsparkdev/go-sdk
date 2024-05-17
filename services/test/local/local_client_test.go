@@ -74,6 +74,13 @@ func TestCreateTestInvoiceNode1(t *testing.T) {
 		t.Error("Payment failed")
 	}
 	t.Log(payment)
+
+	invoiceData := (*payment.PaymentRequestData).(objects.InvoiceData)
+	payments, err := client.FetchOutgoingPaymentsByPaymentHash(invoiceData.PaymentHash, nil)
+	require.NoError(t, err)
+	t.Log(payments)
+	require.Equal(t, 1, len(*payments))
+	require.Equal(t, payment.Id, (*payments)[0].Id)
 }
 
 // Create test invoice from routing node and pay it from node 2.
