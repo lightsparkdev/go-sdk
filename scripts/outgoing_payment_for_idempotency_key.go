@@ -9,8 +9,10 @@ query OutgoingPaymentForIdempotencyKey(
 	outgoing_payment_for_idempotency_key(input: {
 		idempotency_key: $idempotency_key
 	}) {
-		...OutgoingPaymentForIdempotencyKeyOutputFragment
+		payment {
+			...OutgoingPaymentFragment
+		}
 	}
 }
 
-` + objects.OutgoingPaymentForIdempotencyKeyOutputFragment
+` + objects.OutgoingPaymentFragment
