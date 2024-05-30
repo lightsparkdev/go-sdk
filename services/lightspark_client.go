@@ -659,7 +659,7 @@ func (client *LightsparkClient) PayUmaInvoice(nodeId string, encodedInvoice stri
 func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int64,
 	bitcoinAddress string, withdrawalMode objects.WithdrawalMode,
 ) (*objects.WithdrawalRequest, error) {
-	return client.RequestWithdrawalWithIdempotencyKey(nodeId, amountSats, bitcoinAddress, withdrawalMode, nil)
+	return client.RequestWithdrawalWithIdempotencyKeyAndFee(nodeId, amountSats, bitcoinAddress, withdrawalMode, nil, nil, nil)
 }
 
 // RequestWithdrawalWithIdempotencyKey withdraws funds from the account and sends it to the requested
@@ -683,6 +683,36 @@ func (client *LightsparkClient) RequestWithdrawal(nodeId string, amountSats int6
 func (client *LightsparkClient) RequestWithdrawalWithIdempotencyKey(nodeId string, amountSats int64,
 	bitcoinAddress string, withdrawalMode objects.WithdrawalMode, idempotencyKey *string,
 ) (*objects.WithdrawalRequest, error) {
+	return client.RequestWithdrawalWithIdempotencyKeyAndFee(nodeId, amountSats, bitcoinAddress, withdrawalMode, idempotencyKey, nil, nil)
+}
+
+// RequestWithdrawalWithIdempotencyKeyAndFee withdraws funds from the account and sends it to the
+// requested bitcoin address. Depending on the chosen mode, it will first take the funds from
+// the wallet, and if applicable, close channels appropriately to recover enough
+// funds.
+// The process is asynchronous and may take up to a few minutes.
+// You can check the progress by polling the `WithdrawalRequest`
+// that is created, or by subscribing to a webhook.
+//
+// Args:
+//
+//		nodeId: The node from which you'd like to make the withdrawal.
+//		amountSats: The amount you want to withdraw from this node in Satoshis.
+//			Use the special value -1 to withdrawal all funds from this node.
+//		bitcoinAddress: The bitcoin address where you want to receive the funds.
+//		withdrawalMode: The mode that will be used to withdraw the funds.
+//	 idempotencyKey: A unique key that identifies this withdrawal. If a withdrawal with the same idempotency key has
+//			  already been made, the same WithdrawalRequest will be returned. This must be unique for each payment. If
+//			  you do not have a specific idempotency requirement, you can pass nil or just use `RequestWithdrawal`.
+//    feeTarget: The target of the fee that should be used when crafting the L1 transaction. You 
+//         should only set `feeTarget` or `satsPerVByte`. If neither of them is set, default 
+//         value of MEDIUM will be used as `feeTarget`.
+//    satsPerVByte: A manual fee rate set in sat/vbyte that should be used when crafting the L1 
+//         transaction. You should only set `feeTarget` or `satsPerVByte`
+func (client *LightsparkClient) RequestWithdrawalWithIdempotencyKeyAndFee(nodeId string, amountSats int64,
+	bitcoinAddress string, withdrawalMode objects.WithdrawalMode, idempotencyKey *string, 
+	feeTarget *objects.OnChainFeeTarget, satsPerVbyte *int,
+) (*objects.WithdrawalRequest, error) {
 	variables := map[string]interface{}{
 		"node_id":         nodeId,
 		"amount_sats":     amountSats,
@@ -692,6 +722,14 @@ func (client *LightsparkClient) RequestWithdrawalWithIdempotencyKey(nodeId strin
 
 	if idempotencyKey != nil {
 		variables["idempotency_key"] = *idempotencyKey
+	}
+
+	if feeTarget != nil && satsPerVbyte != nil {
+		return nil, errors.New("feeTarget and satsPerVbyte cannot be set at the same time")
+	} else if feeTarget != nil {
+		variables["fee_target"] = *feeTarget
+	} else if satsPerVbyte != nil {
+		variables["sats_per_vbyte"] = *satsPerVbyte
 	}
 
 	signingKey, err := client.getNodeSigningKey(nodeId)

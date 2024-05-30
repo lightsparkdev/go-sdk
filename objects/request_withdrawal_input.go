@@ -17,4 +17,10 @@ type RequestWithdrawalInput struct {
 
 	// IdempotencyKey The idempotency key of the request. The same result will be returned for the same idempotency key.
 	IdempotencyKey *string `json:"request_withdrawal_input_idempotency_key"`
+
+	// FeeTarget The target of the fee that should be used when crafting the L1 transaction. You should only set `fee_target` or `sats_per_vbyte`. If neither of them is set, default value of MEDIUM will be used as `fee_target`.
+	FeeTarget *OnChainFeeTarget `json:"request_withdrawal_input_fee_target"`
+
+	// SatsPerVbyte A manual fee rate set in sat/vbyte that should be used when crafting the L1 transaction. You should only set `fee_target` or `sats_per_vbyte`
+	SatsPerVbyte *int64 `json:"request_withdrawal_input_sats_per_vbyte"`
 }

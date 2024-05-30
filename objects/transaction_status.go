@@ -11,7 +11,7 @@ type TransactionStatus int
 const (
 	TransactionStatusUndefined TransactionStatus = iota
 
-	// TransactionStatusSuccess Transaction succeeded..
+	// TransactionStatusSuccess Transaction succeeded.
 	TransactionStatusSuccess
 	// TransactionStatusFailed Transaction failed.
 	TransactionStatusFailed
