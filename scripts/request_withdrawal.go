@@ -10,6 +10,8 @@ mutation RequestWithdrawal(
     $bitcoin_address: String!
     $withdrawal_mode: WithdrawalMode!
 	$idempotency_key: String
+	$fee_target: OnChainFeeTarget
+	$sats_per_vbyte: Int
 ) {
     request_withdrawal(input: {
         node_id: $node_id
@@ -17,6 +19,8 @@ mutation RequestWithdrawal(
         bitcoin_address: $bitcoin_address
         withdrawal_mode: $withdrawal_mode
 		idempotency_key: $idempotency_key
+		fee_target: $fee_target
+		sats_per_vbyte: $sats_per_vbyte
     }) {
         request {
             ...WithdrawalRequestFragment
