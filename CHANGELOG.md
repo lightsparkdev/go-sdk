@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.14.0
+- Add a function to specifiy fess for request withdrawal.
+
 # v0.13.0
 - Add idempotency where useful
   - Add optional PayInvoiceWithIdempotencyKey and RequestWithdrawalWithIdempotencyKey functions to the client.
