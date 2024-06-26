@@ -1,11 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 // LightsparkNodeOwner This is an object representing the owner of a LightsparkNode.
 type LightsparkNodeOwner interface {
 	Entity

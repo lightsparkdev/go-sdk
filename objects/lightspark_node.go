@@ -1,13 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/lightsparkdev/go-sdk/types"
-)
-
 // LightsparkNode This is an object representing a node managed by Lightspark and owned by the current connected account. This object contains information about the node’s configuration, state, and metadata.
 type LightsparkNode interface {
 	Node

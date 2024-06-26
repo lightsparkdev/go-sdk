@@ -9,4 +9,6 @@ type CreateUmaInvoiceInput struct {
 	MetadataHash string `json:"create_uma_invoice_input_metadata_hash"`
 
 	ExpirySecs *int64 `json:"create_uma_invoice_input_expiry_secs"`
+
+	ReceiverHash *string `json:"create_uma_invoice_input_receiver_hash"`
 }

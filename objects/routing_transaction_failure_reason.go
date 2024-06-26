@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // RoutingTransactionFailureReason This is an enum of the potential reasons that an attempted routed transaction through a Lightspark node may have failed.

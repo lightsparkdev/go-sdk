@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // TransactionStatus This is an enum of the potential statuses a transaction associated with your Lightspark Node can take.

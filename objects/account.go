@@ -1,12 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-)
+import "time"
 
 // Account This is an object representing the connected Lightspark account. You can retrieve this object to see your account information and objects tied to your account.
 type Account struct {
@@ -1767,6 +1762,7 @@ func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *
                         id
                     }
                     withdrawal_request_idempotency_key: idempotency_key
+                    withdrawal_request_initiator: initiator
                 }
             }
         }

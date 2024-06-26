@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // IncentivesIneligibilityReason Describes the reason for an invitation to not be eligible for incentives.

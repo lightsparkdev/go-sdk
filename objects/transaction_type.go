@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // TransactionType This is an enum of the potential types of transactions that can be associated with your Lightspark Node.

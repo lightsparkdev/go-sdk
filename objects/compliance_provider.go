@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // ComplianceProvider This is an enum identifying a type of compliance provider.

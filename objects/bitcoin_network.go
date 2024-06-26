@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // BitcoinNetwork This is an enum identifying a particular Bitcoin Network.
