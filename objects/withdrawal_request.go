@@ -1,13 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // WithdrawalRequest This object represents a request made for an L1 withdrawal from your Lightspark Node to any Bitcoin wallet. You can retrieve this object to receive detailed information about any withdrawal request made from your Lightspark account.
 type WithdrawalRequest struct {
@@ -56,6 +50,9 @@ type WithdrawalRequest struct {
 
 	// IdempotencyKey The idempotency key of the withdrawal request.
 	IdempotencyKey *string `json:"withdrawal_request_idempotency_key"`
+
+	// Initiator The initiator of the withdrawal.
+	Initiator RequestInitiator `json:"withdrawal_request_initiator"`
 
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
@@ -116,6 +113,7 @@ fragment WithdrawalRequestFragment on WithdrawalRequest {
         id
     }
     withdrawal_request_idempotency_key: idempotency_key
+    withdrawal_request_initiator: initiator
 }
 `
 )

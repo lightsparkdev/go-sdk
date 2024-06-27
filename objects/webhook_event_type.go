@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // WebhookEventType This is an enum of the potential event types that can be associated with your Lightspark wallets.

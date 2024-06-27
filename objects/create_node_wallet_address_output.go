@@ -1,8 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
-
 type CreateNodeWalletAddressOutput struct {
 	Node types.EntityWrapper `json:"create_node_wallet_address_output_node"`
 
