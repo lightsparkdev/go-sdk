@@ -1767,6 +1767,7 @@ func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *
                         id
                     }
                     withdrawal_request_idempotency_key: idempotency_key
+                    withdrawal_request_initiator: initiator
                 }
             }
         }

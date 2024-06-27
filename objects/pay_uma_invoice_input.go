@@ -13,4 +13,7 @@ type PayUmaInvoiceInput struct {
 	AmountMsats *int64 `json:"pay_uma_invoice_input_amount_msats"`
 
 	IdempotencyKey *string `json:"pay_uma_invoice_input_idempotency_key"`
+
+	// SenderHash An optional, monthly-rotated, unique hashed identifier corresponding to the sender of the payment.
+	SenderHash *string `json:"pay_uma_invoice_input_sender_hash"`
 }
