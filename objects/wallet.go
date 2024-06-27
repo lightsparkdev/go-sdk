@@ -1140,6 +1140,7 @@ func (obj Wallet) GetWithdrawalRequests(requester *requester.Requester, first *i
                         id
                     }
                     withdrawal_request_idempotency_key: idempotency_key
+                    withdrawal_request_initiator: initiator
                 }
             }
         }
