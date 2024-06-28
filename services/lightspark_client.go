@@ -7,8 +7,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/lightsparkdev/go-sdk/crypto"
 	"github.com/lightsparkdev/go-sdk/objects"
@@ -206,6 +208,35 @@ func (client *LightsparkClient) CreateLnurlInvoice(nodeId string, amountMsats in
 func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int64,
 	metadata string, expirySecs *int32,
 ) (*objects.Invoice, error) {
+	return client.CreateUmaInvoiceWithReceiverIdentifier(nodeId, amountMsats, metadata, expirySecs, nil, nil)
+}
+
+// CreateUmaInvoiceWithReceiverIdentifier creates a new invoice for the UMA protocol. The metadata is hashed and
+// included in the invoice. This API generates a Lightning Invoice (follows the Bolt 11 specification) to request
+// a payment from another Lightning Node. This should only be used for generating invoices for UMA, with
+// `create_invoice` preferred in the general case.
+//
+// Args:
+//
+//		nodeId: the id of the node that should be paid
+//		amountMsats: the amount of the invoice in millisatoshis
+//		metadata: the metadata to include with the invoice
+//	 	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day)
+//	 	signingPrivateKey: the receiver's signing private key. Used to hash the receiver identifier.
+//	 	receiverIdentifier: optional identifier of the receiver. If provided, this will be hashed using a
+// 			monthly-rotated seed and used for anonymized analysis.
+func (client *LightsparkClient) CreateUmaInvoiceWithReceiverIdentifier(nodeId string, amountMsats int64,
+	metadata string, expirySecs *int32, signingPrivateKey *[]byte, receiverIdentifier *string,
+) (*objects.Invoice, error) {
+	var receiverHash *string
+	if receiverIdentifier != nil {
+		if signingPrivateKey == nil {
+			return nil, errors.New("receiver identifier provided without signing private key")
+		}
+		receiverHashVal := HashUmaIdentifier(*receiverIdentifier, *signingPrivateKey, time.Now())
+		receiverHash = &receiverHashVal
+	}
+
 	variables := map[string]interface{}{
 		"amount_msats":  amountMsats,
 		"node_id":       nodeId,
@@ -213,6 +244,9 @@ func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int6
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs
+	}
+	if receiverHash != nil {
+		variables["receiver_hash"] = receiverHash
 	}
 	response, err := client.ExecuteGraphql(scripts.CREATE_UMA_INVOICE_MUTATION, variables, nil)
 	if err != nil {
@@ -612,6 +646,36 @@ func (client *LightsparkClient) PayInvoiceWithIdempotencyKey(nodeId string, enco
 func (client *LightsparkClient) PayUmaInvoice(nodeId string, encodedInvoice string,
 	timeoutSecs int, maximumFeesMsats int64, amountMsats *int64,
 ) (*objects.OutgoingPayment, error) {
+	return client.PayUmaInvoiceWithSenderIdentifier(nodeId, encodedInvoice, timeoutSecs, maximumFeesMsats, amountMsats, nil, nil)
+}
+
+// PayUmaInvoice sends an UMA payment to a node on the Lightning Network, based on the invoice
+// (as defined by the BOLT11 specification) that you provide.
+// This should only be used for paying UMA invoices, with `pay_invoice` preferred in the general case.
+//
+// Args:
+//
+//	nodeId: The node from where you want to send the payment.
+//	encodedInvoice: The invoice you want to pay (as defined by the BOLT11 standard).
+//	timeoutSecs: The number of seconds that you are willing to wait for the payment to complete.
+//	maximumFeesMsats: The maximum amount of fees that you are willing to pay for this payment, expressed in mSATs.
+//	amountMsats: The amount you will pay for this invoice, expressed in msats.
+//		It should ONLY be set when the invoice amount is zero.
+//	signingPrivateKey: the sender's signing private key. Used to hash the sender identifier.
+//	senderIdentifier: optional identifier of the sender. If provided, this will be hashed using a
+//		monthly-rotated seed and used for anonymized analysis.
+func (client *LightsparkClient) PayUmaInvoiceWithSenderIdentifier(nodeId string, encodedInvoice string,
+	timeoutSecs int, maximumFeesMsats int64, amountMsats *int64, signingPrivateKey *[]byte, senderIdentifier *string,
+) (*objects.OutgoingPayment, error) {
+	var senderHash *string
+	if senderIdentifier != nil {
+		if signingPrivateKey == nil {
+			return nil, errors.New("receiver identifier provided without signing private key")
+		}
+		senderHashVal := HashUmaIdentifier(*senderIdentifier, *signingPrivateKey, time.Now())
+		senderHash = &senderHashVal
+	}
+
 	variables := map[string]interface{}{
 		"node_id":            nodeId,
 		"encoded_invoice":    encodedInvoice,
@@ -620,6 +684,9 @@ func (client *LightsparkClient) PayUmaInvoice(nodeId string, encodedInvoice stri
 	}
 	if amountMsats != nil {
 		variables["amount_msats"] = amountMsats
+	}
+	if senderHash != nil {
+		variables["sender_hash"] = senderHash
 	}
 	signingKey, err := client.getNodeSigningKey(nodeId)
 	if err != nil {
@@ -1298,6 +1365,13 @@ func hashPhoneNumber(e614PhoneNumber string) (*string, error) {
 	hash := sha256.Sum256([]byte(e614PhoneNumber))
 	hashString := hex.EncodeToString(hash[:])
 	return &hashString, nil
+}
+
+func HashUmaIdentifier(identifier string, signingPrivateKey []byte, now time.Time) string {
+	formattedDate := fmt.Sprintf("%d-%d", int(now.Month()), now.Year())
+	inputData := identifier + formattedDate + hex.EncodeToString(signingPrivateKey)
+	hash := sha256.Sum256([]byte(inputData))
+	return hex.EncodeToString(hash[:])
 }
 
 // getNodeSigningKey returns the signing key of a node.
