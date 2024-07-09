@@ -290,6 +290,16 @@ func ParseReleasePaymentPreimageRequest(webhook webhooks.WebhookEvent) (*Release
 	request := ReleasePaymentPreimageRequest{
 		InvoiceId:      invoiceId.(string),
 		BitcoinNetwork: network,
+		IsUma:          false,
+		IsLnurl:        false,
+	}
+
+	if (*webhook.Data)["is_uma"] != nil {
+		request.IsUma = (*webhook.Data)["is_uma"].(bool)
+	}
+
+	if (*webhook.Data)["is_lnurl"] != nil {
+		request.IsLnurl = (*webhook.Data)["is_lnurl"].(bool)
 	}
 
 	if nonce != nil {
@@ -445,6 +455,8 @@ type ReleasePaymentPreimageRequest struct {
 	InvoiceId      string
 	Nonce          *string
 	BitcoinNetwork objects.BitcoinNetwork
+	IsUma          bool
+	IsLnurl        bool
 }
 
 func (r *ReleasePaymentPreimageRequest) Type() objects.RemoteSigningSubEventType {
@@ -456,7 +468,7 @@ type ReleaseCounterpartyPerCommitmentSecretRequest struct {
 	ChannelId              string
 	PerCommitmentSecretIdx uint64
 	PerCommitmentSecret    string
-	NodeId                string
+	NodeId                 string
 }
 
 func (r *ReleaseCounterpartyPerCommitmentSecretRequest) Type() objects.RemoteSigningSubEventType {
@@ -475,7 +487,7 @@ type SigningJob struct {
 	MulTweak       *string `json:"mul_tweak"`
 	Script         *string `json:"script"`
 	Transaction    *string `json:"transaction"`
-	Amount 	       *int64 `json:"amount"`
+	Amount         *int64  `json:"amount"`
 }
 
 func (j *SigningJob) MulTweakBytes() ([]byte, error) {

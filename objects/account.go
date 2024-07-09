@@ -1672,6 +1672,8 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
                             currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
                             currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
                         }
+                        invoice_is_uma: is_uma
+                        invoice_is_lnurl: is_lnurl
                     }
                 }
             }

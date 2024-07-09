@@ -1,7 +1,11 @@
 package remotesigning_test
 
 import (
+	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/webhooks"
+	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 
 	"github.com/lightsparkdev/go-sdk/remotesigning"
 )
@@ -15,4 +19,26 @@ func TestGetPaymentHashFromScript(t *testing.T) {
 	if *paymentHash != "0b6ae907cf1ed5e44a49ebadf31c623faa057b58" {
 		t.Fatalf("payment hash not equal: %v vs. %v", *paymentHash, "0b6ae907cf1ed5e44a49ebadf31c623faa057b58")
 	}
+}
+
+func TestParseReleasePaymentPreimage(t *testing.T) {
+	webhookEvent := webhooks.WebhookEvent{
+		EventType: objects.WebhookEventTypeRemoteSigning,
+		EventId:   "event-id",
+		Timestamp: time.Now(),
+		EntityId:  "Node:node-id",
+		WalletId:  nil,
+		Data: &map[string]interface{}{
+			"sub_event_type":  objects.RemoteSigningSubEventTypeReleasePaymentPreimage.StringValue(),
+			"invoice_id":      "invoice-id",
+			"bitcoin_network": "MAINNET",
+			"is_uma":          true,
+		},
+	}
+
+	parsedRequest, err := remotesigning.ParseReleasePaymentPreimageRequest(webhookEvent)
+	assert.NoError(t, err)
+	assert.Equal(t, "invoice-id", parsedRequest.InvoiceId)
+	assert.True(t, parsedRequest.IsUma)
+	assert.False(t, parsedRequest.IsLnurl)
 }

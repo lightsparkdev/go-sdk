@@ -509,6 +509,8 @@ const (
 	RegionCodeZm
 	// RegionCodeZw The code representing the country of Zimbabwe.
 	RegionCodeZw
+	// RegionCodeNn The code representing a fake region for testing.
+	RegionCodeNn
 )
 
 func (a *RegionCode) UnmarshalJSON(b []byte) error {
@@ -1017,6 +1019,8 @@ func (a *RegionCode) UnmarshalJSON(b []byte) error {
 		*a = RegionCodeZm
 	case "ZW":
 		*a = RegionCodeZw
+	case "NN":
+		*a = RegionCodeNn
 
 	}
 	return nil
@@ -1525,6 +1529,8 @@ func (a RegionCode) StringValue() string {
 		s = "ZM"
 	case RegionCodeZw:
 		s = "ZW"
+	case RegionCodeNn:
+		s = "NN"
 
 	}
 	return s
