@@ -24,6 +24,12 @@ type Invoice struct {
 	// AmountPaid The total amount that has been paid to this invoice.
 	AmountPaid *CurrencyAmount `json:"invoice_amount_paid"`
 
+	// IsUma Whether this invoice is an UMA invoice or not. NOTE: this field is only set if the invoice was created using the recommended `create_uma_invoice` function.
+	IsUma *bool `json:"invoice_is_uma"`
+
+	// IsLnurl Whether this invoice is an LNURL invoice or not. NOTE: this field is only set if the invoice was created using the recommended `create_lnurl_invoice` function.
+	IsLnurl *bool `json:"invoice_is_lnurl"`
+
 	// Typename The typename of the object
 	Typename string `json:"__typename"`
 }
@@ -335,6 +341,8 @@ fragment InvoiceFragment on Invoice {
         currency_amount_preferred_currency_value_rounded: preferred_currency_value_rounded
         currency_amount_preferred_currency_value_approx: preferred_currency_value_approx
     }
+    invoice_is_uma: is_uma
+    invoice_is_lnurl: is_lnurl
 }
 `
 )
