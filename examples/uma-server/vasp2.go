@@ -11,6 +11,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gin-gonic/gin"
+	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
 	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
@@ -531,10 +532,23 @@ type LightsparkClientUmaInvoiceCreator struct {
 	NodeId string
 	// ExpirySecs: the number of seconds until the invoice expires.
 	ExpirySecs *int32
+	// EnableUmaAnalytics: A flag indicating whether UMA analytics should be enabled. If `true`,
+	// the receiver identifier will be hashed using a monthly-rotated seed and used for anonymized
+	// analysis.
+	EnableUmaAnalytics bool
+	// SigningPrivateKey: Optional, the receiver's signing private key. Used to hash the receiver
+	// identifier if UMA analytics is enabled.
+	SigningPrivateKey *[]byte
 }
 
-func (l LightsparkClientUmaInvoiceCreator) CreateInvoice(amountMsats int64, metadata string) (*string, error) {
-	invoice, err := l.LightsparkClient.CreateUmaInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
+func (l LightsparkClientUmaInvoiceCreator) CreateInvoice(amountMsats int64, metadata string, receiverIdentifier *string) (*string, error) {
+	var invoice *objects.Invoice
+	var err error
+	if l.EnableUmaAnalytics && l.SigningPrivateKey != nil {
+		invoice, err = l.LightsparkClient.CreateUmaInvoiceWithReceiverIdentifier(l.NodeId, amountMsats, metadata, l.ExpirySecs, l.SigningPrivateKey, receiverIdentifier)
+	} else {
+		invoice, err = l.LightsparkClient.CreateUmaInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -549,7 +563,7 @@ type LightsparkClientLnurlInvoiceCreator struct {
 	ExpirySecs *int32
 }
 
-func (l LightsparkClientLnurlInvoiceCreator) CreateInvoice(amountMsats int64, metadata string) (*string, error) {
+func (l LightsparkClientLnurlInvoiceCreator) CreateInvoice(amountMsats int64, metadata string, receiverIdentifier *string) (*string, error) {
 	invoice, err := l.LightsparkClient.CreateLnurlInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
 	if err != nil {
 		return nil, err
