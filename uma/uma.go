@@ -2,6 +2,7 @@
 package uma
 
 import (
+	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 )
 
@@ -14,10 +15,23 @@ type LightsparkClientUmaInvoiceCreator struct {
 	NodeId string
 	// ExpirySecs: the number of seconds until the invoice expires.
 	ExpirySecs *int32
+	// EnableUmaAnalytics: A flag indicating whether UMA analytics should be enabled. If `true`,
+	// the receiver identifier will be hashed using a monthly-rotated seed and used for anonymized
+	// analysis.
+	EnableUmaAnalytics bool
+	// SigningPrivateKey: Optional, the receiver's signing private key. Used to hash the receiver
+	// identifier if UMA analytics is enabled.
+	SigningPrivateKey *[]byte
 }
 
-func (l LightsparkClientUmaInvoiceCreator) CreateUmaInvoice(amountMsats int64, metadata string) (*string, error) {
-	invoice, err := l.LightsparkClient.CreateUmaInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
+func (l LightsparkClientUmaInvoiceCreator) CreateInvoice(amountMsats int64, metadata string, receiverIdentifier *string) (*string, error) {
+	var invoice *objects.Invoice
+	var err error
+	if l.EnableUmaAnalytics && l.SigningPrivateKey != nil {
+		invoice, err = l.LightsparkClient.CreateUmaInvoiceWithReceiverIdentifier(l.NodeId, amountMsats, metadata, l.ExpirySecs, l.SigningPrivateKey, receiverIdentifier)
+	} else {
+		invoice, err = l.LightsparkClient.CreateUmaInvoice(l.NodeId, amountMsats, metadata, l.ExpirySecs)
+	}
 	if err != nil {
 		return nil, err
 	}
