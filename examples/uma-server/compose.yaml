@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    hostname: vasp.local
+    ports:
+      - "8000:80"
+    depends_on:
+      - uma-nwc-server
+    environment:
+      - PORT=80
+    env_file: local.env
+
+  uma-nwc-server:
+    image: ghcr.io/uma-universal-money-address/uma-nwc-server:main
+    hostname: nwc.local
+    ports:
+      - "8080:8081"
+    environment:
+      # Replace this with your own config if you want to run this in production or configure different variables.
+      - QUART_CONFIG=/etc/nwc/local_nwc_config.py
+    volumes:
+      - ./nwc_config:/etc/nwc
+      - ./nwc_db:/app/instance
+    working_dir: /app
+    entrypoint: sh -c "alembic upgrade head && gunicorn -b 0.0.0.0:8081 -k uvicorn.workers.UvicornWorker nwc_backend.server:app"
