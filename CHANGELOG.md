@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.15.1
+- Fix: Remove default null param on `PayUmaInvoice` graphql
+
 # v0.15.0
 - Add `is_uma` and `is_lnurl` to the Invoice object and `RELEASE_PAYMENT_PREIMAGE` webhook data.
 - Add extra params to `CreateUmaInvoice` and `PayUmaInvoice` for analytics
