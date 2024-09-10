@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"log"
+	"net/http"
 	"os"
 	"time"
 )
@@ -75,6 +78,17 @@ func main() {
 	engine.GET("api/uma/utxocallback", func(c *gin.Context) {
 		// It doesn't matter which vasp protocol handles this since they share a config and cache.
 		vasp2.handleUtxoCallback(c)
+	})
+
+	engine.POST("/.well-known/uma-configuration", func(c *gin.Context) {
+		scheme := "https"
+		if umautils.IsDomainLocalhost(c.Request.Host) {
+			scheme = "http"
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"uma_major_versions":   uma.GetSupportedMajorVersions(),
+			"uma_request_endpoint": fmt.Sprintf("%s://%s/api/uma/request_pay_invoice", scheme, c.Request.Host),
+		})
 	})
 
 	port := os.Getenv("PORT")
