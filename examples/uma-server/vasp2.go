@@ -14,6 +14,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
@@ -484,6 +485,101 @@ func (v *Vasp2) handleUtxoCallback(context *gin.Context) {
 	log.Info("Received UTXO callback", "txId", txId, "callbackData", callbackData)
 
 	context.Status(http.StatusOK)
+}
+
+func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
+	uuid := context.Param("uuid")
+	if uuid != v.config.UserID {
+		context.JSON(http.StatusNotFound, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("User not found: %s", uuid),
+		})
+		return
+	}
+
+	var requestBody struct {
+		Amount       int64  `json:"amount"`
+		CurrencyCode string `json:"currency_code"`
+	}
+	if err := context.BindJSON(&requestBody); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Invalid request body: %v", err),
+		})
+		return
+	}
+
+	if requestBody.CurrencyCode == "" {
+		requestBody.CurrencyCode = "SAT"
+	}
+
+	receiverCurrencies := []umaprotocol.Currency{}
+	currencies := []umaprotocol.Currency{UsdCurrency, SatsCurrency}
+	for _, currency := range currencies {
+		if currency.Code == requestBody.CurrencyCode {
+			receiverCurrencies = append(receiverCurrencies, currency)
+		}
+	}
+	if len(receiverCurrencies) == 0 {
+		context.JSON(http.StatusBadRequest, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("User does not support currency %s", requestBody.CurrencyCode),
+		})
+		return
+	}
+	currency := receiverCurrencies[0]
+
+	twoDaysFromNow := time.Now().Add(48 * time.Hour)
+	callback := v.getLnurlpCallback(context)
+
+	payerDataOptions := umaprotocol.CounterPartyDataOptions{
+		umaprotocol.CounterPartyDataFieldName.String():       {Mandatory: false},
+		umaprotocol.CounterPartyDataFieldEmail.String():      {Mandatory: false},
+		umaprotocol.CounterPartyDataFieldIdentifier.String(): {Mandatory: true},
+		umaprotocol.CounterPartyDataFieldCompliance.String(): {Mandatory: true},
+	}
+
+	privateKey, err := v.config.UmaSigningPrivKeyBytes()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to get UMA signing private key: %v", err),
+		})
+		return
+	}
+
+	invoice, err := uma.CreateUmaInvoice(
+		"$" + v.config.Username+"@"+v.getVaspDomain(context),
+		uint64(requestBody.Amount),
+		protocol.InvoiceCurrency{
+			Code:     currency.Code,
+			Decimals: uint8(currency.Decimals),
+			Symbol: currency.Symbol,
+			Name: currency.Name,
+		},
+		uint64(twoDaysFromNow.Unix()),
+		callback,
+		true,
+		&payerDataOptions,
+		nil,
+		nil,
+		nil,
+		nil,
+		privateKey,
+	)
+
+	invoiceString, err := invoice.ToBech32String()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{
+		"invoice": invoiceString,
+	})
 }
 
 func (v *Vasp2) getVaspDomain(context *gin.Context) string {

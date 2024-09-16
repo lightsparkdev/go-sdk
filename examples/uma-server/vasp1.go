@@ -5,13 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/lightsparkdev/go-sdk/objects"
-	"github.com/lightsparkdev/go-sdk/services"
-	"github.com/lightsparkdev/go-sdk/utils"
-	"github.com/uma-universal-money-address/uma-go-sdk/uma"
-	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
-	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"io"
 	"log"
 	"net/http"
@@ -20,6 +13,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/lightsparkdev/go-sdk/objects"
+	"github.com/lightsparkdev/go-sdk/services"
+	"github.com/lightsparkdev/go-sdk/utils"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
+	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
 
 // Vasp1 is an implementation of the sending VASP in the UMA protocol.
