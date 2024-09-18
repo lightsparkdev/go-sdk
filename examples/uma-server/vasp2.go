@@ -559,34 +559,34 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 	url := senderVaspDomain + "/.well-known/uma-configuration"
 
 	resp, err := http.Get(url)
-    if err != nil {
-        fmt.Println("Error making GET request:", err)
-        return
-    }
+	if err != nil {
+		fmt.Println("Error making GET request:", err)
+		return
+	}
 	defer resp.Body.Close()
 
-	    type UmaConfig struct {
-        UmaRequestEndpoint string `json:"uma_request_endpoint"`
-    }
+	type UmaConfig struct {
+		UmaRequestEndpoint string `json:"uma_request_endpoint"`
+	}
 
-    var config UmaConfig
+	var config UmaConfig
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
-    if err != nil {
-        fmt.Println("Error reading response body:", err)
-        return
-    }
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
 
-    // Parse the JSON response
-    err = json.Unmarshal(body, &config)
-    if err != nil {
-        fmt.Println("Error parsing JSON response:", err)
-        return
-    }
+	// Parse the JSON response
+	err = json.Unmarshal(body, &config)
+	if err != nil {
+		fmt.Println("Error parsing JSON response:", err)
+		return
+	}
 
 	requestEndpoint := config.UmaRequestEndpoint
-	
+
 	// Step 3: Send the invoice to the sender's request URL.
 	// Make a POST request to the sender's request URL.
 	// The invoice is sent in the request body json "invoice" field.
@@ -632,9 +632,9 @@ func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.
 	}
 
 	var requestBody struct {
-		Amount       int64  `json:"amount"`
-		CurrencyCode string `json:"currency_code"`
-		SenderUma   *string `json:"sender_uma"`
+		Amount       int64   `json:"amount"`
+		CurrencyCode string  `json:"currency_code"`
+		SenderUma    *string `json:"sender_uma"`
 	}
 	if err := context.BindJSON(&requestBody); err != nil {
 		return nil, err
@@ -676,13 +676,13 @@ func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.
 	}
 
 	invoice, err := uma.CreateUmaInvoice(
-		"$" + v.config.Username+"@"+v.getVaspDomain(context),
+		"$"+v.config.Username+"@"+v.getVaspDomain(context),
 		uint64(requestBody.Amount),
 		umaprotocol.InvoiceCurrency{
 			Code:     currency.Code,
 			Decimals: uint8(currency.Decimals),
-			Symbol: currency.Symbol,
-			Name: currency.Name,
+			Symbol:   currency.Symbol,
+			Name:     currency.Name,
 		},
 		uint64(twoDaysFromNow.Unix()),
 		callback,
