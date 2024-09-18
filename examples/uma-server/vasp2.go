@@ -586,9 +586,7 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
     }
 
 	requestEndpoint := config.UmaRequestEndpoint
-
-	requestURL := senderVaspDomain + requestEndpoint
-
+	
 	// Step 3: Send the invoice to the sender's request URL.
 	// Make a POST request to the sender's request URL.
 	// The invoice is sent in the request body json "invoice" field.
@@ -614,7 +612,7 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 		return
 	}
 
-	resp, err = http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
+	resp, err = http.Post(requestEndpoint, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
