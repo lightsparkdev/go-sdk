@@ -53,6 +53,14 @@ func main() {
 		vasp1.handleClientPaymentConfirm(c)
 	})
 
+	engine.POST("/api/uma/pay_invoice", func(c *gin.Context) {
+		vasp1.handlePayInvoice(c)
+	})
+
+	engine.POST("/api/uma/request_pay_invoice", func(c *gin.Context) {
+		vasp1.handleRequestPayInvoice(c)
+	})
+
 	// End VASP1 Routes
 
 	// VASP2 Routes:
@@ -67,9 +75,11 @@ func main() {
 	engine.POST("/api/uma/payreq/:uuid", func(c *gin.Context) {
 		vasp2.handleUmaPayreq(c)
 	})
+
 	engine.POST("/api/uma/create_invoice/:uuid", func(c *gin.Context) {
 		vasp2.handleCreateInvoice(c)
 	})
+
 	engine.POST("/api/uma/create_and_send_invoice/:uuid", func(c *gin.Context) {
 		vasp2.handleCreateAndSendInvoice(c)
 	})
