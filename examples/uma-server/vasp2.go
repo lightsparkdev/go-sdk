@@ -560,7 +560,7 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Error making GET request:", err)
+		fmt.Println("Error fetching sending VASP configuration:", err)
 		return
 	}
 	defer resp.Body.Close()
