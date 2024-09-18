@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -14,7 +16,6 @@ import (
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
-	"github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
@@ -135,6 +136,14 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 		nil,
 		nil,
 	)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
 
 	context.JSON(http.StatusOK, response)
 }
@@ -280,6 +289,14 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 		nil,
 		nil,
 	)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
 
 	context.JSON(http.StatusOK, payreqResponse)
 }
@@ -488,25 +505,145 @@ func (v *Vasp2) handleUtxoCallback(context *gin.Context) {
 }
 
 func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
-	uuid := context.Param("uuid")
-	if uuid != v.config.UserID {
-		context.JSON(http.StatusNotFound, gin.H{
+	invoice, err := v.createInvoice(context, false)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
-			"reason": fmt.Sprintf("User not found: %s", uuid),
+			"reason": fmt.Sprintf("Failed to create invoice: %v", err),
 		})
 		return
+	}
+
+	invoiceString, err := invoice.ToBech32String()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, invoiceString)
+}
+
+func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
+	invoice, err := v.createInvoice(context, true)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to create invoice: %v", err),
+		})
+		return
+	}
+
+	// Send the invoice to the sender.
+
+	// Step 1: Get the sender's domain from sender's UMA address.
+	senderUma := *invoice.SenderUma
+	senderVaspDomain, err := uma.GetVaspDomainFromUmaAddress(senderUma)
+	if strings.Contains(senderVaspDomain, "local") {
+		senderVaspDomain = "http://" + senderVaspDomain
+	} else {
+		senderVaspDomain = "https://" + senderVaspDomain
+	}
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to get sender's VASP domain: %v", err),
+		})
+		return
+	}
+
+	// Step 2: Query sender's domain /.well-known/uma-configruration to get sender's request URL.
+	// Make a GET request to the sender's /.well-known/uma-configuration endpoint.
+	url := senderVaspDomain + "/.well-known/uma-configuration"
+
+	resp, err := http.Get(url)
+    if err != nil {
+        fmt.Println("Error making GET request:", err)
+        return
+    }
+	defer resp.Body.Close()
+
+	    type UmaConfig struct {
+        UmaRequestEndpoint string `json:"uma_request_endpoint"`
+    }
+
+    var config UmaConfig
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Println("Error reading response body:", err)
+        return
+    }
+
+    // Parse the JSON response
+    err = json.Unmarshal(body, &config)
+    if err != nil {
+        fmt.Println("Error parsing JSON response:", err)
+        return
+    }
+
+	requestEndpoint := config.UmaRequestEndpoint
+
+	requestURL := senderVaspDomain + requestEndpoint
+
+	// Step 3: Send the invoice to the sender's request URL.
+	// Make a POST request to the sender's request URL.
+	// The invoice is sent in the request body json "invoice" field.
+
+	invoiceString, err := invoice.ToBech32String()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		})
+		return
+	}
+
+	requestBody, err := json.Marshal(map[string]string{
+		"invoice": invoiceString,
+	})
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Error marshalling request body: %v", err),
+		})
+		return
+	}
+
+	resp, err = http.Post(requestURL, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Error making POST request: %v", err),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	context.Status(http.StatusOK)
+}
+
+func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.UmaInvoice, error) {
+	uuid := context.Param("uuid")
+	if uuid != v.config.UserID {
+		return nil, fmt.Errorf("user not found: %s", uuid)
 	}
 
 	var requestBody struct {
 		Amount       int64  `json:"amount"`
 		CurrencyCode string `json:"currency_code"`
+		SenderUma   *string `json:"sender_uma"`
 	}
 	if err := context.BindJSON(&requestBody); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid request body: %v", err),
-		})
-		return
+		return nil, err
+	}
+
+	if requestBody.SenderUma == nil && request {
+		return nil, fmt.Errorf("sender_uma is required")
 	}
 
 	if requestBody.CurrencyCode == "" {
@@ -521,11 +658,7 @@ func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
 		}
 	}
 	if len(receiverCurrencies) == 0 {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("User does not support currency %s", requestBody.CurrencyCode),
-		})
-		return
+		return nil, fmt.Errorf("user does not support currency %s", requestBody.CurrencyCode)
 	}
 	currency := receiverCurrencies[0]
 
@@ -541,17 +674,13 @@ func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
 
 	privateKey, err := v.config.UmaSigningPrivKeyBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to get UMA signing private key: %v", err),
-		})
-		return
+		return nil, err
 	}
 
 	invoice, err := uma.CreateUmaInvoice(
 		"$" + v.config.Username+"@"+v.getVaspDomain(context),
 		uint64(requestBody.Amount),
-		protocol.InvoiceCurrency{
+		umaprotocol.InvoiceCurrency{
 			Code:     currency.Code,
 			Decimals: uint8(currency.Decimals),
 			Symbol: currency.Symbol,
@@ -564,22 +693,15 @@ func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
 		nil,
 		nil,
 		nil,
-		nil,
+		requestBody.SenderUma,
 		privateKey,
 	)
 
-	invoiceString, err := invoice.ToBech32String()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
-		})
-		return
+		return nil, err
 	}
 
-	context.JSON(http.StatusOK, gin.H{
-		"invoice": invoiceString,
-	})
+	return invoice, nil
 }
 
 func (v *Vasp2) getVaspDomain(context *gin.Context) string {

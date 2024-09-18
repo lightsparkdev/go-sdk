@@ -70,6 +70,10 @@ func main() {
 	engine.POST("/api/uma/create_invoice/:uuid", func(c *gin.Context) {
 		vasp2.handleCreateInvoice(c)
 	})
+	engine.POST("/api/uma/create_and_send_invoice/:uuid", func(c *gin.Context) {
+		vasp2.handleCreateAndSendInvoice(c)
+	})
+
 	// End VASP2 Routes
 
 	// Shared:
