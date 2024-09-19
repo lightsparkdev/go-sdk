@@ -31,6 +31,17 @@ type Vasp1RequestCache struct {
 	payReqCache map[string]Vasp1PayReqData
 }
 
+type Vasp1UmaRequestStorage struct {
+	UmaRequests map[string][]string
+}
+
+func (c *Vasp1UmaRequestStorage) AddUmaRequestToStorage(id string, invoice string) {
+	if c.UmaRequests[id] == nil {
+		c.UmaRequests[id] = make([]string, 0)
+	}
+	c.UmaRequests[id] = append(c.UmaRequests[id], invoice)
+}
+
 func NewVasp1RequestCache() *Vasp1RequestCache {
 	return &Vasp1RequestCache{
 		umaRequestCache: make(map[string]Vasp1InitialRequestData),
