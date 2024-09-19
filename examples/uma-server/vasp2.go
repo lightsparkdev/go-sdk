@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -134,6 +136,14 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 		nil,
 		nil,
 	)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
 
 	context.JSON(http.StatusOK, response)
 }
@@ -279,6 +289,14 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 		nil,
 		nil,
 	)
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": err.Error(),
+		})
+		return
+	}
 
 	context.JSON(http.StatusOK, payreqResponse)
 }
@@ -484,6 +502,204 @@ func (v *Vasp2) handleUtxoCallback(context *gin.Context) {
 	log.Info("Received UTXO callback", "txId", txId, "callbackData", callbackData)
 
 	context.Status(http.StatusOK)
+}
+
+func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
+	invoice, err := v.createInvoice(context, false)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to create invoice: %v", err),
+		})
+		return
+	}
+
+	invoiceString, err := invoice.ToBech32String()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, invoiceString)
+}
+
+func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
+	invoice, err := v.createInvoice(context, true)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to create invoice: %v", err),
+		})
+		return
+	}
+
+	// Send the invoice to the sender.
+
+	// Step 1: Get the sender's domain from sender's UMA address.
+	senderUma := *invoice.SenderUma
+	senderVaspDomain, err := uma.GetVaspDomainFromUmaAddress(senderUma)
+	if strings.Contains(senderVaspDomain, "local") {
+		senderVaspDomain = "http://" + senderVaspDomain
+	} else {
+		senderVaspDomain = "https://" + senderVaspDomain
+	}
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to get sender's VASP domain: %v", err),
+		})
+		return
+	}
+
+	// Step 2: Query sender's domain /.well-known/uma-configruration to get sender's request URL.
+	// Make a GET request to the sender's /.well-known/uma-configuration endpoint.
+	url := senderVaspDomain + "/.well-known/uma-configuration"
+
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error fetching sending VASP configuration:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	type UmaConfig struct {
+		UmaRequestEndpoint string `json:"uma_request_endpoint"`
+	}
+
+	var config UmaConfig
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	// Parse the JSON response
+	err = json.Unmarshal(body, &config)
+	if err != nil {
+		fmt.Println("Error parsing JSON response:", err)
+		return
+	}
+
+	requestEndpoint := config.UmaRequestEndpoint
+
+	// Step 3: Send the invoice to the sender's request URL.
+	// Make a POST request to the sender's request URL.
+	// The invoice is sent in the request body json "invoice" field.
+
+	invoiceString, err := invoice.ToBech32String()
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		})
+		return
+	}
+
+	requestBody, err := json.Marshal(map[string]string{
+		"invoice": invoiceString,
+	})
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Error marshalling request body: %v", err),
+		})
+		return
+	}
+
+	resp, err = http.Post(requestEndpoint, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{
+			"status": "ERROR",
+			"reason": fmt.Sprintf("Error making POST request: %v", err),
+		})
+		return
+	}
+	defer resp.Body.Close()
+
+	context.Status(http.StatusOK)
+}
+
+func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.UmaInvoice, error) {
+	uuid := context.Param("uuid")
+	if uuid != v.config.UserID {
+		return nil, fmt.Errorf("user not found: %s", uuid)
+	}
+
+	var requestBody struct {
+		Amount       int64   `json:"amount"`
+		CurrencyCode string  `json:"currency_code"`
+		SenderUma    *string `json:"sender_uma"`
+	}
+	if err := context.BindJSON(&requestBody); err != nil {
+		return nil, err
+	}
+
+	if requestBody.SenderUma == nil && request {
+		return nil, fmt.Errorf("sender_uma is required")
+	}
+
+	if requestBody.CurrencyCode == "" {
+		requestBody.CurrencyCode = "SAT"
+	}
+
+	receiverCurrencies := []umaprotocol.Currency{}
+	currencies := []umaprotocol.Currency{UsdCurrency, SatsCurrency}
+	for _, currency := range currencies {
+		if currency.Code == requestBody.CurrencyCode {
+			receiverCurrencies = append(receiverCurrencies, currency)
+		}
+	}
+	if len(receiverCurrencies) == 0 {
+		return nil, fmt.Errorf("user does not support currency %s", requestBody.CurrencyCode)
+	}
+	currency := receiverCurrencies[0]
+
+	twoDaysFromNow := time.Now().Add(48 * time.Hour)
+	callback := v.getLnurlpCallback(context)
+
+	payerDataOptions := umaprotocol.CounterPartyDataOptions{
+		umaprotocol.CounterPartyDataFieldName.String():       {Mandatory: false},
+		umaprotocol.CounterPartyDataFieldEmail.String():      {Mandatory: false},
+		umaprotocol.CounterPartyDataFieldIdentifier.String(): {Mandatory: true},
+		umaprotocol.CounterPartyDataFieldCompliance.String(): {Mandatory: true},
+	}
+
+	privateKey, err := v.config.UmaSigningPrivKeyBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	invoice, err := uma.CreateUmaInvoice(
+		"$"+v.config.Username+"@"+v.getVaspDomain(context),
+		uint64(requestBody.Amount),
+		umaprotocol.InvoiceCurrency{
+			Code:     currency.Code,
+			Decimals: uint8(currency.Decimals),
+			Symbol:   currency.Symbol,
+			Name:     currency.Name,
+		},
+		uint64(twoDaysFromNow.Unix()),
+		callback,
+		true,
+		&payerDataOptions,
+		nil,
+		nil,
+		nil,
+		requestBody.SenderUma,
+		privateKey,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return invoice, nil
 }
 
 func (v *Vasp2) getVaspDomain(context *gin.Context) string {

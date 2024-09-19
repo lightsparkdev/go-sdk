@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/uma-universal-money-address/uma-go-sdk/uma"
-	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
 
 /**
@@ -66,6 +67,13 @@ func main() {
 	engine.POST("/api/uma/payreq/:uuid", func(c *gin.Context) {
 		vasp2.handleUmaPayreq(c)
 	})
+	engine.POST("/api/uma/create_invoice/:uuid", func(c *gin.Context) {
+		vasp2.handleCreateInvoice(c)
+	})
+	engine.POST("/api/uma/create_and_send_invoice/:uuid", func(c *gin.Context) {
+		vasp2.handleCreateAndSendInvoice(c)
+	})
+
 	// End VASP2 Routes
 
 	// Shared:
