@@ -57,7 +57,7 @@ func main() {
 		vasp1.handlePayInvoice(c)
 	})
 
-	engine.POST("/api/uma/request_pay_invoice", func(c *gin.Context) {
+	engine.POST("/api/uma/request_invoice_payment", func(c *gin.Context) {
 		vasp1.handleRequestPayInvoice(c)
 	})
 
@@ -105,7 +105,7 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"uma_major_versions":   uma.GetSupportedMajorVersions(),
-			"uma_request_endpoint": fmt.Sprintf("%s://%s/api/uma/request_pay_invoice", scheme, c.Request.Host),
+			"uma_request_endpoint": fmt.Sprintf("%s://%s/api/uma/request_invoice_payment", scheme, c.Request.Host),
 		})
 	})
 
