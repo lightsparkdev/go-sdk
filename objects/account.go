@@ -1,34 +1,31 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-)
+import "time"
 
 // Account This is an object representing the connected Lightspark account. You can retrieve this object to see your account information and objects tied to your account.
 type Account struct {
 
-	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
-	Id string `json:"account_id"`
+    // Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+    Id string `json:"account_id"`
 
-	// CreatedAt The date and time when the entity was first created.
-	CreatedAt time.Time `json:"account_created_at"`
+    // CreatedAt The date and time when the entity was first created.
+    CreatedAt time.Time `json:"account_created_at"`
 
-	// UpdatedAt The date and time when the entity was last updated.
-	UpdatedAt time.Time `json:"account_updated_at"`
+    // UpdatedAt The date and time when the entity was last updated.
+    UpdatedAt time.Time `json:"account_updated_at"`
 
-	// Name The name of this account.
-	Name *string `json:"account_name"`
+    // Name The name of this account.
+    Name *string `json:"account_name"`
 
-	// Typename The typename of the object
-	Typename string `json:"__typename"`
+    // Typename The typename of the object
+    Typename string `json:"__typename"`
+
 }
 
 const (
-	AccountFragment = `
+    AccountFragment = `
 fragment AccountFragment on Account {
     __typename
     account_id: id
@@ -39,27 +36,35 @@ fragment AccountFragment on Account {
 `
 )
 
+
+
+
+
+
 // GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj Account) GetId() string {
-	return obj.Id
+    return obj.Id
 }
 
 // GetCreatedAt The date and time when the entity was first created.
 func (obj Account) GetCreatedAt() time.Time {
-	return obj.CreatedAt
+    return obj.CreatedAt
 }
 
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj Account) GetUpdatedAt() time.Time {
-	return obj.UpdatedAt
+    return obj.UpdatedAt
 }
 
-func (obj Account) GetTypename() string {
-	return obj.Typename
-}
 
-func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, after *string) (*AccountToApiTokensConnection, error) {
-	query := `query FetchAccountToApiTokensConnection($entity_id: ID!, $first: Int, $after: String) {
+    func (obj Account) GetTypename() string {
+        return obj.Typename
+    }
+
+
+
+    func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, after *string) (*AccountToApiTokensConnection, error) {
+        query := `query FetchAccountToApiTokensConnection($entity_id: ID!, $first: Int, $after: String) {
     entity(id: $entity_id) {
         ... on Account {
             api_tokens(, first: $first, after: $after) {
@@ -86,26 +91,27 @@ func (obj Account) GetApiTokens(requester *requester.Requester, first *int64, af
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id": obj.Id,
-		"first":     first,
-		"after":     after,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["api_tokens"].(map[string]interface{})
-	var result *AccountToApiTokensConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["api_tokens"].(map[string]interface{})
+        var result *AccountToApiTokensConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*BlockchainBalance, error) {
-	query := `query FetchAccountBlockchainBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
+    func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*BlockchainBalance, error) {
+        query := `query FetchAccountBlockchainBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
             blockchain_balance(, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids) {
@@ -162,52 +168,54 @@ func (obj Account) GetBlockchainBalance(requester *requester.Requester, bitcoinN
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoinNetworks,
-		"node_ids":         nodeIds,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"bitcoin_networks": bitcoinNetworks,
+"node_ids": nodeIds,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["blockchain_balance"].(map[string]interface{})
-	var result *BlockchainBalance
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["blockchain_balance"].(map[string]interface{})
+        var result *BlockchainBalance
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetConductivity(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*int64, error) {
-	query := `query FetchAccountConductivity($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
+    func (obj Account) GetConductivity(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*int64, error) {
+        query := `query FetchAccountConductivity($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
             conductivity(, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids)
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoinNetworks,
-		"node_ids":         nodeIds,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"bitcoin_networks": bitcoinNetworks,
+"node_ids": nodeIds,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["conductivity"]
-	var result *int64
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["conductivity"]
+        var result *int64
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*CurrencyAmount, error) {
-	query := `query FetchAccountLocalBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
+    func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*CurrencyAmount, error) {
+        query := `query FetchAccountLocalBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
             local_balance(, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids) {
@@ -221,26 +229,27 @@ func (obj Account) GetLocalBalance(requester *requester.Requester, bitcoinNetwor
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoinNetworks,
-		"node_ids":         nodeIds,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"bitcoin_networks": bitcoinNetworks,
+"node_ids": nodeIds,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["local_balance"].(map[string]interface{})
-	var result *CurrencyAmount
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["local_balance"].(map[string]interface{})
+        var result *CurrencyAmount
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string, after *string) (*AccountToNodesConnection, error) {
-	query := `query FetchAccountToNodesConnection($entity_id: ID!, $first: Int, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!], $after: String) {
+    func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string, after *string) (*AccountToNodesConnection, error) {
+        query := `query FetchAccountToNodesConnection($entity_id: ID!, $first: Int, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!], $after: String) {
     entity(id: $entity_id) {
         ... on Account {
             nodes(, first: $first, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids, after: $after) {
@@ -519,28 +528,29 @@ func (obj Account) GetNodes(requester *requester.Requester, first *int64, bitcoi
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"first":            first,
-		"bitcoin_networks": bitcoinNetworks,
-		"node_ids":         nodeIds,
-		"after":            after,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"bitcoin_networks": bitcoinNetworks,
+"node_ids": nodeIds,
+"after": after,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["nodes"].(map[string]interface{})
-	var result *AccountToNodesConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["nodes"].(map[string]interface{})
+        var result *AccountToNodesConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*CurrencyAmount, error) {
-	query := `query FetchAccountRemoteBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
+    func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*CurrencyAmount, error) {
+        query := `query FetchAccountRemoteBalance($entity_id: ID!, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
             remote_balance(, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids) {
@@ -554,54 +564,56 @@ func (obj Account) GetRemoteBalance(requester *requester.Requester, bitcoinNetwo
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"bitcoin_networks": bitcoinNetworks,
-		"node_ids":         nodeIds,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"bitcoin_networks": bitcoinNetworks,
+"node_ids": nodeIds,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["remote_balance"].(map[string]interface{})
-	var result *CurrencyAmount
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["remote_balance"].(map[string]interface{})
+        var result *CurrencyAmount
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*int64, error) {
-	query := `query FetchAccountUptimePercentage($entity_id: ID!, $after_date: DateTime, $before_date: DateTime, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
+    func (obj Account) GetUptimePercentage(requester *requester.Requester, afterDate *time.Time, beforeDate *time.Time, bitcoinNetworks *[]BitcoinNetwork, nodeIds *[]string) (*int64, error) {
+        query := `query FetchAccountUptimePercentage($entity_id: ID!, $after_date: DateTime, $before_date: DateTime, $bitcoin_networks: [BitcoinNetwork!], $node_ids: [ID!]) {
     entity(id: $entity_id) {
         ... on Account {
             uptime_percentage(, after_date: $after_date, before_date: $before_date, bitcoin_networks: $bitcoin_networks, node_ids: $node_ids)
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"after_date":       afterDate,
-		"before_date":      beforeDate,
-		"bitcoin_networks": bitcoinNetworks,
-		"node_ids":         nodeIds,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"after_date": afterDate,
+"before_date": beforeDate,
+"bitcoin_networks": bitcoinNetworks,
+"node_ids": nodeIds,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["uptime_percentage"]
-	var result *int64
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["uptime_percentage"]
+        var result *int64
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork BitcoinNetwork, lightningNodeId *string, afterDate *time.Time, beforeDate *time.Time, first *int64, after *string) (*AccountToChannelsConnection, error) {
-	query := `query FetchAccountToChannelsConnection($entity_id: ID!, $bitcoin_network: BitcoinNetwork!, $lightning_node_id: ID, $after_date: DateTime, $before_date: DateTime, $first: Int, $after: String) {
+    func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork BitcoinNetwork, lightningNodeId *string, afterDate *time.Time, beforeDate *time.Time, first *int64, after *string) (*AccountToChannelsConnection, error) {
+        query := `query FetchAccountToChannelsConnection($entity_id: ID!, $bitcoin_network: BitcoinNetwork!, $lightning_node_id: ID, $after_date: DateTime, $before_date: DateTime, $first: Int, $after: String) {
     entity(id: $entity_id) {
         ... on Account {
             channels(, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id, after_date: $after_date, before_date: $before_date, first: $first, after: $after) {
@@ -712,30 +724,31 @@ func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork Bi
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":         obj.Id,
-		"bitcoin_network":   bitcoinNetwork,
-		"lightning_node_id": lightningNodeId,
-		"after_date":        afterDate,
-		"before_date":       beforeDate,
-		"first":             first,
-		"after":             after,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"bitcoin_network": bitcoinNetwork,
+"lightning_node_id": lightningNodeId,
+"after_date": afterDate,
+"before_date": beforeDate,
+"first": first,
+"after": after,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["channels"].(map[string]interface{})
-	var result *AccountToChannelsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["channels"].(map[string]interface{})
+        var result *AccountToChannelsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetTransactions(requester *requester.Requester, first *int64, after *string, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string, statuses *[]TransactionStatus, excludeFailures *TransactionFailures) (*AccountToTransactionsConnection, error) {
-	query := `query FetchAccountToTransactionsConnection($entity_id: ID!, $first: Int, $after: String, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID, $statuses: [TransactionStatus!], $exclude_failures: TransactionFailures) {
+    func (obj Account) GetTransactions(requester *requester.Requester, first *int64, after *string, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string, statuses *[]TransactionStatus, excludeFailures *TransactionFailures) (*AccountToTransactionsConnection, error) {
+        query := `query FetchAccountToTransactionsConnection($entity_id: ID!, $first: Int, $after: String, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID, $statuses: [TransactionStatus!], $exclude_failures: TransactionFailures) {
     entity(id: $entity_id) {
         ... on Account {
             transactions(, first: $first, after: $after, types: $types, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id, statuses: $statuses, exclude_failures: $exclude_failures) {
@@ -1326,33 +1339,34 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":         obj.Id,
-		"first":             first,
-		"after":             after,
-		"types":             types,
-		"after_date":        afterDate,
-		"before_date":       beforeDate,
-		"bitcoin_network":   bitcoinNetwork,
-		"lightning_node_id": lightningNodeId,
-		"statuses":          statuses,
-		"exclude_failures":  excludeFailures,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"types": types,
+"after_date": afterDate,
+"before_date": beforeDate,
+"bitcoin_network": bitcoinNetwork,
+"lightning_node_id": lightningNodeId,
+"statuses": statuses,
+"exclude_failures": excludeFailures,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["transactions"].(map[string]interface{})
-	var result *AccountToTransactionsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["transactions"].(map[string]interface{})
+        var result *AccountToTransactionsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string) (*AccountToPaymentRequestsConnection, error) {
-	query := `query FetchAccountToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: String, $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID) {
+    func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string) (*AccountToPaymentRequestsConnection, error) {
+        query := `query FetchAccountToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: String, $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID) {
     entity(id: $entity_id) {
         ... on Account {
             payment_requests(, first: $first, after: $after, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id) {
@@ -1680,30 +1694,31 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":         obj.Id,
-		"first":             first,
-		"after":             after,
-		"after_date":        afterDate,
-		"before_date":       beforeDate,
-		"bitcoin_network":   bitcoinNetwork,
-		"lightning_node_id": lightningNodeId,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"after_date": afterDate,
+"before_date": beforeDate,
+"bitcoin_network": bitcoinNetwork,
+"lightning_node_id": lightningNodeId,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["payment_requests"].(map[string]interface{})
-	var result *AccountToPaymentRequestsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["payment_requests"].(map[string]interface{})
+        var result *AccountToPaymentRequestsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, idempotencyKeys *[]string, afterDate *time.Time, beforeDate *time.Time) (*AccountToWithdrawalRequestsConnection, error) {
-	query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $idempotency_keys: [String!], $after_date: DateTime, $before_date: DateTime) {
+    func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, idempotencyKeys *[]string, afterDate *time.Time, beforeDate *time.Time) (*AccountToWithdrawalRequestsConnection, error) {
+        query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $idempotency_keys: [String!], $after_date: DateTime, $before_date: DateTime) {
     entity(id: $entity_id) {
         ... on Account {
             withdrawal_requests(, first: $first, after: $after, bitcoin_networks: $bitcoin_networks, statuses: $statuses, node_ids: $node_ids, idempotency_keys: $idempotency_keys, after_date: $after_date, before_date: $before_date) {
@@ -1775,32 +1790,33 @@ func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":        obj.Id,
-		"first":            first,
-		"after":            after,
-		"bitcoin_networks": bitcoinNetworks,
-		"statuses":         statuses,
-		"node_ids":         nodeIds,
-		"idempotency_keys": idempotencyKeys,
-		"after_date":       afterDate,
-		"before_date":      beforeDate,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"bitcoin_networks": bitcoinNetworks,
+"statuses": statuses,
+"node_ids": nodeIds,
+"idempotency_keys": idempotencyKeys,
+"after_date": afterDate,
+"before_date": beforeDate,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["withdrawal_requests"].(map[string]interface{})
-	var result *AccountToWithdrawalRequestsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["withdrawal_requests"].(map[string]interface{})
+        var result *AccountToWithdrawalRequestsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj Account) GetWallets(requester *requester.Requester, first *int64, after *string, thirdPartyIds *[]string) (*AccountToWalletsConnection, error) {
-	query := `query FetchAccountToWalletsConnection($entity_id: ID!, $first: Int, $after: String, $third_party_ids: [String!]) {
+    func (obj Account) GetWallets(requester *requester.Requester, first *int64, after *string, thirdPartyIds *[]string) (*AccountToWalletsConnection, error) {
+        query := `query FetchAccountToWalletsConnection($entity_id: ID!, $first: Int, $after: String, $third_party_ids: [String!]) {
     entity(id: $entity_id) {
         ... on Account {
             wallets(, first: $first, after: $after, third_party_ids: $third_party_ids) {
@@ -1856,21 +1872,25 @@ func (obj Account) GetWallets(requester *requester.Requester, first *int64, afte
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":       obj.Id,
-		"first":           first,
-		"after":           after,
-		"third_party_ids": thirdPartyIds,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"third_party_ids": thirdPartyIds,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["wallets"].(map[string]interface{})
-	var result *AccountToWalletsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["wallets"].(map[string]interface{})
+        var result *AccountToWalletsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
+
+
+

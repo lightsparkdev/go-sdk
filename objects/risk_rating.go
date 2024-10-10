@@ -1,59 +1,62 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
 import (
-	"encoding/json"
+    "encoding/json"
+    "strings"
 )
 
 // RiskRating This is an enum of the potential risk ratings related to a transaction made over the Lightning Network. These risk ratings are returned from the CryptoSanctionScreeningProvider.
 type RiskRating int
+const(
+    RiskRatingUndefined RiskRating = iota
 
-const (
-	RiskRatingUndefined RiskRating = iota
 
-	RiskRatingHighRisk
+    RiskRatingHighRisk
 
-	RiskRatingLowRisk
+    RiskRatingLowRisk
 
-	RiskRatingUnknown
+    RiskRatingUnknown
+
 )
 
 func (a *RiskRating) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-	switch s {
-	default:
-		*a = RiskRatingUndefined
-	case "HIGH_RISK":
-		*a = RiskRatingHighRisk
-	case "LOW_RISK":
-		*a = RiskRatingLowRisk
-	case "UNKNOWN":
-		*a = RiskRatingUnknown
+    var s string
+    if err := json.Unmarshal(b, &s); err != nil {
+        return err
+    }
+    switch s {
+    default:
+        *a = RiskRatingUndefined
+    case "HIGH_RISK":
+        *a = RiskRatingHighRisk
+    case "LOW_RISK":
+        *a = RiskRatingLowRisk
+    case "UNKNOWN":
+        *a = RiskRatingUnknown
 
-	}
-	return nil
+    }
+    return nil
 }
 
 func (a RiskRating) StringValue() string {
-	var s string
-	switch a {
-	default:
-		s = "undefined"
-	case RiskRatingHighRisk:
-		s = "HIGH_RISK"
-	case RiskRatingLowRisk:
-		s = "LOW_RISK"
-	case RiskRatingUnknown:
-		s = "UNKNOWN"
+    var s string
+    switch a {
+    default:
+        s = "undefined"
+    case RiskRatingHighRisk:
+        s = "HIGH_RISK"
+    case RiskRatingLowRisk:
+        s = "LOW_RISK"
+    case RiskRatingUnknown:
+        s = "UNKNOWN"
 
-	}
-	return s
+    }
+    return s
 }
 
 func (a RiskRating) MarshalJSON() ([]byte, error) {
-	s := a.StringValue()
-	return json.Marshal(s)
+    s := a.StringValue()
+    return json.Marshal(s)
 }
