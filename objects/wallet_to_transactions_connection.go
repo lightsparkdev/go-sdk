@@ -1,28 +1,25 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
-
+import "encoding/json"
 
 type WalletToTransactionsConnection struct {
 
-    // Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
-    Count int64 `json:"wallet_to_transactions_connection_count"`
+	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	Count int64 `json:"wallet_to_transactions_connection_count"`
 
-    // PageInfo An object that holds pagination information about the objects in this connection.
-    PageInfo PageInfo `json:"wallet_to_transactions_connection_page_info"`
+	// PageInfo An object that holds pagination information about the objects in this connection.
+	PageInfo PageInfo `json:"wallet_to_transactions_connection_page_info"`
 
-    // Entities The transactions for the current page of this connection.
-    Entities []Transaction `json:"wallet_to_transactions_connection_entities"`
+	// Entities The transactions for the current page of this connection.
+	Entities []Transaction `json:"wallet_to_transactions_connection_entities"`
 
-    // Typename The typename of the object
-    Typename string `json:"__typename"`
-
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
-    WalletToTransactionsConnectionFragment = `
+	WalletToTransactionsConnectionFragment = `
 fragment WalletToTransactionsConnectionFragment on WalletToTransactionsConnection {
     __typename
     wallet_to_transactions_connection_count: count
@@ -40,75 +37,58 @@ fragment WalletToTransactionsConnectionFragment on WalletToTransactionsConnectio
 `
 )
 
-
-
-
 // GetCount The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 func (obj WalletToTransactionsConnection) GetCount() int64 {
-    return obj.Count
+	return obj.Count
 }
 
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj WalletToTransactionsConnection) GetPageInfo() PageInfo {
-    return obj.PageInfo
+	return obj.PageInfo
 }
 
-
-    func (obj WalletToTransactionsConnection) GetTypename() string {
-        return obj.Typename
-    }
-
-
-
-
+func (obj WalletToTransactionsConnection) GetTypename() string {
+	return obj.Typename
+}
 
 type WalletToTransactionsConnectionJSON struct {
 
-    // Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
-    Count int64 `json:"wallet_to_transactions_connection_count"`
+	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	Count int64 `json:"wallet_to_transactions_connection_count"`
 
-    // PageInfo An object that holds pagination information about the objects in this connection.
-    PageInfo PageInfo `json:"wallet_to_transactions_connection_page_info"`
+	// PageInfo An object that holds pagination information about the objects in this connection.
+	PageInfo PageInfo `json:"wallet_to_transactions_connection_page_info"`
 
-    // Entities The transactions for the current page of this connection.
-    Entities []map[string]interface{} `json:"wallet_to_transactions_connection_entities"`
+	// Entities The transactions for the current page of this connection.
+	Entities []map[string]interface{} `json:"wallet_to_transactions_connection_entities"`
 
-    // Typename The typename of the object
-    Typename string `json:"__typename"`
-
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
-
 func (data *WalletToTransactionsConnection) UnmarshalJSON(dataBytes []byte) error {
-    var temp WalletToTransactionsConnectionJSON
+	var temp WalletToTransactionsConnectionJSON
 	if err := json.Unmarshal(dataBytes, &temp); err != nil {
 		return err
 	}
 
-	
-    data.Count = temp.Count
+	data.Count = temp.Count
 
+	data.PageInfo = temp.PageInfo
 
-    data.PageInfo = temp.PageInfo
+	if temp.Entities != nil {
+		var entities []Transaction
+		for _, json := range temp.Entities {
+			entity, err := TransactionUnmarshal(json)
+			if err != nil {
+				return err
+			}
+			entities = append(entities, entity)
+		}
+		data.Entities = entities
+	}
 
+	data.Typename = temp.Typename
 
-    if temp.Entities != nil {
-        var entities []Transaction
-        for _, json := range temp.Entities {
-            entity, err := TransactionUnmarshal(json)
-            if err != nil {
-                return err
-            }
-            entities = append(entities, entity)
-        }
-        data.Entities = entities
-    }
-
-
-    data.Typename = temp.Typename
-
-
-    return nil
+	return nil
 }
-
-

@@ -12,7 +12,7 @@ import (
 )
 
 func GetPaymentHashFromScript(scriptHex string) (*string, error) {
-    pattern := `OP_HASH160 ([a-fA-F0-9]{40}) OP_EQUALVERIFY`
+	pattern := `OP_HASH160 ([a-fA-F0-9]{40}) OP_EQUALVERIFY`
 
 	script, err := hex.DecodeString(scriptHex)
 	if err != nil {
@@ -24,9 +24,9 @@ func GetPaymentHashFromScript(scriptHex string) (*string, error) {
 		return nil, err
 	}
 
-	re := regexp.MustCompile(pattern)	
+	re := regexp.MustCompile(pattern)
 	match := re.FindStringSubmatch(disassembled)
-    if len(match) > 0 {
+	if len(match) > 0 {
 		return &match[1], nil
 	} else {
 		return nil, errors.New("no match found")
@@ -41,12 +41,12 @@ func CalculateWitnessHash(amount int64, script string, transaction string) (*str
 
 	tx, err := btcutil.NewTxFromBytes(decodedTx)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	decodedScript, err := hex.DecodeString(script)
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	prevOutFetcher := txscript.NewCannedPrevOutputFetcher(
@@ -60,7 +60,7 @@ func CalculateWitnessHash(amount int64, script string, transaction string) (*str
 	}
 
 	result := hex.EncodeToString(hash)
-	
+
 	return &result, nil
 }
 

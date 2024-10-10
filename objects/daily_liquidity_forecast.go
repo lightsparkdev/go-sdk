@@ -1,25 +1,22 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
-
+import "github.com/lightsparkdev/go-sdk/types"
 
 type DailyLiquidityForecast struct {
 
-    // Date The date for which this forecast was generated.
-    Date types.Date `json:"daily_liquidity_forecast_date"`
+	// Date The date for which this forecast was generated.
+	Date types.Date `json:"daily_liquidity_forecast_date"`
 
-    // Direction The direction for which this forecast was generated.
-    Direction LightningPaymentDirection `json:"daily_liquidity_forecast_direction"`
+	// Direction The direction for which this forecast was generated.
+	Direction LightningPaymentDirection `json:"daily_liquidity_forecast_direction"`
 
-    // Amount The value of the forecast. It represents the amount of msats that we think will be moved for that specified direction, for that node, on that date.
-    Amount CurrencyAmount `json:"daily_liquidity_forecast_amount"`
-
+	// Amount The value of the forecast. It represents the amount of msats that we think will be moved for that specified direction, for that node, on that date.
+	Amount CurrencyAmount `json:"daily_liquidity_forecast_amount"`
 }
 
 const (
-    DailyLiquidityForecastFragment = `
+	DailyLiquidityForecastFragment = `
 fragment DailyLiquidityForecastFragment on DailyLiquidityForecast {
     __typename
     daily_liquidity_forecast_date: date
@@ -35,10 +32,3 @@ fragment DailyLiquidityForecastFragment on DailyLiquidityForecast {
 }
 `
 )
-
-
-
-
-
-
-

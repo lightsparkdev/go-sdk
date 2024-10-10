@@ -1,28 +1,21 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
-
+import "github.com/lightsparkdev/go-sdk/types"
 
 type LightsparkNodeToDailyLiquidityForecastsConnection struct {
+	FromDate types.Date `json:"lightspark_node_to_daily_liquidity_forecasts_connection_from_date"`
 
-    
-    FromDate types.Date `json:"lightspark_node_to_daily_liquidity_forecasts_connection_from_date"`
+	ToDate types.Date `json:"lightspark_node_to_daily_liquidity_forecasts_connection_to_date"`
 
-    
-    ToDate types.Date `json:"lightspark_node_to_daily_liquidity_forecasts_connection_to_date"`
+	Direction LightningPaymentDirection `json:"lightspark_node_to_daily_liquidity_forecasts_connection_direction"`
 
-    
-    Direction LightningPaymentDirection `json:"lightspark_node_to_daily_liquidity_forecasts_connection_direction"`
-
-    // Entities The daily liquidity forecasts for the current page of this connection.
-    Entities []DailyLiquidityForecast `json:"lightspark_node_to_daily_liquidity_forecasts_connection_entities"`
-
+	// Entities The daily liquidity forecasts for the current page of this connection.
+	Entities []DailyLiquidityForecast `json:"lightspark_node_to_daily_liquidity_forecasts_connection_entities"`
 }
 
 const (
-    LightsparkNodeToDailyLiquidityForecastsConnectionFragment = `
+	LightsparkNodeToDailyLiquidityForecastsConnectionFragment = `
 fragment LightsparkNodeToDailyLiquidityForecastsConnectionFragment on LightsparkNodeToDailyLiquidityForecastsConnection {
     __typename
     lightspark_node_to_daily_liquidity_forecasts_connection_from_date: from_date
@@ -44,10 +37,3 @@ fragment LightsparkNodeToDailyLiquidityForecastsConnectionFragment on Lightspark
 }
 `
 )
-
-
-
-
-
-
-

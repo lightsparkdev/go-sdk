@@ -1,9 +1,8 @@
 // Copyright ©, 2022-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
 const (
-    GetEntityQuery = `query GetEntity($id: ID!) {
+	GetEntityQuery = `query GetEntity($id: ID!) {
     entity(id: $id) {
 
         ... on Account {
@@ -76,28 +75,28 @@ const (
             ...WithdrawalRequestFragment
         }
     }
-}`  + 
-    AccountFragment + 
-    ApiTokenFragment + 
-    ChannelFragment + 
-    ChannelClosingTransactionFragment + 
-    ChannelOpeningTransactionFragment + 
-    ChannelSnapshotFragment + 
-    DepositFragment + 
-    GraphNodeFragment + 
-    HopFragment + 
-    IncomingPaymentFragment + 
-    IncomingPaymentAttemptFragment + 
-    InvoiceFragment + 
-    LightsparkNodeWithOSKFragment + 
-    LightsparkNodeWithRemoteSigningFragment + 
-    OutgoingPaymentFragment + 
-    OutgoingPaymentAttemptFragment + 
-    RoutingTransactionFragment + 
-    SignableFragment + 
-    SignablePayloadFragment + 
-    UmaInvitationFragment + 
-    WalletFragment + 
-    WithdrawalFragment + 
-    WithdrawalRequestFragment
+}` +
+		AccountFragment +
+		ApiTokenFragment +
+		ChannelFragment +
+		ChannelClosingTransactionFragment +
+		ChannelOpeningTransactionFragment +
+		ChannelSnapshotFragment +
+		DepositFragment +
+		GraphNodeFragment +
+		HopFragment +
+		IncomingPaymentFragment +
+		IncomingPaymentAttemptFragment +
+		InvoiceFragment +
+		LightsparkNodeWithOSKFragment +
+		LightsparkNodeWithRemoteSigningFragment +
+		OutgoingPaymentFragment +
+		OutgoingPaymentAttemptFragment +
+		RoutingTransactionFragment +
+		SignableFragment +
+		SignablePayloadFragment +
+		UmaInvitationFragment +
+		WalletFragment +
+		WithdrawalFragment +
+		WithdrawalRequestFragment
 )

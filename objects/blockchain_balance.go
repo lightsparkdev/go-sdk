@@ -1,34 +1,30 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
-
-
 
 // BlockchainBalance This is an object representing a detailed breakdown of the balance for a Lightspark Node.
 type BlockchainBalance struct {
 
-    // TotalBalance The total wallet balance, including unconfirmed UTXOs.
-    TotalBalance *CurrencyAmount `json:"blockchain_balance_total_balance"`
+	// TotalBalance The total wallet balance, including unconfirmed UTXOs.
+	TotalBalance *CurrencyAmount `json:"blockchain_balance_total_balance"`
 
-    // ConfirmedBalance The balance of confirmed UTXOs in the wallet.
-    ConfirmedBalance *CurrencyAmount `json:"blockchain_balance_confirmed_balance"`
+	// ConfirmedBalance The balance of confirmed UTXOs in the wallet.
+	ConfirmedBalance *CurrencyAmount `json:"blockchain_balance_confirmed_balance"`
 
-    // UnconfirmedBalance The balance of unconfirmed UTXOs in the wallet.
-    UnconfirmedBalance *CurrencyAmount `json:"blockchain_balance_unconfirmed_balance"`
+	// UnconfirmedBalance The balance of unconfirmed UTXOs in the wallet.
+	UnconfirmedBalance *CurrencyAmount `json:"blockchain_balance_unconfirmed_balance"`
 
-    // LockedBalance The balance that's locked by an on-chain transaction.
-    LockedBalance *CurrencyAmount `json:"blockchain_balance_locked_balance"`
+	// LockedBalance The balance that's locked by an on-chain transaction.
+	LockedBalance *CurrencyAmount `json:"blockchain_balance_locked_balance"`
 
-    // RequiredReserve Funds required to be held in reserve for channel bumping.
-    RequiredReserve *CurrencyAmount `json:"blockchain_balance_required_reserve"`
+	// RequiredReserve Funds required to be held in reserve for channel bumping.
+	RequiredReserve *CurrencyAmount `json:"blockchain_balance_required_reserve"`
 
-    // AvailableBalance Funds available for creating channels or withdrawing.
-    AvailableBalance *CurrencyAmount `json:"blockchain_balance_available_balance"`
-
+	// AvailableBalance Funds available for creating channels or withdrawing.
+	AvailableBalance *CurrencyAmount `json:"blockchain_balance_available_balance"`
 }
 
 const (
-    BlockchainBalanceFragment = `
+	BlockchainBalanceFragment = `
 fragment BlockchainBalanceFragment on BlockchainBalance {
     __typename
     blockchain_balance_total_balance: total_balance {
@@ -82,10 +78,3 @@ fragment BlockchainBalanceFragment on BlockchainBalance {
 }
 `
 )
-
-
-
-
-
-
-

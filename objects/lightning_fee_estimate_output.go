@@ -1,19 +1,14 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
-
-
 type LightningFeeEstimateOutput struct {
 
-    // FeeEstimate The estimated fees for the payment.
-    FeeEstimate CurrencyAmount `json:"lightning_fee_estimate_output_fee_estimate"`
-
+	// FeeEstimate The estimated fees for the payment.
+	FeeEstimate CurrencyAmount `json:"lightning_fee_estimate_output_fee_estimate"`
 }
 
 const (
-    LightningFeeEstimateOutputFragment = `
+	LightningFeeEstimateOutputFragment = `
 fragment LightningFeeEstimateOutputFragment on LightningFeeEstimateOutput {
     __typename
     lightning_fee_estimate_output_fee_estimate: fee_estimate {
@@ -27,10 +22,3 @@ fragment LightningFeeEstimateOutputFragment on LightningFeeEstimateOutput {
 }
 `
 )
-
-
-
-
-
-
-

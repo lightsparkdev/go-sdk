@@ -1,55 +1,57 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "time"
+import (
+	"time"
+
+	"github.com/lightsparkdev/go-sdk/types"
+)
 
 // RoutingTransaction This object represents a transaction that was forwarded through a Lightspark node on the Lightning Network, i.e., a routed transaction. You can retrieve this object to receive information about any transaction routed through your Lightspark Node.
 type RoutingTransaction struct {
 
-    // Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
-    Id string `json:"routing_transaction_id"`
+	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+	Id string `json:"routing_transaction_id"`
 
-    // CreatedAt The date and time when this transaction was initiated.
-    CreatedAt time.Time `json:"routing_transaction_created_at"`
+	// CreatedAt The date and time when this transaction was initiated.
+	CreatedAt time.Time `json:"routing_transaction_created_at"`
 
-    // UpdatedAt The date and time when the entity was last updated.
-    UpdatedAt time.Time `json:"routing_transaction_updated_at"`
+	// UpdatedAt The date and time when the entity was last updated.
+	UpdatedAt time.Time `json:"routing_transaction_updated_at"`
 
-    // Status The current status of this transaction.
-    Status TransactionStatus `json:"routing_transaction_status"`
+	// Status The current status of this transaction.
+	Status TransactionStatus `json:"routing_transaction_status"`
 
-    // ResolvedAt The date and time when this transaction was completed or failed.
-    ResolvedAt *time.Time `json:"routing_transaction_resolved_at"`
+	// ResolvedAt The date and time when this transaction was completed or failed.
+	ResolvedAt *time.Time `json:"routing_transaction_resolved_at"`
 
-    // Amount The amount of money involved in this transaction.
-    Amount CurrencyAmount `json:"routing_transaction_amount"`
+	// Amount The amount of money involved in this transaction.
+	Amount CurrencyAmount `json:"routing_transaction_amount"`
 
-    // TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
-    TransactionHash *string `json:"routing_transaction_transaction_hash"`
+	// TransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
+	TransactionHash *string `json:"routing_transaction_transaction_hash"`
 
-    // IncomingChannel If known, the channel this transaction was received from.
-    IncomingChannel *types.EntityWrapper `json:"routing_transaction_incoming_channel"`
+	// IncomingChannel If known, the channel this transaction was received from.
+	IncomingChannel *types.EntityWrapper `json:"routing_transaction_incoming_channel"`
 
-    // OutgoingChannel If known, the channel this transaction was forwarded to.
-    OutgoingChannel *types.EntityWrapper `json:"routing_transaction_outgoing_channel"`
+	// OutgoingChannel If known, the channel this transaction was forwarded to.
+	OutgoingChannel *types.EntityWrapper `json:"routing_transaction_outgoing_channel"`
 
-    // Fees The fees collected by the node when routing this transaction. We subtract the outgoing amount to the incoming amount to determine how much fees were collected.
-    Fees *CurrencyAmount `json:"routing_transaction_fees"`
+	// Fees The fees collected by the node when routing this transaction. We subtract the outgoing amount to the incoming amount to determine how much fees were collected.
+	Fees *CurrencyAmount `json:"routing_transaction_fees"`
 
-    // FailureMessage If applicable, user-facing error message describing why the routing failed.
-    FailureMessage *RichText `json:"routing_transaction_failure_message"`
+	// FailureMessage If applicable, user-facing error message describing why the routing failed.
+	FailureMessage *RichText `json:"routing_transaction_failure_message"`
 
-    // FailureReason If applicable, the reason why the routing failed.
-    FailureReason *RoutingTransactionFailureReason `json:"routing_transaction_failure_reason"`
+	// FailureReason If applicable, the reason why the routing failed.
+	FailureReason *RoutingTransactionFailureReason `json:"routing_transaction_failure_reason"`
 
-    // Typename The typename of the object
-    Typename string `json:"__typename"`
-
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
-    RoutingTransactionFragment = `
+	RoutingTransactionFragment = `
 fragment RoutingTransactionFragment on RoutingTransaction {
     __typename
     routing_transaction_id: id
@@ -89,54 +91,41 @@ fragment RoutingTransactionFragment on RoutingTransaction {
 `
 )
 
-
-
-
-
-
 // GetStatus The current status of this transaction.
 func (obj RoutingTransaction) GetStatus() TransactionStatus {
-    return obj.Status
+	return obj.Status
 }
 
 // GetResolvedAt The date and time when this transaction was completed or failed.
 func (obj RoutingTransaction) GetResolvedAt() *time.Time {
-    return obj.ResolvedAt
+	return obj.ResolvedAt
 }
 
 // GetAmount The amount of money involved in this transaction.
 func (obj RoutingTransaction) GetAmount() CurrencyAmount {
-    return obj.Amount
+	return obj.Amount
 }
 
 // GetTransactionHash The hash of this transaction, so it can be uniquely identified on the Lightning Network.
 func (obj RoutingTransaction) GetTransactionHash() *string {
-    return obj.TransactionHash
+	return obj.TransactionHash
 }
-
-
 
 // GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj RoutingTransaction) GetId() string {
-    return obj.Id
+	return obj.Id
 }
 
 // GetCreatedAt The date and time when the entity was first created.
 func (obj RoutingTransaction) GetCreatedAt() time.Time {
-    return obj.CreatedAt
+	return obj.CreatedAt
 }
 
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj RoutingTransaction) GetUpdatedAt() time.Time {
-    return obj.UpdatedAt
+	return obj.UpdatedAt
 }
 
-
-    func (obj RoutingTransaction) GetTypename() string {
-        return obj.Typename
-    }
-
-
-
-
-
+func (obj RoutingTransaction) GetTypename() string {
+	return obj.Typename
+}

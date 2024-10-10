@@ -1,28 +1,23 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
-
-
 type WithdrawalRequestToChannelClosingTransactionsConnection struct {
 
-    // Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
-    Count int64 `json:"withdrawal_request_to_channel_closing_transactions_connection_count"`
+	// Count The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
+	Count int64 `json:"withdrawal_request_to_channel_closing_transactions_connection_count"`
 
-    // PageInfo An object that holds pagination information about the objects in this connection.
-    PageInfo PageInfo `json:"withdrawal_request_to_channel_closing_transactions_connection_page_info"`
+	// PageInfo An object that holds pagination information about the objects in this connection.
+	PageInfo PageInfo `json:"withdrawal_request_to_channel_closing_transactions_connection_page_info"`
 
-    // Entities The channel closing transactions for the current page of this connection.
-    Entities []ChannelClosingTransaction `json:"withdrawal_request_to_channel_closing_transactions_connection_entities"`
+	// Entities The channel closing transactions for the current page of this connection.
+	Entities []ChannelClosingTransaction `json:"withdrawal_request_to_channel_closing_transactions_connection_entities"`
 
-    // Typename The typename of the object
-    Typename string `json:"__typename"`
-
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
-    WithdrawalRequestToChannelClosingTransactionsConnectionFragment = `
+	WithdrawalRequestToChannelClosingTransactionsConnectionFragment = `
 fragment WithdrawalRequestToChannelClosingTransactionsConnectionFragment on WithdrawalRequestToChannelClosingTransactionsConnection {
     __typename
     withdrawal_request_to_channel_closing_transactions_connection_count: count
@@ -40,25 +35,16 @@ fragment WithdrawalRequestToChannelClosingTransactionsConnectionFragment on With
 `
 )
 
-
-
-
 // GetCount The total count of objects in this connection, using the current filters. It is different from the number of objects returned in the current page (in the `entities` field).
 func (obj WithdrawalRequestToChannelClosingTransactionsConnection) GetCount() int64 {
-    return obj.Count
+	return obj.Count
 }
 
 // GetPageInfo An object that holds pagination information about the objects in this connection.
 func (obj WithdrawalRequestToChannelClosingTransactionsConnection) GetPageInfo() PageInfo {
-    return obj.PageInfo
+	return obj.PageInfo
 }
 
-
-    func (obj WithdrawalRequestToChannelClosingTransactionsConnection) GetTypename() string {
-        return obj.Typename
-    }
-
-
-
-
-
+func (obj WithdrawalRequestToChannelClosingTransactionsConnection) GetTypename() string {
+	return obj.Typename
+}

@@ -1,22 +1,15 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-
-
 // FeeEstimate This object represents the estimated L1 transaction fees for the Bitcoin network. Fee estimates are separated by potential confirmation speeds for settlement.
 type FeeEstimate struct {
+	FeeFast CurrencyAmount `json:"fee_estimate_fee_fast"`
 
-    
-    FeeFast CurrencyAmount `json:"fee_estimate_fee_fast"`
-
-    
-    FeeMin CurrencyAmount `json:"fee_estimate_fee_min"`
-
+	FeeMin CurrencyAmount `json:"fee_estimate_fee_min"`
 }
 
 const (
-    FeeEstimateFragment = `
+	FeeEstimateFragment = `
 fragment FeeEstimateFragment on FeeEstimate {
     __typename
     fee_estimate_fee_fast: fee_fast {
@@ -38,10 +31,3 @@ fragment FeeEstimateFragment on FeeEstimate {
 }
 `
 )
-
-
-
-
-
-
-

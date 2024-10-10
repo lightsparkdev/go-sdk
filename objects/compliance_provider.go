@@ -1,50 +1,47 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
 import (
-    "encoding/json"
-    "strings"
+	"encoding/json"
 )
 
 // ComplianceProvider This is an enum identifying a type of compliance provider.
 type ComplianceProvider int
-const(
-    ComplianceProviderUndefined ComplianceProvider = iota
 
+const (
+	ComplianceProviderUndefined ComplianceProvider = iota
 
-    ComplianceProviderChainalysis
-
+	ComplianceProviderChainalysis
 )
 
 func (a *ComplianceProvider) UnmarshalJSON(b []byte) error {
-    var s string
-    if err := json.Unmarshal(b, &s); err != nil {
-        return err
-    }
-    switch s {
-    default:
-        *a = ComplianceProviderUndefined
-    case "CHAINALYSIS":
-        *a = ComplianceProviderChainalysis
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	switch s {
+	default:
+		*a = ComplianceProviderUndefined
+	case "CHAINALYSIS":
+		*a = ComplianceProviderChainalysis
 
-    }
-    return nil
+	}
+	return nil
 }
 
 func (a ComplianceProvider) StringValue() string {
-    var s string
-    switch a {
-    default:
-        s = "undefined"
-    case ComplianceProviderChainalysis:
-        s = "CHAINALYSIS"
+	var s string
+	switch a {
+	default:
+		s = "undefined"
+	case ComplianceProviderChainalysis:
+		s = "CHAINALYSIS"
 
-    }
-    return s
+	}
+	return s
 }
 
 func (a ComplianceProvider) MarshalJSON() ([]byte, error) {
-    s := a.StringValue()
-    return json.Marshal(s)
+	s := a.StringValue()
+	return json.Marshal(s)
 }

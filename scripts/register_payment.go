@@ -1,7 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package scripts
 
-
 const REGISTER_PAYMENT_MUTATION = `
 mutation RegisterPayment(
     $provider: ComplianceProvider!

@@ -2,7 +2,6 @@ package services_test
 
 import "os"
 
-
 type TestConfig struct {
 	ApiClientEndpoint string
 	ApiClientID       string

@@ -1,43 +1,41 @@
-
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // InvoiceData This object represents the data associated with a BOLT #11 invoice. You can retrieve this object to receive the relevant data associated with a specific invoice.
 type InvoiceData struct {
+	EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
 
-    
-    EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
+	BitcoinNetwork BitcoinNetwork `json:"invoice_data_bitcoin_network"`
 
-    
-    BitcoinNetwork BitcoinNetwork `json:"invoice_data_bitcoin_network"`
+	// PaymentHash The payment hash of this invoice.
+	PaymentHash string `json:"invoice_data_payment_hash"`
 
-    // PaymentHash The payment hash of this invoice.
-    PaymentHash string `json:"invoice_data_payment_hash"`
+	// Amount The requested amount in this invoice. If it is equal to 0, the sender should choose the amount to send.
+	Amount CurrencyAmount `json:"invoice_data_amount"`
 
-    // Amount The requested amount in this invoice. If it is equal to 0, the sender should choose the amount to send.
-    Amount CurrencyAmount `json:"invoice_data_amount"`
+	// CreatedAt The date and time when this invoice was created.
+	CreatedAt time.Time `json:"invoice_data_created_at"`
 
-    // CreatedAt The date and time when this invoice was created.
-    CreatedAt time.Time `json:"invoice_data_created_at"`
+	// ExpiresAt The date and time when this invoice will expire.
+	ExpiresAt time.Time `json:"invoice_data_expires_at"`
 
-    // ExpiresAt The date and time when this invoice will expire.
-    ExpiresAt time.Time `json:"invoice_data_expires_at"`
+	// Memo A short, UTF-8 encoded, description of the purpose of this invoice.
+	Memo *string `json:"invoice_data_memo"`
 
-    // Memo A short, UTF-8 encoded, description of the purpose of this invoice.
-    Memo *string `json:"invoice_data_memo"`
+	// Destination The lightning node that will be paid when fulfilling this invoice.
+	Destination Node `json:"invoice_data_destination"`
 
-    // Destination The lightning node that will be paid when fulfilling this invoice.
-    Destination Node `json:"invoice_data_destination"`
-
-    // Typename The typename of the object
-    Typename string `json:"__typename"`
-
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
 const (
-    InvoiceDataFragment = `
+	InvoiceDataFragment = `
 fragment InvoiceDataFragment on InvoiceData {
     __typename
     invoice_data_encoded_payment_request: encoded_payment_request
@@ -332,99 +330,72 @@ fragment InvoiceDataFragment on InvoiceData {
 `
 )
 
-
-
-
-
 func (obj InvoiceData) GetEncodedPaymentRequest() string {
-    return obj.EncodedPaymentRequest
+	return obj.EncodedPaymentRequest
 }
-
 
 func (obj InvoiceData) GetBitcoinNetwork() BitcoinNetwork {
-    return obj.BitcoinNetwork
+	return obj.BitcoinNetwork
 }
 
-
-    func (obj InvoiceData) GetTypename() string {
-        return obj.Typename
-    }
-
-
-
-
+func (obj InvoiceData) GetTypename() string {
+	return obj.Typename
+}
 
 type InvoiceDataJSON struct {
+	EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
 
-    
-    EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
+	BitcoinNetwork BitcoinNetwork `json:"invoice_data_bitcoin_network"`
 
-    
-    BitcoinNetwork BitcoinNetwork `json:"invoice_data_bitcoin_network"`
+	// PaymentHash The payment hash of this invoice.
+	PaymentHash string `json:"invoice_data_payment_hash"`
 
-    // PaymentHash The payment hash of this invoice.
-    PaymentHash string `json:"invoice_data_payment_hash"`
+	// Amount The requested amount in this invoice. If it is equal to 0, the sender should choose the amount to send.
+	Amount CurrencyAmount `json:"invoice_data_amount"`
 
-    // Amount The requested amount in this invoice. If it is equal to 0, the sender should choose the amount to send.
-    Amount CurrencyAmount `json:"invoice_data_amount"`
+	// CreatedAt The date and time when this invoice was created.
+	CreatedAt time.Time `json:"invoice_data_created_at"`
 
-    // CreatedAt The date and time when this invoice was created.
-    CreatedAt time.Time `json:"invoice_data_created_at"`
+	// ExpiresAt The date and time when this invoice will expire.
+	ExpiresAt time.Time `json:"invoice_data_expires_at"`
 
-    // ExpiresAt The date and time when this invoice will expire.
-    ExpiresAt time.Time `json:"invoice_data_expires_at"`
+	// Memo A short, UTF-8 encoded, description of the purpose of this invoice.
+	Memo *string `json:"invoice_data_memo"`
 
-    // Memo A short, UTF-8 encoded, description of the purpose of this invoice.
-    Memo *string `json:"invoice_data_memo"`
+	// Destination The lightning node that will be paid when fulfilling this invoice.
+	Destination map[string]interface{} `json:"invoice_data_destination"`
 
-    // Destination The lightning node that will be paid when fulfilling this invoice.
-    Destination map[string]interface{} `json:"invoice_data_destination"`
-
-    // Typename The typename of the object
-    Typename string `json:"__typename"`
-
+	// Typename The typename of the object
+	Typename string `json:"__typename"`
 }
 
-
 func (data *InvoiceData) UnmarshalJSON(dataBytes []byte) error {
-    var temp InvoiceDataJSON
+	var temp InvoiceDataJSON
 	if err := json.Unmarshal(dataBytes, &temp); err != nil {
 		return err
 	}
 
-	
-    data.EncodedPaymentRequest = temp.EncodedPaymentRequest
+	data.EncodedPaymentRequest = temp.EncodedPaymentRequest
 
+	data.BitcoinNetwork = temp.BitcoinNetwork
 
-    data.BitcoinNetwork = temp.BitcoinNetwork
+	data.PaymentHash = temp.PaymentHash
 
+	data.Amount = temp.Amount
 
-    data.PaymentHash = temp.PaymentHash
+	data.CreatedAt = temp.CreatedAt
 
+	data.ExpiresAt = temp.ExpiresAt
 
-    data.Amount = temp.Amount
+	data.Memo = temp.Memo
 
+	Destination, err := NodeUnmarshal(temp.Destination)
+	if err != nil {
+		return err
+	}
+	data.Destination = Destination
 
-    data.CreatedAt = temp.CreatedAt
+	data.Typename = temp.Typename
 
-
-    data.ExpiresAt = temp.ExpiresAt
-
-
-    data.Memo = temp.Memo
-
-
-    Destination, err := NodeUnmarshal(temp.Destination)
-    if err != nil {
-        return err
-    }
-    data.Destination = Destination
-
-
-    data.Typename = temp.Typename
-
-
-    return nil
+	return nil
 }
-
-

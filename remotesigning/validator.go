@@ -18,10 +18,10 @@ func (v PositiveValidator) ShouldSign(webhooks.WebhookEvent) bool {
 	return true
 }
 
-type HashValidator struct {} 
+type HashValidator struct{}
 
 func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
-	request, err := ParseDeriveAndSignRequest(webhookEvent)	
+	request, err := ParseDeriveAndSignRequest(webhookEvent)
 	if err != nil {
 		// Only validate DeriveAndSignRequest events
 		return true
@@ -29,7 +29,7 @@ func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 
 	for _, signing := range request.SigningJobs {
 		// PaymentOutput or DelayedPaymentOutput
-		if strings.HasSuffix(signing.DerivationPath, "/2") || strings.HasSuffix(signing.DerivationPath, "/3"){
+		if strings.HasSuffix(signing.DerivationPath, "/2") || strings.HasSuffix(signing.DerivationPath, "/3") {
 			msg, err := CalculateWitnessHashPSBT(*signing.Transaction)
 			if err != nil {
 				return false
