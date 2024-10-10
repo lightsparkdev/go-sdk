@@ -1,15 +1,22 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
 // ChannelFees This represents the fee policies set for a channel on the Lightning Network.
 type ChannelFees struct {
-	BaseFee *CurrencyAmount `json:"channel_fees_base_fee"`
 
-	FeeRatePerMil *int64 `json:"channel_fees_fee_rate_per_mil"`
+    
+    BaseFee *CurrencyAmount `json:"channel_fees_base_fee"`
+
+    
+    FeeRatePerMil *int64 `json:"channel_fees_fee_rate_per_mil"`
+
 }
 
 const (
-	ChannelFeesFragment = `
+    ChannelFeesFragment = `
 fragment ChannelFeesFragment on ChannelFees {
     __typename
     channel_fees_base_fee: base_fee {
@@ -24,3 +31,10 @@ fragment ChannelFeesFragment on ChannelFees {
 }
 `
 )
+
+
+
+
+
+
+

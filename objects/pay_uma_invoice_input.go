@@ -1,19 +1,39 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
+
 type PayUmaInvoiceInput struct {
-	NodeId string `json:"pay_uma_invoice_input_node_id"`
 
-	EncodedInvoice string `json:"pay_uma_invoice_input_encoded_invoice"`
+    
+    NodeId string `json:"pay_uma_invoice_input_node_id"`
 
-	TimeoutSecs int64 `json:"pay_uma_invoice_input_timeout_secs"`
+    
+    EncodedInvoice string `json:"pay_uma_invoice_input_encoded_invoice"`
 
-	MaximumFeesMsats int64 `json:"pay_uma_invoice_input_maximum_fees_msats"`
+    
+    TimeoutSecs int64 `json:"pay_uma_invoice_input_timeout_secs"`
 
-	AmountMsats *int64 `json:"pay_uma_invoice_input_amount_msats"`
+    
+    MaximumFeesMsats int64 `json:"pay_uma_invoice_input_maximum_fees_msats"`
 
-	IdempotencyKey *string `json:"pay_uma_invoice_input_idempotency_key"`
+    
+    AmountMsats *int64 `json:"pay_uma_invoice_input_amount_msats"`
 
-	// SenderHash An optional, monthly-rotated, unique hashed identifier corresponding to the sender of the payment.
-	SenderHash *string `json:"pay_uma_invoice_input_sender_hash"`
+    
+    IdempotencyKey *string `json:"pay_uma_invoice_input_idempotency_key"`
+
+    // SenderHash An optional, monthly-rotated, unique hashed identifier corresponding to the sender of the payment.
+    SenderHash *string `json:"pay_uma_invoice_input_sender_hash"`
+
 }
+
+
+
+
+
+
+
+

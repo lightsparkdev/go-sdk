@@ -1,82 +1,79 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // LightsparkNodeWithRemoteSigning This is a Lightspark node with remote signing.
 type LightsparkNodeWithRemoteSigning struct {
 
-	// Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
-	Id string `json:"lightspark_node_with_remote_signing_id"`
+    // Id The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
+    Id string `json:"lightspark_node_with_remote_signing_id"`
 
-	// CreatedAt The date and time when the entity was first created.
-	CreatedAt time.Time `json:"lightspark_node_with_remote_signing_created_at"`
+    // CreatedAt The date and time when the entity was first created.
+    CreatedAt time.Time `json:"lightspark_node_with_remote_signing_created_at"`
 
-	// UpdatedAt The date and time when the entity was last updated.
-	UpdatedAt time.Time `json:"lightspark_node_with_remote_signing_updated_at"`
+    // UpdatedAt The date and time when the entity was last updated.
+    UpdatedAt time.Time `json:"lightspark_node_with_remote_signing_updated_at"`
 
-	// Alias A name that identifies the node. It has no importance in terms of operating the node, it is just a way to identify and search for commercial services or popular nodes. This alias can be changed at any time by the node operator.
-	Alias *string `json:"lightspark_node_with_remote_signing_alias"`
+    // Alias A name that identifies the node. It has no importance in terms of operating the node, it is just a way to identify and search for commercial services or popular nodes. This alias can be changed at any time by the node operator.
+    Alias *string `json:"lightspark_node_with_remote_signing_alias"`
 
-	// BitcoinNetwork The Bitcoin Network this node is deployed in.
-	BitcoinNetwork BitcoinNetwork `json:"lightspark_node_with_remote_signing_bitcoin_network"`
+    // BitcoinNetwork The Bitcoin Network this node is deployed in.
+    BitcoinNetwork BitcoinNetwork `json:"lightspark_node_with_remote_signing_bitcoin_network"`
 
-	// Color A hexadecimal string that describes a color. For example "#000000" is black, "#FFFFFF" is white. It has no importance in terms of operating the node, it is just a way to visually differentiate nodes. That color can be changed at any time by the node operator.
-	Color *string `json:"lightspark_node_with_remote_signing_color"`
+    // Color A hexadecimal string that describes a color. For example "#000000" is black, "#FFFFFF" is white. It has no importance in terms of operating the node, it is just a way to visually differentiate nodes. That color can be changed at any time by the node operator.
+    Color *string `json:"lightspark_node_with_remote_signing_color"`
 
-	// Conductivity A summary metric used to capture how well positioned a node is to send, receive, or route transactions efficiently. Maximizing a node's conductivity helps a node’s transactions to be capital efficient. The value is an integer ranging between 0 and 10 (bounds included).
-	Conductivity *int64 `json:"lightspark_node_with_remote_signing_conductivity"`
+    // Conductivity A summary metric used to capture how well positioned a node is to send, receive, or route transactions efficiently. Maximizing a node's conductivity helps a node’s transactions to be capital efficient. The value is an integer ranging between 0 and 10 (bounds included).
+    // Deprecated: Not supported.
+    Conductivity *int64 `json:"lightspark_node_with_remote_signing_conductivity"`
 
-	// DisplayName The name of this node in the network. It will be the most human-readable option possible, depending on the data available for this node.
-	DisplayName string `json:"lightspark_node_with_remote_signing_display_name"`
+    // DisplayName The name of this node in the network. It will be the most human-readable option possible, depending on the data available for this node.
+    DisplayName string `json:"lightspark_node_with_remote_signing_display_name"`
 
-	// PublicKey The public key of this node. It acts as a unique identifier of this node in the Lightning Network.
-	PublicKey *string `json:"lightspark_node_with_remote_signing_public_key"`
+    // PublicKey The public key of this node. It acts as a unique identifier of this node in the Lightning Network.
+    PublicKey *string `json:"lightspark_node_with_remote_signing_public_key"`
 
-	// Owner The owner of this LightsparkNode.
-	Owner types.EntityWrapper `json:"lightspark_node_with_remote_signing_owner"`
+    // Owner The owner of this LightsparkNode.
+    Owner types.EntityWrapper `json:"lightspark_node_with_remote_signing_owner"`
 
-	// Status The current status of this node.
-	Status *LightsparkNodeStatus `json:"lightspark_node_with_remote_signing_status"`
+    // Status The current status of this node.
+    Status *LightsparkNodeStatus `json:"lightspark_node_with_remote_signing_status"`
 
-	// TotalBalance The sum of the balance on the Bitcoin Network, channel balances, and commit fees on this node.
-	// Deprecated: Use `balances` instead.
-	TotalBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_total_balance"`
+    // TotalBalance The sum of the balance on the Bitcoin Network, channel balances, and commit fees on this node.
+    // Deprecated: Use `balances` instead.
+    TotalBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_total_balance"`
 
-	// TotalLocalBalance The total sum of the channel balances (online and offline) on this node.
-	// Deprecated: Use `balances` instead.
-	TotalLocalBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_total_local_balance"`
+    // TotalLocalBalance The total sum of the channel balances (online and offline) on this node.
+    // Deprecated: Use `balances` instead.
+    TotalLocalBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_total_local_balance"`
 
-	// LocalBalance The sum of the channel balances (online only) that are available to send on this node.
-	// Deprecated: Use `balances` instead.
-	LocalBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_local_balance"`
+    // LocalBalance The sum of the channel balances (online only) that are available to send on this node.
+    // Deprecated: Use `balances` instead.
+    LocalBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_local_balance"`
 
-	// RemoteBalance The sum of the channel balances that are available to receive on this node.
-	// Deprecated: Use `balances` instead.
-	RemoteBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_remote_balance"`
+    // RemoteBalance The sum of the channel balances that are available to receive on this node.
+    // Deprecated: Use `balances` instead.
+    RemoteBalance *CurrencyAmount `json:"lightspark_node_with_remote_signing_remote_balance"`
 
-	// BlockchainBalance The details of the balance of this node on the Bitcoin Network.
-	// Deprecated: Use `balances` instead.
-	BlockchainBalance *BlockchainBalance `json:"lightspark_node_with_remote_signing_blockchain_balance"`
+    // BlockchainBalance The details of the balance of this node on the Bitcoin Network.
+    // Deprecated: Use `balances` instead.
+    BlockchainBalance *BlockchainBalance `json:"lightspark_node_with_remote_signing_blockchain_balance"`
 
-	// UmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
-	UmaPrescreeningUtxos []string `json:"lightspark_node_with_remote_signing_uma_prescreening_utxos"`
+    // UmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
+    UmaPrescreeningUtxos []string `json:"lightspark_node_with_remote_signing_uma_prescreening_utxos"`
 
-	// Balances The balances that describe the funds in this node.
-	Balances *Balances `json:"lightspark_node_with_remote_signing_balances"`
+    // Balances The balances that describe the funds in this node.
+    Balances *Balances `json:"lightspark_node_with_remote_signing_balances"`
 
-	// Typename The typename of the object
-	Typename string `json:"__typename"`
+    // Typename The typename of the object
+    Typename string `json:"__typename"`
+
 }
 
 const (
-	LightsparkNodeWithRemoteSigningFragment = `
+    LightsparkNodeWithRemoteSigningFragment = `
 fragment LightsparkNodeWithRemoteSigningFragment on LightsparkNodeWithRemoteSigning {
     __typename
     lightspark_node_with_remote_signing_id: id
@@ -207,107 +204,118 @@ fragment LightsparkNodeWithRemoteSigningFragment on LightsparkNodeWithRemoteSign
 `
 )
 
+
+
+
 // GetOwnerId The owner of this LightsparkNode.
 func (obj LightsparkNodeWithRemoteSigning) GetOwnerId() types.EntityWrapper {
-	return obj.Owner
+    return obj.Owner
 }
 
 // GetStatus The current status of this node.
 func (obj LightsparkNodeWithRemoteSigning) GetStatus() *LightsparkNodeStatus {
-	return obj.Status
+    return obj.Status
 }
 
 // GetTotalBalance The sum of the balance on the Bitcoin Network, channel balances, and commit fees on this node.
-// Deprecated: Use `balances` instead.
+    // Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithRemoteSigning) GetTotalBalance() *CurrencyAmount {
-	return obj.TotalBalance
+    return obj.TotalBalance
 }
 
 // GetTotalLocalBalance The total sum of the channel balances (online and offline) on this node.
-// Deprecated: Use `balances` instead.
+    // Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithRemoteSigning) GetTotalLocalBalance() *CurrencyAmount {
-	return obj.TotalLocalBalance
+    return obj.TotalLocalBalance
 }
 
 // GetLocalBalance The sum of the channel balances (online only) that are available to send on this node.
-// Deprecated: Use `balances` instead.
+    // Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithRemoteSigning) GetLocalBalance() *CurrencyAmount {
-	return obj.LocalBalance
+    return obj.LocalBalance
 }
 
 // GetRemoteBalance The sum of the channel balances that are available to receive on this node.
-// Deprecated: Use `balances` instead.
+    // Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithRemoteSigning) GetRemoteBalance() *CurrencyAmount {
-	return obj.RemoteBalance
+    return obj.RemoteBalance
 }
 
 // GetBlockchainBalance The details of the balance of this node on the Bitcoin Network.
-// Deprecated: Use `balances` instead.
+    // Deprecated: Use `balances` instead.
 func (obj LightsparkNodeWithRemoteSigning) GetBlockchainBalance() *BlockchainBalance {
-	return obj.BlockchainBalance
+    return obj.BlockchainBalance
 }
 
 // GetUmaPrescreeningUtxos The utxos of the channels that are connected to this node. This is used in uma flow for pre-screening.
 func (obj LightsparkNodeWithRemoteSigning) GetUmaPrescreeningUtxos() []string {
-	return obj.UmaPrescreeningUtxos
+    return obj.UmaPrescreeningUtxos
 }
 
 // GetBalances The balances that describe the funds in this node.
 func (obj LightsparkNodeWithRemoteSigning) GetBalances() *Balances {
-	return obj.Balances
+    return obj.Balances
 }
+
+
 
 // GetAlias A name that identifies the node. It has no importance in terms of operating the node, it is just a way to identify and search for commercial services or popular nodes. This alias can be changed at any time by the node operator.
 func (obj LightsparkNodeWithRemoteSigning) GetAlias() *string {
-	return obj.Alias
+    return obj.Alias
 }
 
 // GetBitcoinNetwork The Bitcoin Network this node is deployed in.
 func (obj LightsparkNodeWithRemoteSigning) GetBitcoinNetwork() BitcoinNetwork {
-	return obj.BitcoinNetwork
+    return obj.BitcoinNetwork
 }
 
 // GetColor A hexadecimal string that describes a color. For example "#000000" is black, "#FFFFFF" is white. It has no importance in terms of operating the node, it is just a way to visually differentiate nodes. That color can be changed at any time by the node operator.
 func (obj LightsparkNodeWithRemoteSigning) GetColor() *string {
-	return obj.Color
+    return obj.Color
 }
 
 // GetConductivity A summary metric used to capture how well positioned a node is to send, receive, or route transactions efficiently. Maximizing a node's conductivity helps a node’s transactions to be capital efficient. The value is an integer ranging between 0 and 10 (bounds included).
+    // Deprecated: Not supported.
 func (obj LightsparkNodeWithRemoteSigning) GetConductivity() *int64 {
-	return obj.Conductivity
+    return obj.Conductivity
 }
 
 // GetDisplayName The name of this node in the network. It will be the most human-readable option possible, depending on the data available for this node.
 func (obj LightsparkNodeWithRemoteSigning) GetDisplayName() string {
-	return obj.DisplayName
+    return obj.DisplayName
 }
 
 // GetPublicKey The public key of this node. It acts as a unique identifier of this node in the Lightning Network.
 func (obj LightsparkNodeWithRemoteSigning) GetPublicKey() *string {
-	return obj.PublicKey
+    return obj.PublicKey
 }
+
+
 
 // GetId The unique identifier of this entity across all Lightspark systems. Should be treated as an opaque string.
 func (obj LightsparkNodeWithRemoteSigning) GetId() string {
-	return obj.Id
+    return obj.Id
 }
 
 // GetCreatedAt The date and time when the entity was first created.
 func (obj LightsparkNodeWithRemoteSigning) GetCreatedAt() time.Time {
-	return obj.CreatedAt
+    return obj.CreatedAt
 }
 
 // GetUpdatedAt The date and time when the entity was last updated.
 func (obj LightsparkNodeWithRemoteSigning) GetUpdatedAt() time.Time {
-	return obj.UpdatedAt
+    return obj.UpdatedAt
 }
 
-func (obj LightsparkNodeWithRemoteSigning) GetTypename() string {
-	return obj.Typename
-}
 
-func (obj LightsparkNodeWithRemoteSigning) GetAddresses(requester *requester.Requester, first *int64, types *[]NodeAddressType) (*NodeToAddressesConnection, error) {
-	query := `query FetchNodeToAddressesConnection($entity_id: ID!, $first: Int, $types: [NodeAddressType!]) {
+    func (obj LightsparkNodeWithRemoteSigning) GetTypename() string {
+        return obj.Typename
+    }
+
+
+
+    func (obj LightsparkNodeWithRemoteSigning) GetAddresses(requester *requester.Requester, first *int64, types *[]NodeAddressType) (*NodeToAddressesConnection, error) {
+        query := `query FetchNodeToAddressesConnection($entity_id: ID!, $first: Int, $types: [NodeAddressType!]) {
     entity(id: $entity_id) {
         ... on LightsparkNodeWithRemoteSigning {
             addresses(, first: $first, types: $types) {
@@ -322,26 +330,27 @@ func (obj LightsparkNodeWithRemoteSigning) GetAddresses(requester *requester.Req
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id": obj.Id,
-		"first":     first,
-		"types":     types,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"types": types,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["addresses"].(map[string]interface{})
-	var result *NodeToAddressesConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["addresses"].(map[string]interface{})
+        var result *NodeToAddressesConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj LightsparkNodeWithRemoteSigning) GetChannels(requester *requester.Requester, first *int64, after *string, beforeDate *time.Time, afterDate *time.Time, statuses *[]ChannelStatus) (*LightsparkNodeToChannelsConnection, error) {
-	query := `query FetchLightsparkNodeToChannelsConnection($entity_id: ID!, $first: Int, $after: String, $before_date: DateTime, $after_date: DateTime, $statuses: [ChannelStatus!]) {
+    func (obj LightsparkNodeWithRemoteSigning) GetChannels(requester *requester.Requester, first *int64, after *string, beforeDate *time.Time, afterDate *time.Time, statuses *[]ChannelStatus) (*LightsparkNodeToChannelsConnection, error) {
+        query := `query FetchLightsparkNodeToChannelsConnection($entity_id: ID!, $first: Int, $after: String, $before_date: DateTime, $after_date: DateTime, $statuses: [ChannelStatus!]) {
     entity(id: $entity_id) {
         ... on LightsparkNodeWithRemoteSigning {
             channels(, first: $first, after: $after, before_date: $before_date, after_date: $after_date, statuses: $statuses) {
@@ -452,29 +461,30 @@ func (obj LightsparkNodeWithRemoteSigning) GetChannels(requester *requester.Requ
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id":   obj.Id,
-		"first":       first,
-		"after":       after,
-		"before_date": beforeDate,
-		"after_date":  afterDate,
-		"statuses":    statuses,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"first": first,
+"after": after,
+"before_date": beforeDate,
+"after_date": afterDate,
+"statuses": statuses,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["channels"].(map[string]interface{})
-	var result *LightsparkNodeToChannelsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["channels"].(map[string]interface{})
+        var result *LightsparkNodeToChannelsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
 
-func (obj LightsparkNodeWithRemoteSigning) GetDailyLiquidityForecasts(requester *requester.Requester, fromDate types.Date, toDate types.Date, direction LightningPaymentDirection) (*LightsparkNodeToDailyLiquidityForecastsConnection, error) {
-	query := `query FetchLightsparkNodeToDailyLiquidityForecastsConnection($entity_id: ID!, $from_date: Date!, $to_date: Date!, $direction: LightningPaymentDirection!) {
+    func (obj LightsparkNodeWithRemoteSigning) GetDailyLiquidityForecasts(requester *requester.Requester, fromDate types.Date, toDate types.Date, direction LightningPaymentDirection) (*LightsparkNodeToDailyLiquidityForecastsConnection, error) {
+        query := `query FetchLightsparkNodeToDailyLiquidityForecastsConnection($entity_id: ID!, $from_date: Date!, $to_date: Date!, $direction: LightningPaymentDirection!) {
     entity(id: $entity_id) {
         ... on LightsparkNodeWithRemoteSigning {
             daily_liquidity_forecasts(, from_date: $from_date, to_date: $to_date, direction: $direction) {
@@ -499,21 +509,25 @@ func (obj LightsparkNodeWithRemoteSigning) GetDailyLiquidityForecasts(requester 
         }
     }
 }`
-	variables := map[string]interface{}{
-		"entity_id": obj.Id,
-		"from_date": fromDate,
-		"to_date":   toDate,
-		"direction": direction,
-	}
+        variables := map[string]interface{} {
+        "entity_id": obj.Id,
+"from_date": fromDate,
+"to_date": toDate,
+"direction": direction,
 
-	response, err := requester.ExecuteGraphql(query, variables, nil)
-	if err != nil {
-		return nil, err
-	}
+        }
+      
+        response, err := requester.ExecuteGraphql(query, variables, nil)
+    	if err != nil {
+	    	return nil, err
+    	}
 
-	output := response["entity"].(map[string]interface{})["daily_liquidity_forecasts"].(map[string]interface{})
-	var result *LightsparkNodeToDailyLiquidityForecastsConnection
-	jsonString, err := json.Marshal(output)
-	json.Unmarshal(jsonString, &result)
-	return result, nil
-}
+        output := response["entity"].(map[string]interface{})["daily_liquidity_forecasts"].(map[string]interface{})
+        var result *LightsparkNodeToDailyLiquidityForecastsConnection
+    	jsonString, err := json.Marshal(output)
+	    json.Unmarshal(jsonString, &result)
+    	return result, nil
+    }
+
+
+
