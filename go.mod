@@ -1,20 +1,14 @@
 module github.com/lightsparkdev/go-sdk
 
-go 1.21
+go 1.22.0
 
-toolchain go1.21.0
+toolchain go1.23.2
 
 require (
 	github.com/DataDog/zstd v1.5.5
 	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.4.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.23.0
-)
-
-require (
-	golang.org/x/mod v0.21.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/tools v0.26.0 // indirect
 )
 
 require (
