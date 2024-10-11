@@ -1,8 +1,8 @@
 module github.com/lightsparkdev/go-sdk
 
-go 1.22.0
+go 1.21
 
-toolchain go1.23.2
+toolchain go1.21.0
 
 require (
 	github.com/DataDog/zstd v1.5.5
