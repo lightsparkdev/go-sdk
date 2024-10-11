@@ -46,6 +46,7 @@ type OutgoingPaymentAttempt struct {
 	OutgoingPayment types.EntityWrapper `json:"outgoing_payment_attempt_outgoing_payment"`
 
 	// ChannelSnapshot The channel snapshot at the time the outgoing payment attempt was made.
+	// Deprecated: Not supported.
 	ChannelSnapshot *types.EntityWrapper `json:"outgoing_payment_attempt_channel_snapshot"`
 
 	// Typename The typename of the object

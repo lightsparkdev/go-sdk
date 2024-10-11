@@ -224,7 +224,7 @@ func (client *LightsparkClient) CreateUmaInvoice(nodeId string, amountMsats int6
 //	 	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day)
 //	 	signingPrivateKey: the receiver's signing private key. Used to hash the receiver identifier.
 //	 	receiverIdentifier: optional identifier of the receiver. If provided, this will be hashed using a
-// 			monthly-rotated seed and used for anonymized analysis.
+//			monthly-rotated seed and used for anonymized analysis.
 func (client *LightsparkClient) CreateUmaInvoiceWithReceiverIdentifier(nodeId string, amountMsats int64,
 	metadata string, expirySecs *int32, signingPrivateKey *[]byte, receiverIdentifier *string,
 ) (*objects.Invoice, error) {
@@ -763,21 +763,21 @@ func (client *LightsparkClient) RequestWithdrawalWithIdempotencyKey(nodeId strin
 //
 // Args:
 //
-//		nodeId: The node from which you'd like to make the withdrawal.
-//		amountSats: The amount you want to withdraw from this node in Satoshis.
-//			Use the special value -1 to withdrawal all funds from this node.
-//		bitcoinAddress: The bitcoin address where you want to receive the funds.
-//		withdrawalMode: The mode that will be used to withdraw the funds.
-//	 idempotencyKey: A unique key that identifies this withdrawal. If a withdrawal with the same idempotency key has
-//			  already been made, the same WithdrawalRequest will be returned. This must be unique for each payment. If
-//			  you do not have a specific idempotency requirement, you can pass nil or just use `RequestWithdrawal`.
-//    feeTarget: The target of the fee that should be used when crafting the L1 transaction. You 
-//         should only set `feeTarget` or `satsPerVByte`. If neither of them is set, default 
-//         value of MEDIUM will be used as `feeTarget`.
-//    satsPerVByte: A manual fee rate set in sat/vbyte that should be used when crafting the L1 
-//         transaction. You should only set `feeTarget` or `satsPerVByte`
+//			nodeId: The node from which you'd like to make the withdrawal.
+//			amountSats: The amount you want to withdraw from this node in Satoshis.
+//				Use the special value -1 to withdrawal all funds from this node.
+//			bitcoinAddress: The bitcoin address where you want to receive the funds.
+//			withdrawalMode: The mode that will be used to withdraw the funds.
+//		 idempotencyKey: A unique key that identifies this withdrawal. If a withdrawal with the same idempotency key has
+//				  already been made, the same WithdrawalRequest will be returned. This must be unique for each payment. If
+//				  you do not have a specific idempotency requirement, you can pass nil or just use `RequestWithdrawal`.
+//	   feeTarget: The target of the fee that should be used when crafting the L1 transaction. You
+//	        should only set `feeTarget` or `satsPerVByte`. If neither of them is set, default
+//	        value of MEDIUM will be used as `feeTarget`.
+//	   satsPerVByte: A manual fee rate set in sat/vbyte that should be used when crafting the L1
+//	        transaction. You should only set `feeTarget` or `satsPerVByte`
 func (client *LightsparkClient) RequestWithdrawalWithIdempotencyKeyAndFee(nodeId string, amountSats int64,
-	bitcoinAddress string, withdrawalMode objects.WithdrawalMode, idempotencyKey *string, 
+	bitcoinAddress string, withdrawalMode objects.WithdrawalMode, idempotencyKey *string,
 	feeTarget *objects.OnChainFeeTarget, satsPerVbyte *int,
 ) (*objects.WithdrawalRequest, error) {
 	variables := map[string]interface{}{

@@ -19,6 +19,8 @@ const (
 	CurrencyUnitMillisatoshi
 	// CurrencyUnitUsd United States Dollar.
 	CurrencyUnitUsd
+	// CurrencyUnitMxn Mexican Peso.
+	CurrencyUnitMxn
 	// CurrencyUnitNanobitcoin 0.000000001 (10e-9) Bitcoin or a billionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
 	CurrencyUnitNanobitcoin
 	// CurrencyUnitMicrobitcoin 0.000001 (10e-6) Bitcoin or a millionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
@@ -43,6 +45,8 @@ func (a *CurrencyUnit) UnmarshalJSON(b []byte) error {
 		*a = CurrencyUnitMillisatoshi
 	case "USD":
 		*a = CurrencyUnitUsd
+	case "MXN":
+		*a = CurrencyUnitMxn
 	case "NANOBITCOIN":
 		*a = CurrencyUnitNanobitcoin
 	case "MICROBITCOIN":
@@ -67,6 +71,8 @@ func (a CurrencyUnit) StringValue() string {
 		s = "MILLISATOSHI"
 	case CurrencyUnitUsd:
 		s = "USD"
+	case CurrencyUnitMxn:
+		s = "MXN"
 	case CurrencyUnitNanobitcoin:
 		s = "NANOBITCOIN"
 	case CurrencyUnitMicrobitcoin:

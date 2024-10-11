@@ -55,6 +55,7 @@ type Channel struct {
 	CommitFee *CurrencyAmount `json:"channel_commit_fee"`
 
 	// Fees The fees charged for routing payments through this channel.
+	// Deprecated: Customer nodes do not route payments anymore.
 	Fees *ChannelFees `json:"channel_fees"`
 
 	// RemoteNode If known, the remote node of the channel.

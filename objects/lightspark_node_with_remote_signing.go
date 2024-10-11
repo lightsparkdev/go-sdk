@@ -31,6 +31,7 @@ type LightsparkNodeWithRemoteSigning struct {
 	Color *string `json:"lightspark_node_with_remote_signing_color"`
 
 	// Conductivity A summary metric used to capture how well positioned a node is to send, receive, or route transactions efficiently. Maximizing a node's conductivity helps a node’s transactions to be capital efficient. The value is an integer ranging between 0 and 10 (bounds included).
+	// Deprecated: Not supported.
 	Conductivity *int64 `json:"lightspark_node_with_remote_signing_conductivity"`
 
 	// DisplayName The name of this node in the network. It will be the most human-readable option possible, depending on the data available for this node.
@@ -273,6 +274,7 @@ func (obj LightsparkNodeWithRemoteSigning) GetColor() *string {
 }
 
 // GetConductivity A summary metric used to capture how well positioned a node is to send, receive, or route transactions efficiently. Maximizing a node's conductivity helps a node’s transactions to be capital efficient. The value is an integer ranging between 0 and 10 (bounds included).
+// Deprecated: Not supported.
 func (obj LightsparkNodeWithRemoteSigning) GetConductivity() *int64 {
 	return obj.Conductivity
 }

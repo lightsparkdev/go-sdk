@@ -5,4 +5,6 @@ type FundNodeInput struct {
 	NodeId string `json:"fund_node_input_node_id"`
 
 	AmountSats *int64 `json:"fund_node_input_amount_sats"`
+
+	FundingAddress *string `json:"fund_node_input_funding_address"`
 }

@@ -78,15 +78,15 @@ func (s *SigningKeyLoader) loadSigningKeyFromMasterSeed() (requester.SigningKey,
 		return nil, errors.New("invalid network")
 	}
 
-    derivationPath := "m/5"
-    key, error := lightspark_crypto.DerivePrivateKey(s.masterSeedAndNetwork.masterSeed, network, derivationPath)
-    if error != nil {
-        return nil, error
-    }
-    keyBytes, error := hex.DecodeString(key)
-    if error != nil {
-        return nil, error
-    }
+	derivationPath := "m/5"
+	key, error := lightspark_crypto.DerivePrivateKey(s.masterSeedAndNetwork.masterSeed, network, derivationPath)
+	if error != nil {
+		return nil, error
+	}
+	keyBytes, error := hex.DecodeString(key)
+	if error != nil {
+		return nil, error
+	}
 	return &requester.Secp256k1SigningKey{PrivateKey: keyBytes}, nil
 }
 
