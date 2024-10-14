@@ -42,15 +42,15 @@ Now, you can test the full uma flow like:
 ```bash
 # First, call to vasp1 to lookup Bob at vasp2. This will return currency conversion info, etc. It will also contain a 
 # callback ID that you'll need for the next call
-$ curl -X GET http://localhost:8080/api/umalookup/\$bob@localhost:8081
+$ curl -X GET http://localhost:8080/api/umalookup/\$bob@localhost:8081 -u diane:pa55word
 
 # Now, call to vasp1 to get a payment request from vasp2. Replace the last path component here with the callbackUuid
 # from the previous call. This will return an invoice and another callback ID that you'll need for the next call.
-$ curl -X GET "http://localhost:8080/api/umapayreq/52ca86cd-62ed-4110-9774-4e07b9aa1f0e?amount=100&currencyCode=USD"
+$ curl -X GET "http://localhost:8080/api/umapayreq/52ca86cd-62ed-4110-9774-4e07b9aa1f0e?amount=100&currencyCode=USD" -u diane:pa55word
 
 # Now, call to vasp1 to send the payment. Replace the last path component here with the callbackUuid from the payreq
 # call. This will return a payment ID that you can use to check the status of the payment.
-curl -X POST http://localhost:8080/api/sendpayment/e26cbee9-f09d-4ada-a731-965cbd043d50
+curl -X POST http://localhost:8080/api/sendpayment/e26cbee9-f09d-4ada-a731-965cbd043d50 -u diane:pa55word
 ```
 
 ### Running with Docker

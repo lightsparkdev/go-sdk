@@ -32,9 +32,10 @@ type Vasp1 struct {
 	nonceCache        uma.NonceCache
 	client            *services.LightsparkClient
 	umaRequestStorage *Vasp1UmaRequestStorage
+	userService       UserService
 }
 
-func NewVasp1(config *UmaConfig, pubKeyCache uma.PublicKeyCache) *Vasp1 {
+func NewVasp1(config *UmaConfig, pubKeyCache uma.PublicKeyCache, userService UserService) *Vasp1 {
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	return &Vasp1{
 		config:            config,
@@ -43,6 +44,7 @@ func NewVasp1(config *UmaConfig, pubKeyCache uma.PublicKeyCache) *Vasp1 {
 		nonceCache:        uma.NewInMemoryNonceCache(oneDayAgo),
 		client:            services.NewLightsparkClient(config.ApiClientID, config.ApiClientSecret, config.ClientBaseURL),
 		umaRequestStorage: &Vasp1UmaRequestStorage{},
+		userService:       userService,
 	}
 }
 
@@ -237,7 +239,7 @@ func (v *Vasp1) getUtxoCallback(context *gin.Context, txId string) string {
 	if umautils.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
-	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
+	return fmt.Sprintf("%s%s/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
 }
 
 func (v *Vasp1) handlePayInvoice(context *gin.Context) {
