@@ -35,7 +35,7 @@ func (v *Vasp2) getLnurlpCallback(context *gin.Context) string {
 	if umautils.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
-	return fmt.Sprintf("%s%s/api/uma/payreq/%s", scheme, context.Request.Host, v.config.UserID)
+	return fmt.Sprintf("%s%s/uma/payreq/%s", scheme, context.Request.Host, v.config.UserID)
 }
 
 func (v *Vasp2) getUtxoCallback(context *gin.Context, txId string) string {
@@ -43,7 +43,7 @@ func (v *Vasp2) getUtxoCallback(context *gin.Context, txId string) string {
 	if umautils.IsDomainLocalhost(context.Request.Host) {
 		scheme = "http://"
 	}
-	return fmt.Sprintf("%s%s/api/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
+	return fmt.Sprintf("%s%s/uma/utxocallback?txid=%s", scheme, context.Request.Host, txId)
 }
 
 func (v *Vasp2) getMetadata() (string, error) {

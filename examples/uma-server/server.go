@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -31,9 +34,31 @@ func main() {
 	config := NewConfig()
 	log.Printf("Starting server with config: %+v", config)
 	engine := gin.Default()
+	store := cookie.NewStore([]byte(config.CookieSecret))
+	engine.Use(sessions.Sessions("uma_session", store))
 	pubKeyCache := uma.NewInMemoryPublicKeyCache()
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
-	vasp1 := NewVasp1(&config, pubKeyCache)
+	userService := NewUserServiceFromEnv(config)
+
+	engine.Use(gin.Logger())
+	engine.Use(gin.Recovery())
+	engine.Use(gin.ErrorLogger())
+
+	// Require authentication for all API routes.
+	engine.Use(func(c *gin.Context) {
+		if !strings.HasPrefix(c.Request.RequestURI, "/api/") {
+			c.Next()
+			return
+		}
+		user, err := userService.GetUserFromContext(c)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		c.Set("user_id", user.ID)
+	})
+
+	vasp1 := NewVasp1(&config, pubKeyCache, userService)
 	vasp2 := Vasp2{
 		config:      &config,
 		pubKeyCache: pubKeyCache,
@@ -57,7 +82,7 @@ func main() {
 		vasp1.handlePayInvoice(c)
 	})
 
-	engine.POST("/api/uma/request_invoice_payment", func(c *gin.Context) {
+	engine.POST("/uma/request_invoice_payment", func(c *gin.Context) {
 		vasp1.handleRequestPayInvoice(c)
 	})
 
@@ -68,11 +93,11 @@ func main() {
 		vasp2.handleWellKnownLnurlp(c)
 	})
 
-	engine.GET("/api/uma/payreq/:uuid", func(c *gin.Context) {
+	engine.GET("/uma/payreq/:uuid", func(c *gin.Context) {
 		vasp2.handleLnurlPayreq(c)
 	})
 
-	engine.POST("/api/uma/payreq/:uuid", func(c *gin.Context) {
+	engine.POST("/uma/payreq/:uuid", func(c *gin.Context) {
 		vasp2.handleUmaPayreq(c)
 	})
 
@@ -93,7 +118,7 @@ func main() {
 		vasp2.handlePubKeyRequest(c)
 	})
 
-	engine.GET("api/uma/utxocallback", func(c *gin.Context) {
+	engine.GET("/uma/utxocallback", func(c *gin.Context) {
 		// It doesn't matter which vasp protocol handles this since they share a config and cache.
 		vasp2.handleUtxoCallback(c)
 	})
@@ -105,7 +130,7 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"uma_major_versions":   uma.GetSupportedMajorVersions(),
-			"uma_request_endpoint": fmt.Sprintf("%s://%s/api/uma/request_invoice_payment", scheme, c.Request.Host),
+			"uma_request_endpoint": fmt.Sprintf("%s://%s/uma/request_invoice_payment", scheme, c.Request.Host),
 		})
 	})
 
