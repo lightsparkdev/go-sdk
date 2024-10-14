@@ -27,6 +27,8 @@ type UmaConfig struct {
 	OskNodeSigningKeyPassword      string
 	ClientBaseURL                  *string
 	OwnVaspDomain                  string
+	SupportedNwcCommands           []string
+	NwcDomain                      *string
 }
 
 func (c *UmaConfig) UmaEncryptionPrivKeyBytes() ([]byte, error) {
@@ -56,6 +58,10 @@ func (c *UmaConfig) GetVaspDomain(context *gin.Context) string {
 		return fmt.Sprintf("%s:%s", requestHostWithoutPort, port)
 	}
 	return requestHostWithoutPort
+}
+
+func (c *UmaConfig) SupportsNwc() bool {
+	return c.NwcDomain != nil
 }
 
 /**
@@ -97,6 +103,34 @@ func NewConfig() UmaConfig {
 		baseUrl = nil
 	}
 
+	nwcDomainEnv := os.Getenv("LIGHTSPARK_NWC_SERVER_DOMAIN")
+	nwcDomain := &nwcDomainEnv
+	if nwcDomainEnv == "" {
+		nwcDomain = nil
+	}
+
+	var supportedNwcCommands []string
+	if nwcDomain != nil {
+		supportedNwcCommands = []string{
+			"pay_invoice",
+			"make_invoice",
+			"lookup_invoice",
+			"get_balance",
+			"get_budget",
+			"get_info",
+			"list_transactions",
+			"pay_keysend",
+			"lookup_user",
+			"fetch_quote",
+			"execute_quote",
+			"pay_to_address",
+		}
+		supportedNwcCommandsEnv := os.Getenv("LIGHTSPARK_NWC_SUPPORTED_COMMANDS")
+		if supportedNwcCommandsEnv != "" {
+			supportedNwcCommands = strings.Split(supportedNwcCommandsEnv, ",")
+		}
+	}
+
 	return UmaConfig{
 		ApiClientID:        os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_ID"),
 		ApiClientSecret:    os.Getenv("LIGHTSPARK_API_TOKEN_CLIENT_SECRET"),
@@ -116,5 +150,7 @@ func NewConfig() UmaConfig {
 		OskNodeSigningKeyPassword:      os.Getenv("LIGHTSPARK_UMA_OSK_NODE_SIGNING_KEY_PASSWORD"),
 		ClientBaseURL:                  baseUrl,
 		OwnVaspDomain:                  os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
+		SupportedNwcCommands:           supportedNwcCommands,
+		NwcDomain:                      nwcDomain,
 	}
 }

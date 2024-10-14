@@ -68,7 +68,9 @@ directory. This file should contain the following:
 LIGHTSPARK_API_TOKEN_CLIENT_ID=<your lightspark API token client ID from https://app.lightspark.com/api-config>
 LIGHTSPARK_API_TOKEN_CLIENT_SECRET=<your lightspark API token client secret from https://app.lightspark.com/api-config>
 LIGHTSPARK_UMA_NODE_ID=<your lightspark node ID. ex: LightsparkNodeWithOSKLND:018b24d0-1c45-f96b-0000-1ed0328b72cc>
-LIGHTSPARK_UMA_RECEIVER_USER=<receiver UMA>
+LIGHTSPARK_UMA_RECEIVER_USER=<receiver UMA name part>
+LIGHTSPARK_UMA_RECEIVER_PASSWORD=<receiver user password>
+LIGHTSPARK_UMA_COOKIE_SECRET=<any cookie secret string>
 
 # These can be generated as described at https://docs.uma.me/uma-standard/keys-authentication-encryption
 LIGHTSPARK_UMA_ENCRYPTION_CERT_CHAIN=<pem-encoded x509 certificate chain containing encryption pubkey>

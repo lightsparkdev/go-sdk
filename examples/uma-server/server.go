@@ -23,9 +23,9 @@ import (
  * have configured). If you're running 2 instances of this server locally, one on port 8080 and one on port 8081, you
  * can test the UMA protocol by running commands like:
  *
- * curl -X GET http://localhost:8080/api/umalookup/\$bob@localhost:8081
- * curl -X GET "http://localhost:8080/api/umapayreq/52ca86cd-62ed-4110-9774-4e07b9aa1f0e?amount=100&currencyCode=USD"
- * curl -X POST http://localhost:8080/api/sendpayment/e26cbee9-f09d-4ada-a731-965cbd043d50
+ * curl -X GET http://localhost:8080/api/umalookup/\$bob@localhost:8081 -u diane:pa$$w0rd
+ * curl -X GET "http://localhost:8080/api/umapayreq/52ca86cd-62ed-4110-9774-4e07b9aa1f0e?amount=100&currencyCode=USD" -u diane:pa$$w0rd
+ * curl -X POST http://localhost:8080/api/sendpayment/e26cbee9-f09d-4ada-a731-965cbd043d50 -u diane:pa$$w0rd
  *
  * Configuration parameters (API keys, etc.) and information on how to set them can be found in config.go.
  */
@@ -64,6 +64,11 @@ func main() {
 		config:      &config,
 		pubKeyCache: pubKeyCache,
 		nonceCache:  uma.NewInMemoryNonceCache(oneDayAgo),
+	}
+
+	if config.SupportsNwc() {
+		umaAuthAdapter := NewUmaAuthAdapter(&config, vasp1, userService)
+		umaAuthAdapter.RegisterRoutes(engine)
 	}
 
 	// VASP1 Routes:
@@ -129,10 +134,25 @@ func main() {
 		if umautils.IsDomainLocalhost(c.Request.Host) {
 			scheme = "http"
 		}
-		c.JSON(http.StatusOK, gin.H{
+
+		vaspDomain := config.GetVaspDomain(c)
+		response := gin.H{
+			"name":                 "Golang Demo VASP",
 			"uma_major_versions":   uma.GetSupportedMajorVersions(),
-			"uma_request_endpoint": fmt.Sprintf("%s://%s/uma/request_invoice_payment", scheme, c.Request.Host),
-		})
+			"uma_request_endpoint": fmt.Sprintf("%s://%s/uma/request_invoice_payment", scheme, vaspDomain),
+		}
+		if config.SupportsNwc() {
+			nwcDomain := *config.NwcDomain
+			nwcBase := fmt.Sprintf("%s://%s", scheme, nwcDomain)
+			response["supported_nwc_commands"] = config.SupportedNwcCommands
+			response["authorization_endpoint"] = fmt.Sprintf("%s/oauth/auth", nwcBase)
+			response["token_endpoint"] = fmt.Sprintf("%s/oauth/token", nwcBase)
+			response["grant_types_supported"] = []string{"authorization_code"}
+			response["code_challenge_methods_supported"] = []string{"S256"}
+			response["connection_management_endpoint"] = fmt.Sprintf("%s/connections", nwcBase)
+
+		}
+		c.JSON(http.StatusOK, response)
 	})
 
 	// Frontend:
