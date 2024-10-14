@@ -34,6 +34,7 @@ func main() {
 	config := NewConfig()
 	log.Printf("Starting server with config: %+v", config)
 	engine := gin.Default()
+	engine.LoadHTMLGlob("templates/*")
 	store := cookie.NewStore([]byte(config.CookieSecret))
 	engine.Use(sessions.Sessions("uma_session", store))
 	pubKeyCache := uma.NewInMemoryPublicKeyCache()
@@ -131,6 +132,48 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{
 			"uma_major_versions":   uma.GetSupportedMajorVersions(),
 			"uma_request_endpoint": fmt.Sprintf("%s://%s/uma/request_invoice_payment", scheme, c.Request.Host),
+		})
+	})
+
+	// Frontend:
+
+	engine.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", nil)
+	})
+
+	engine.POST("/login", func(c *gin.Context) {
+		username := c.PostForm("username")
+		password := c.PostForm("password")
+		hashedPassword := hashString(password)
+		if username == config.Username && hashedPassword == config.HashedUserPassword {
+			session := sessions.Default(c)
+			session.Set("user_id", config.UserID)
+			session.Save()
+			c.Redirect(http.StatusFound, "/")
+			return
+		}
+		c.HTML(http.StatusOK, "login.html", gin.H{
+			"error":    "Invalid username or password",
+			"username": username,
+			"password": password,
+		})
+	})
+
+	engine.GET("/logout", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Clear()
+		session.Save()
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	engine.GET("/", func(c *gin.Context) {
+		user, err := userService.GetUserFromContext(c)
+		if err != nil || user == nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"username": user.Name,
 		})
 	})
 
