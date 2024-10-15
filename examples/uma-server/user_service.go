@@ -37,7 +37,8 @@ type UserService interface {
 
 // UserServiceFromEnv is a UserService that uses environment variables to get user information for a single user.
 type UserServiceFromEnv struct {
-	user *User
+	user   *User
+	config UmaConfig
 }
 
 func NewUserServiceFromEnv(config UmaConfig) *UserServiceFromEnv {
@@ -47,6 +48,7 @@ func NewUserServiceFromEnv(config UmaConfig) *UserServiceFromEnv {
 			Name:           config.Username,
 			HashedPassword: config.HashedUserPassword,
 		},
+		config: config,
 	}
 }
 
@@ -84,6 +86,19 @@ func (u *UserServiceFromEnv) GetUserFromContext(context *gin.Context) (*User, er
 		password := credentials[1]
 		hashedPassword := hashString(password)
 		if credentials[0] == u.user.Name && hashedPassword == u.user.HashedPassword {
+			return u.user, nil
+		}
+	}
+
+	isUmaNwcReq := strings.HasPrefix(context.Request.RequestURI, "/umanwc/")
+	bearerToken := "Bearer "
+	if isUmaNwcReq && strings.HasPrefix(authHeader, bearerToken) {
+		bearerJwt := strings.TrimPrefix(authHeader, bearerToken)
+		claims, err := ParseJwt(bearerJwt, &u.config)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing jwt: %v", err)
+		}
+		if claims.Subject == u.user.ID {
 			return u.user, nil
 		}
 	}

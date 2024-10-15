@@ -29,6 +29,8 @@ type UmaConfig struct {
 	OwnVaspDomain                  string
 	SupportedNwcCommands           []string
 	NwcDomain                      *string
+	NwcJwtPubKey                   string
+	NwcJwtPrivKey                  string
 }
 
 func (c *UmaConfig) UmaEncryptionPrivKeyBytes() ([]byte, error) {
@@ -152,5 +154,7 @@ func NewConfig() UmaConfig {
 		OwnVaspDomain:                  os.Getenv("LIGHTSPARK_UMA_VASP_DOMAIN"),
 		SupportedNwcCommands:           supportedNwcCommands,
 		NwcDomain:                      nwcDomain,
+		NwcJwtPubKey:                   os.Getenv("LIGHTSPARK_NWC_JWT_PUBKEY"),
+		NwcJwtPrivKey:                  os.Getenv("LIGHTSPARK_NWC_JWT_PRIVKEY"),
 	}
 }

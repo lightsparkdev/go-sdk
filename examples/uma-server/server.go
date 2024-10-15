@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -158,6 +160,15 @@ func main() {
 	// Frontend:
 
 	engine.GET("/login", func(c *gin.Context) {
+		if _, err := userService.GetUserFromContext(c); err == nil {
+			redirectUri := c.Query("redirect_uri")
+			if redirectUri != "" {
+				handleRedirectUri(c, config, userService, redirectUri)
+			} else {
+				c.Redirect(http.StatusFound, "/")
+			}
+			return
+		}
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 
@@ -169,7 +180,12 @@ func main() {
 			session := sessions.Default(c)
 			session.Set("user_id", config.UserID)
 			session.Save()
-			c.Redirect(http.StatusFound, "/")
+			redirectUri := c.Query("redirect_uri")
+			if redirectUri != "" {
+				handleRedirectUri(c, config, userService, redirectUri)
+			} else {
+				c.Redirect(http.StatusFound, "/")
+			}
 			return
 		}
 		c.HTML(http.StatusOK, "login.html", gin.H{
@@ -202,4 +218,42 @@ func main() {
 		port = "8081"
 	}
 	engine.Run(":" + port)
+}
+
+func handleRedirectUri(context *gin.Context, config UmaConfig, userService UserService, redirectUrl string) {
+	parsedUrl, err := url.Parse(redirectUrl)
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid redirect URL"})
+		return
+	}
+	if parsedUrl.Host != *config.NwcDomain {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid redirect URL host"})
+		return
+	}
+	user, err := userService.GetUserFromContext(context)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	jwt := NewUmaAuthJwtForUser(user, &config, context, 60)
+	token, err := jwt.Sign(&config)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Error signing token"})
+		return
+	}
+	currentQuery := parsedUrl.Query()
+	currentQuery.Set("token", token)
+
+	// In a real implementation, you would use the user's default currency here.
+	satsCurrencyJson := map[string]interface{}{
+		"name":     SatsCurrency.Name,
+		"code":     SatsCurrency.Code,
+		"decimals": SatsCurrency.Decimals,
+		"symbol":   SatsCurrency.Symbol,
+	}
+	satsCurrencyString, err := json.Marshal(satsCurrencyJson)
+	currentQuery.Set("currency", string(satsCurrencyString))
+
+	parsedUrl.RawQuery = currentQuery.Encode()
+	context.Redirect(http.StatusFound, parsedUrl.String())
 }

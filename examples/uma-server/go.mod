@@ -6,10 +6,13 @@ toolchain go1.23.2
 
 require (
 	github.com/ethereum/go-ethereum v1.13.15
+	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/lightsparkdev/go-sdk v0.15.1
+	github.com/uma-universal-money-address/uma-auth-api/codegen/go v0.0.0-20241001165403-5314f91aa750
 	github.com/uma-universal-money-address/uma-go-sdk v1.3.1
+	github.com/golang-jwt/jwt/v5 v5.2.1
 )
 
 require (
@@ -22,13 +25,13 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/ecies/go/v2 v2.0.9 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
-	github.com/gin-contrib/sessions v1.0.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gorilla/sessions v1.2.2 // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
