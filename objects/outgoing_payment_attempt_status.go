@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // OutgoingPaymentAttemptStatus This is an enum of all potential statuses of a payment attempt made from a Lightspark Node.

@@ -1,8 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
-
 // CancelInvoiceOutput The Invoice that was cancelled. If the invoice was already cancelled, the same invoice is returned.
 type CancelInvoiceOutput struct {
 	Invoice types.EntityWrapper `json:"cancel_invoice_output_invoice"`

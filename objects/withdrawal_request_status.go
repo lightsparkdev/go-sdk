@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // WithdrawalRequestStatus This is an enum of the potential statuses that a Withdrawal can take.

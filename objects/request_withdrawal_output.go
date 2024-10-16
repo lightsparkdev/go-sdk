@@ -1,8 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
-
 type RequestWithdrawalOutput struct {
 
 	// Request The request that is created for this withdrawal.
