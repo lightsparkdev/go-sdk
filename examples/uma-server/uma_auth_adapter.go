@@ -7,7 +7,9 @@ import (
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/lightsparkdev/go-sdk/utils"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/uma-universal-money-address/uma-auth-api/codegen/go/umaauth"
+	"math"
 )
 
 type UmaAuthAdapter struct {
@@ -133,8 +135,33 @@ func (a *UmaAuthAdapter) MakeInvoice(context *gin.Context, request umaauth.MakeI
 }
 
 func (a *UmaAuthAdapter) PayInvoice(context *gin.Context, request umaauth.PayInvoiceRequest) {
-	//TODO implement me
-	panic("implement me")
+	decodedInvoice, err := decodepay.Decodepay(request.Invoice)
+	if err != nil {
+		context.JSON(400, gin.H{"error": fmt.Sprintf("error decoding invoice: %s", err)})
+		return
+	}
+
+	amountMsats := request.Amount
+	if amountMsats == nil && decodedInvoice.MSatoshi == 0 {
+		context.JSON(400, gin.H{"error": "amount must be specified for zero amount invoices"})
+		return
+	}
+	if amountMsats != nil && *amountMsats != decodedInvoice.MSatoshi {
+		context.JSON(400, gin.H{"error": "amount does not match invoice amount"})
+		return
+	}
+
+	amountToPay := amountMsats
+	if amountToPay == nil {
+		amountToPay = &decodedInvoice.MSatoshi
+	}
+	maxFeeMsats := int64(max(1000, math.Round(float64(*amountToPay)*0.0016)))
+	payment, err := a.client.PayInvoice(a.config.NodeUUID, request.Invoice, 60, maxFeeMsats, amountMsats)
+	if err != nil {
+		context.JSON(500, gin.H{"error": fmt.Sprintf("error paying invoice: %s", err)})
+		return
+	}
+
 }
 
 func (a *UmaAuthAdapter) PayKeysend(context *gin.Context, request umaauth.PayKeysendRequest) {
@@ -191,6 +218,22 @@ func (a *UmaAuthAdapter) RegisterRoutes(engine *gin.Engine) {
 		}
 
 		a.MakeInvoice(context, requestBody)
+	})
+
+	engine.POST("/umanwc/payments/bolt11", func(context *gin.Context) {
+		body, err := context.GetRawData()
+		if err != nil {
+			context.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		var requestBody umaauth.PayInvoiceRequest
+		err = json.Unmarshal(body, &requestBody)
+		if err != nil {
+			context.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		a.PayInvoice(context, requestBody)
 	})
 
 	engine.POST("/umanwc/token", func(context *gin.Context) {

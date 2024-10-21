@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -707,7 +706,7 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		})
 		return
 	}
-	payment, err = v.waitForPaymentCompletion(payment)
+	payment, err = WaitForPaymentCompletion(v.client, payment)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"status": "ERROR",
@@ -776,28 +775,6 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		"didSucceed": payment.Status == objects.TransactionStatusSuccess,
 		"paymentId":  payment.Id,
 	})
-}
-
-func (v *Vasp1) waitForPaymentCompletion(payment *objects.OutgoingPayment) (*objects.OutgoingPayment, error) {
-	attemptLimit := 200
-	for payment.Status != objects.TransactionStatusSuccess && payment.Status != objects.TransactionStatusFailed {
-		if attemptLimit == 0 {
-			return nil, errors.New("payment timed out")
-		}
-		attemptLimit--
-		time.Sleep(100 * time.Millisecond)
-
-		entity, err := v.client.GetEntity(payment.Id)
-		if err != nil {
-			return nil, err
-		}
-		castPayment, didCast := (*entity).(objects.OutgoingPayment)
-		if !didCast {
-			return nil, errors.New("failed to cast payment to OutgoingPayment")
-		}
-		payment = &castPayment
-	}
-	return payment, nil
 }
 
 func (v *Vasp1) handleNonUmaLnurlpResponse(
