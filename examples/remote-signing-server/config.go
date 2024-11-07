@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 const API_ENDPOINT = "API_ENDPOINT"
@@ -14,14 +15,16 @@ const API_CLIENT_SECRET = "API_CLIENT_SECRET"
 const WEBHOOK_SECRET = "WEBHOOK_SECRET"
 const MASTER_SEED_HEX = "MASTER_SEED_HEX"
 const RESPOND_DIRECTLY = "RESPOND_DIRECTLY"
+const VALIDATION_ENABLED = "VALIDATION_ENABLED"
 
 type Config struct {
-	ApiEndpoint     *string
-	ApiClientId     string
-	ApiClientSecret string
-	WebhookSecret   string
-	MasterSeed      []byte
-	RespondDirectly bool
+	ApiEndpoint       *string
+	ApiClientId       string
+	ApiClientSecret   string
+	WebhookSecret     string
+	MasterSeed        []byte
+	RespondDirectly   bool
+	ValidationEnabled bool
 }
 
 func NewConfigFromEnv() (*Config, error) {
@@ -56,7 +59,8 @@ func NewConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("invalid master seed: %s", err)
 	}
 
-	_, respondDirectly := os.LookupEnv(RESPOND_DIRECTLY)
+	respondDirectly := lookupEnvBool(RESPOND_DIRECTLY, false)
+	validationEnabled := lookupEnvBool(VALIDATION_ENABLED, true)
 
 	log.Print("Loaded configuration:")
 	log.Printf("  - API_ENDPOINT: %s", showEmpty(apiEndpointStr))
@@ -66,12 +70,13 @@ func NewConfigFromEnv() (*Config, error) {
 	log.Printf("  - MASTER_SEED_HEX: %s", showEmpty(masterSeedHex))
 
 	return &Config{
-		ApiEndpoint:     apiEndpoint,
-		ApiClientId:     apiClientId,
-		ApiClientSecret: apiClientSecret,
-		WebhookSecret:   webhookSecret,
-		MasterSeed:      masterSeed,
-		RespondDirectly: respondDirectly,
+		ApiEndpoint:       apiEndpoint,
+		ApiClientId:       apiClientId,
+		ApiClientSecret:   apiClientSecret,
+		WebhookSecret:     webhookSecret,
+		MasterSeed:        masterSeed,
+		RespondDirectly:   respondDirectly,
+		ValidationEnabled: validationEnabled,
 	}, nil
 }
 
@@ -90,4 +95,15 @@ func lookupEnv(key string) (string, error) {
 	}
 
 	return value, nil
+}
+
+// Lookup a boolean environment variable, defaulting to defaultValue if not set. If the value is
+// set to "false" or "0", it will be treated as false, otherwise true.
+func lookupEnvBool(key string, defaultValue bool) bool {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		return defaultValue
+	}
+
+	return !(strings.ToLower(value) == "false" || value == "0")
 }
