@@ -14,6 +14,7 @@ var SatsCurrency = umaprotocol.Currency{
 		MaxSendable: 100_000_000,
 	},
 	Decimals: 0,
+	UmaMajorVersion: 1,
 }
 
 var UsdCurrency = umaprotocol.Currency{
@@ -26,4 +27,5 @@ var UsdCurrency = umaprotocol.Currency{
 		MaxSendable: 1_000,
 	},
 	Decimals: 2,
+	UmaMajorVersion: 1,
 }
