@@ -480,14 +480,15 @@ func (r *ReleaseCounterpartyPerCommitmentSecretRequest) Type() objects.RemoteSig
 // DerivationPath is the bip32 derivation path to get the key from the master key `k`.
 // Then apply MulTweak * k + AddTweak to get the final signing key.
 type SigningJob struct {
-	Id             string  `json:"id"`
-	DerivationPath string  `json:"derivation_path"`
-	Message        string  `json:"message"`
-	AddTweak       *string `json:"add_tweak"`
-	MulTweak       *string `json:"mul_tweak"`
-	Script         *string `json:"script"`
-	Transaction    *string `json:"transaction"`
-	Amount         *int64  `json:"amount"`
+	Id                        string  `json:"id"`
+	DerivationPath            string  `json:"derivation_path"`
+	Message                   string  `json:"message"`
+	AddTweak                  *string `json:"add_tweak"`
+	MulTweak                  *string `json:"mul_tweak"`
+	Script                    *string `json:"script"`
+	Transaction               *string `json:"transaction"`
+	Amount                    *int64  `json:"amount"`
+	DestinationDerivationPath string  `json:"destination_derivation_path"`
 }
 
 func (j *SigningJob) MulTweakBytes() ([]byte, error) {
