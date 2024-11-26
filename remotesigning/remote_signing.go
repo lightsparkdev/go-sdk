@@ -5,9 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/lightsparkdev/go-sdk/crypto"
+	utils "github.com/lightsparkdev/go-sdk/keyscripts"
 
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 
@@ -56,10 +58,35 @@ func GraphQLResponseForRemoteSigningWebhook(
 	webhook webhooks.WebhookEvent,
 	seedBytes []byte,
 ) (SigningResponse, error) {
-	if !validator.ShouldSign(webhook) {
-		return nil, errors.New("declined to sign messages")
+	// Calculate the xpub for each L1 signing job
+	signingJobs, hasSigningJobs := (*webhook.Data)["signing_jobs"].([]interface{})
+	if !hasSigningJobs {
+		return nil, fmt.Errorf("signing_jobs not found or invalid type")
 	}
 
+	var xpubs []string
+	for _, job := range signingJobs {
+		jobMap, isValidJobMap := job.(map[string]interface{})
+		if !isValidJobMap {
+			return nil, fmt.Errorf("invalid signing job format")
+		}
+		derivationPath := jobMap["derivation_path"].(string)
+
+		hardenedPath, _, err := SplitDerivationPath(derivationPath)
+		if err != nil {
+			return nil, err
+		}
+
+		masterSeedHex := hex.EncodeToString(seedBytes)
+		xpub, err := utils.GenHardenedXPub(masterSeedHex, hardenedPath, "mainnet")
+		if err != nil {
+			return nil, err
+		}
+		xpubs = append(xpubs, xpub)
+	}
+	if !validator.ShouldSign(webhook, xpubs) {
+		return nil, errors.New("declined to sign messages")
+	}
 	if webhook.EventType != objects.WebhookEventTypeRemoteSigning {
 		return nil, errors.New("webhook event is not for remote signing")
 	}
