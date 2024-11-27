@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/lightsparkdev/go-sdk/crypto"
@@ -58,31 +57,33 @@ func GraphQLResponseForRemoteSigningWebhook(
 	webhook webhooks.WebhookEvent,
 	seedBytes []byte,
 ) (SigningResponse, error) {
-	// Calculate the xpub for each L1 signing job
-	signingJobs, hasSigningJobs := (*webhook.Data)["signing_jobs"].([]interface{})
-	if !hasSigningJobs {
-		return nil, fmt.Errorf("signing_jobs not found or invalid type")
+	// If derive key and sign, calculate the xpub for each L1 signing job
+	subEventTypeStr, isValidSubEventType := (*webhook.Data)["sub_event_type"].(string)
+	if !isValidSubEventType {
+		return nil, errors.New("sub_event_type not found or invalid type")
 	}
-
+	signingJobs, hasSigningJobs := (*webhook.Data)["signing_jobs"].([]interface{})
 	var xpubs []string
-	for _, job := range signingJobs {
-		jobMap, isValidJobMap := job.(map[string]interface{})
-		if !isValidJobMap {
-			return nil, fmt.Errorf("invalid signing job format")
-		}
-		derivationPath := jobMap["derivation_path"].(string)
+	if subEventTypeStr == "DERIVE_KEY_AND_SIGN" && hasSigningJobs {
+		for _, job := range signingJobs {
+			jobMap, isValidJobMap := job.(map[string]interface{})
+			if !isValidJobMap {
+				return nil, errors.New("invalid signing job format")
+			}
+			derivationPath := jobMap["derivation_path"].(string)
 
-		hardenedPath, _, err := SplitDerivationPath(derivationPath)
-		if err != nil {
-			return nil, err
-		}
+			hardenedPath, _, err := SplitDerivationPath(derivationPath)
+			if err != nil {
+				return nil, err
+			}
 
-		masterSeedHex := hex.EncodeToString(seedBytes)
-		xpub, err := utils.GenHardenedXPub(masterSeedHex, hardenedPath, "mainnet")
-		if err != nil {
-			return nil, err
+			masterSeedHex := hex.EncodeToString(seedBytes)
+			xpub, err := utils.GenHardenedXPub(masterSeedHex, hardenedPath, "mainnet")
+			if err != nil {
+				return nil, err
+			}
+			xpubs = append(xpubs, xpub)
 		}
-		xpubs = append(xpubs, xpub)
 	}
 	if !validator.ShouldSign(webhook, xpubs) {
 		return nil, errors.New("declined to sign messages")
@@ -94,7 +95,6 @@ func GraphQLResponseForRemoteSigningWebhook(
 		return nil, errors.New("webhook data is missing")
 	}
 	var subtype objects.RemoteSigningSubEventType
-	subEventTypeStr := (*webhook.Data)["sub_event_type"].(string)
 	log.Printf("Received remote signing webhook with sub_event_type %s", subEventTypeStr)
 	err := subtype.UnmarshalJSON([]byte(`"` + subEventTypeStr + `"`))
 	if err != nil {
