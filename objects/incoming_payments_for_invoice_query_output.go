@@ -1,12 +1,19 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
+
 type IncomingPaymentsForInvoiceQueryOutput struct {
-	Payments []IncomingPayment `json:"incoming_payments_for_invoice_query_output_payments"`
+
+    
+    Payments []IncomingPayment `json:"incoming_payments_for_invoice_query_output_payments"`
+
 }
 
 const (
-	IncomingPaymentsForInvoiceQueryOutputFragment = `
+    IncomingPaymentsForInvoiceQueryOutputFragment = `
 fragment IncomingPaymentsForInvoiceQueryOutputFragment on IncomingPaymentsForInvoiceQueryOutput {
     __typename
     incoming_payments_for_invoice_query_output_payments: payments {
@@ -49,3 +56,10 @@ fragment IncomingPaymentsForInvoiceQueryOutputFragment on IncomingPaymentsForInv
 }
 `
 )
+
+
+
+
+
+
+
