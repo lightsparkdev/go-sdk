@@ -1,18 +1,23 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
+
+
+
 type CreateApiTokenOutput struct {
 
-	// ApiToken The API Token that has been created.
-	ApiToken ApiToken `json:"create_api_token_output_api_token"`
+    // ApiToken The API Token that has been created.
+    ApiToken ApiToken `json:"create_api_token_output_api_token"`
 
-	// ClientSecret The secret that should be used to authenticate against our API.
-	// This secret is not stored and will never be available again after this. You must keep this secret secure as it grants access to your account.
-	ClientSecret string `json:"create_api_token_output_client_secret"`
+    // ClientSecret The secret that should be used to authenticate against our API.
+    // This secret is not stored and will never be available again after this. You must keep this secret secure as it grants access to your account.
+    ClientSecret string `json:"create_api_token_output_client_secret"`
+
 }
 
 const (
-	CreateApiTokenOutputFragment = `
+    CreateApiTokenOutputFragment = `
 fragment CreateApiTokenOutputFragment on CreateApiTokenOutput {
     __typename
     create_api_token_output_api_token: api_token {
@@ -29,3 +34,10 @@ fragment CreateApiTokenOutputFragment on CreateApiTokenOutput {
 }
 `
 )
+
+
+
+
+
+
+

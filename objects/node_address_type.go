@@ -1,59 +1,62 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
 import (
-	"encoding/json"
+    "encoding/json"
+    "strings"
 )
 
 // NodeAddressType This is an enum of the potential types of addresses that a node on the Lightning Network can have.
 type NodeAddressType int
+const(
+    NodeAddressTypeUndefined NodeAddressType = iota
 
-const (
-	NodeAddressTypeUndefined NodeAddressType = iota
 
-	NodeAddressTypeIpv4
+    NodeAddressTypeIpv4
 
-	NodeAddressTypeIpv6
+    NodeAddressTypeIpv6
 
-	NodeAddressTypeTor
+    NodeAddressTypeTor
+
 )
 
 func (a *NodeAddressType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-	switch s {
-	default:
-		*a = NodeAddressTypeUndefined
-	case "IPV4":
-		*a = NodeAddressTypeIpv4
-	case "IPV6":
-		*a = NodeAddressTypeIpv6
-	case "TOR":
-		*a = NodeAddressTypeTor
+    var s string
+    if err := json.Unmarshal(b, &s); err != nil {
+        return err
+    }
+    switch s {
+    default:
+        *a = NodeAddressTypeUndefined
+    case "IPV4":
+        *a = NodeAddressTypeIpv4
+    case "IPV6":
+        *a = NodeAddressTypeIpv6
+    case "TOR":
+        *a = NodeAddressTypeTor
 
-	}
-	return nil
+    }
+    return nil
 }
 
 func (a NodeAddressType) StringValue() string {
-	var s string
-	switch a {
-	default:
-		s = "undefined"
-	case NodeAddressTypeIpv4:
-		s = "IPV4"
-	case NodeAddressTypeIpv6:
-		s = "IPV6"
-	case NodeAddressTypeTor:
-		s = "TOR"
+    var s string
+    switch a {
+    default:
+        s = "undefined"
+    case NodeAddressTypeIpv4:
+        s = "IPV4"
+    case NodeAddressTypeIpv6:
+        s = "IPV6"
+    case NodeAddressTypeTor:
+        s = "TOR"
 
-	}
-	return s
+    }
+    return s
 }
 
 func (a NodeAddressType) MarshalJSON() ([]byte, error) {
-	s := a.StringValue()
-	return json.Marshal(s)
+    s := a.StringValue()
+    return json.Marshal(s)
 }
