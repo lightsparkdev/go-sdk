@@ -14,7 +14,9 @@ import (
 
 func getValidator(config *Config) remotesigning.Validator {
 	if config.ValidationEnabled {
-		return &remotesigning.HashValidator{}
+		return remotesigning.NewMultiValidator(
+			remotesigning.HashValidator{},
+			remotesigning.DestinationValidator{})
 	} else {
 		return &remotesigning.PositiveValidator{}
 	}
@@ -75,7 +77,7 @@ func main() {
 		case objects.WebhookEventTypeRemoteSigning:
 			if config.RespondDirectly {
 				resp, err := remotesigning.GraphQLResponseForRemoteSigningWebhook(
-					remotesigning.HashValidator{}, *event, config.MasterSeed)
+					validator, *event, config.MasterSeed)
 				if err != nil {
 					log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
 					c.AbortWithStatus(http.StatusInternalServerError)
