@@ -10,22 +10,22 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 )
 
-func getBitcoinNetwork(network string) (uint32, *chaincfg.Params) {
+func networkParams(network string) *chaincfg.Params {
 	switch network {
 	case "mainnet":
-		return 0, &chaincfg.MainNetParams
-	case "testnet":
-		return 1, &chaincfg.TestNet3Params
+		return &chaincfg.MainNetParams
 	case "regtest":
-		return 1, &chaincfg.RegressionNetParams
+		return &chaincfg.RegressionNetParams
+	case "testnet":
+		return &chaincfg.TestNet3Params
 	default:
 		log.Fatalf("Network not supported: %s", network)
-		return 0, nil
+		return nil
 	}
 }
 
 func GenHardenedXPub(masterSeedHex string, derivationPath []uint32, bitcoinNetwork string) (string, error) {
-	_, params := getBitcoinNetwork(bitcoinNetwork)
+	params := networkParams(bitcoinNetwork)
 	masterSeed, err := hex.DecodeString(masterSeedHex)
 	if err != nil {
 		return "", fmt.Errorf("failed to decode master seed from hex: %v", err)
