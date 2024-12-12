@@ -4,6 +4,7 @@ package remotesigning
 import (
 	"strings"
 
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/lightsparkdev/go-sdk/webhooks"
 )
 
@@ -76,7 +77,13 @@ func ValidateWitnessHash(signing *SigningJob) bool {
 // for where we allow sending funds. This is used to ensure that when signing
 // transactions spending L1 wallet funds, we are only sending funds to certain
 // addresses.
-type DestinationValidator struct{}
+type DestinationValidator struct{
+	masterSeed []byte
+}
+
+func NewDestinationValidator(masterSeed []byte) DestinationValidator {
+	return DestinationValidator{masterSeed: masterSeed}
+}
 
 func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent, xpubs []string) bool {
 	request, err := ParseDeriveAndSignRequest(webhookEvent)
@@ -84,9 +91,13 @@ func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent, xpu
 		// Only validate DeriveAndSignRequest events
 		return true
 	}
-	for i, signing := range request.SigningJobs {
+	for _, signing := range request.SigningJobs {
 		if strings.HasPrefix(signing.DerivationPath, "m/84") {
-			validScript, err := ValidateScript(&signing, xpubs[i])
+			publicKey, err := DerivePublicKey(v.masterSeed, signing.DerivationPath, &chaincfg.MainNetParams)
+			if err != nil {
+				return false
+			}
+			validScript, err := ValidateScript(&signing, publicKey)
 			if err != nil || !validScript {
 				return false
 			}
