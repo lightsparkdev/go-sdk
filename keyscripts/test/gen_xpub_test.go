@@ -2,6 +2,7 @@
 package keyscripts_test
 
 import (
+	"encoding/hex"
 	"testing"
 
 	keyscripts "github.com/lightsparkdev/go-sdk/keyscripts"
@@ -65,7 +66,9 @@ func TestGenerateXpub(t *testing.T) {
 
 	for _, tv := range tests {
 		t.Run(tv.name, func(t *testing.T) {
-			xpub, err := keyscripts.GenHardenedXPub(tv.seed, tv.derivationPath, tv.bitcoinNetwork)
+			masterSeed, err := hex.DecodeString(tv.seed)
+			require.NoError(t, err)
+			xpub, err := keyscripts.GenHardenedXPub(masterSeed, tv.derivationPath, tv.bitcoinNetwork)
 			require.NoError(t, err)
 			require.Equal(t, tv.expectedXpub, xpub)
 		})

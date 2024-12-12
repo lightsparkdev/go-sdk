@@ -77,8 +77,7 @@ func GraphQLResponseForRemoteSigningWebhook(
 				return nil, err
 			}
 
-			masterSeedHex := hex.EncodeToString(seedBytes)
-			xpub, err := utils.GenHardenedXPub(masterSeedHex, hardenedPath, "mainnet")
+			xpub, err := utils.GenHardenedXPub(seedBytes, hardenedPath, "mainnet")
 			if err != nil {
 				return nil, err
 			}

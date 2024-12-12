@@ -2,7 +2,6 @@
 package utils
 
 import (
-	"encoding/hex"
 	"fmt"
 	"log"
 
@@ -24,26 +23,11 @@ func networkParams(network string) *chaincfg.Params {
 	}
 }
 
-func GenHardenedXPub(masterSeedHex string, derivationPath []uint32, bitcoinNetwork string) (string, error) {
-	params := networkParams(bitcoinNetwork)
-	masterSeed, err := hex.DecodeString(masterSeedHex)
+func GenHardenedXPub(masterSeed []byte, derivationPath []uint32, bitcoinNetwork string) (string, error) {
+	key, err := DeriveKey(masterSeed, derivationPath, bitcoinNetwork)
 	if err != nil {
-		return "", fmt.Errorf("failed to decode master seed from hex: %v", err)
+		return "", fmt.Errorf("failed to derive key: %v", err)
 	}
-
-	masterKey, err := hdkeychain.NewMaster(masterSeed, params)
-	if err != nil {
-		return "", fmt.Errorf("failed to create master key: %v", err)
-	}
-
-	key := masterKey
-	for _, index := range derivationPath {
-		key, err = key.Derive(index)
-		if err != nil {
-			return "", fmt.Errorf("failed to derive key: %v", err)
-		}
-	}
-
 	xpub, err := key.Neuter()
 	if err != nil {
 		return "", fmt.Errorf("failed to neuter key: %v", err)
@@ -74,4 +58,20 @@ func DeriveChildPubKeyFromExistingXPub(xpubStr string, remainingPath []uint32) (
 	}
 
 	return ecPubKey.SerializeCompressed(), nil
+}
+
+func DeriveKey(masterSeed []byte, derivationPath []uint32, bitcoinNetwork string) (*hdkeychain.ExtendedKey, error) {
+	params := networkParams(bitcoinNetwork)
+	masterKey, err := hdkeychain.NewMaster(masterSeed, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create master key: %v", err)
+	}
+	key := masterKey
+	for _, index := range derivationPath {
+		key, err = key.Derive(index)
+		if err != nil {
+			return nil, fmt.Errorf("failed to derive key: %v", err)
+		}
+	}
+	return key, nil
 }
