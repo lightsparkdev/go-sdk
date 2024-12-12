@@ -44,19 +44,17 @@ func TestParseReleasePaymentPreimage(t *testing.T) {
 	assert.True(t, parsedRequest.IsUma)
 	assert.False(t, parsedRequest.IsLnurl)
 }
-func TestSplitDerivationPath(t *testing.T) {
+func TestDerivationPath(t *testing.T) {
 	tests := []struct {
 		name           string
 		path           string
-		wantHardened   []uint32
-		wantRemaining  []uint32
+		expectedPath   []uint32
 		expectedErrMsg string
 	}{
 		{
-			name:          "valid path with hardened and non-hardened components",
-			path:          "m/84'/0'/0'/0/1",
-			wantHardened:  []uint32{84 + 0x80000000, 0x80000000, 0x80000000},
-			wantRemaining: []uint32{0, 1},
+			name:         "valid path with hardened and non-hardened components",
+			path:         "m/84'/0'/0'/0/1",
+			expectedPath: []uint32{84 + 0x80000000, 0x80000000, 0x80000000, 0, 1},
 		},
 		{
 			name:           "path with empty component 1",
@@ -77,7 +75,7 @@ func TestSplitDerivationPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hardened, remaining, err := remotesigning.SplitDerivationPath(tt.path)
+			path, err := remotesigning.DerivationPathFromString(tt.path)
 
 			if tt.expectedErrMsg != "" {
 				assert.EqualError(t, err, tt.expectedErrMsg)
@@ -85,8 +83,7 @@ func TestSplitDerivationPath(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, tt.wantHardened, hardened)
-			assert.Equal(t, tt.wantRemaining, remaining)
+			assert.Equal(t, tt.expectedPath, path)
 		})
 	}
 }
@@ -108,7 +105,7 @@ func TestValidateScript(t *testing.T) {
 				DestinationDerivationPath: "m/1/77",
 				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
 			},
-			masterSeed: testMasterSeed,
+			masterSeed:  testMasterSeed,
 			expectValid: true,
 		}, {
 			name: "invalid transaction",
@@ -117,7 +114,7 @@ func TestValidateScript(t *testing.T) {
 				DestinationDerivationPath: "m/1/77",
 				Transaction:               ptr("abcd"),
 			},
-			masterSeed: testMasterSeed,
+			masterSeed:  testMasterSeed,
 			expectValid: false,
 		}, {
 			name: "invalid derivation path",
@@ -126,7 +123,7 @@ func TestValidateScript(t *testing.T) {
 				DestinationDerivationPath: "m/1/299",
 				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
 			},
-			masterSeed: testMasterSeed,
+			masterSeed:  testMasterSeed,
 			expectValid: false,
 		},
 	}

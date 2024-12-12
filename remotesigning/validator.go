@@ -10,12 +10,12 @@ import (
 
 // Validator an interface which decides whether to sign or reject a remote signing webhook event.
 type Validator interface {
-	ShouldSign(webhook webhooks.WebhookEvent, xpubs []string) bool
+	ShouldSign(webhook webhooks.WebhookEvent) bool
 }
 
 type PositiveValidator struct{}
 
-func (v PositiveValidator) ShouldSign(webhook webhooks.WebhookEvent, xpubs []string) bool {
+func (v PositiveValidator) ShouldSign(webhook webhooks.WebhookEvent) bool {
 	return true
 }
 
@@ -27,9 +27,9 @@ func NewMultiValidator(validators ...Validator) MultiValidator {
 	return MultiValidator{validators: validators}
 }
 
-func (v MultiValidator) ShouldSign(webhookEvent webhooks.WebhookEvent, xpubs []string) bool {
+func (v MultiValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 	for _, validator := range v.validators {
-		if !validator.ShouldSign(webhookEvent, xpubs) {
+		if !validator.ShouldSign(webhookEvent) {
 			return false
 		}
 	}
@@ -38,7 +38,7 @@ func (v MultiValidator) ShouldSign(webhookEvent webhooks.WebhookEvent, xpubs []s
 
 type HashValidator struct{}
 
-func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent, xpubs []string) bool {
+func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 	request, err := ParseDeriveAndSignRequest(webhookEvent)
 	if err != nil {
 		// Only validate DeriveAndSignRequest events
@@ -85,7 +85,7 @@ func NewDestinationValidator(masterSeed []byte) DestinationValidator {
 	return DestinationValidator{masterSeed: masterSeed}
 }
 
-func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent, xpubs []string) bool {
+func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 	request, err := ParseDeriveAndSignRequest(webhookEvent)
 	if err != nil {
 		// Only validate DeriveAndSignRequest events
