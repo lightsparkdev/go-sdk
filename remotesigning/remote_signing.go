@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/lightsparkdev/go-sdk/crypto"
-	utils "github.com/lightsparkdev/go-sdk/keyscripts"
 
 	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 
@@ -62,30 +61,7 @@ func GraphQLResponseForRemoteSigningWebhook(
 	if !isValidSubEventType {
 		return nil, errors.New("sub_event_type not found or invalid type")
 	}
-	signingJobs, hasSigningJobs := (*webhook.Data)["signing_jobs"].([]interface{})
-	var xpubs []string
-	if subEventTypeStr == "DERIVE_KEY_AND_SIGN" && hasSigningJobs {
-		for _, job := range signingJobs {
-			jobMap, isValidJobMap := job.(map[string]interface{})
-			if !isValidJobMap {
-				return nil, errors.New("invalid signing job format")
-			}
-			derivationPath := jobMap["derivation_path"].(string)
-
-			hardenedPath, _, err := SplitDerivationPath(derivationPath)
-			if err != nil {
-				return nil, err
-			}
-
-			masterSeedHex := hex.EncodeToString(seedBytes)
-			xpub, err := utils.GenHardenedXPub(masterSeedHex, hardenedPath, "mainnet")
-			if err != nil {
-				return nil, err
-			}
-			xpubs = append(xpubs, xpub)
-		}
-	}
-	if !validator.ShouldSign(webhook, xpubs) {
+	if !validator.ShouldSign(webhook) {
 		return nil, errors.New("declined to sign messages")
 	}
 	if webhook.EventType != objects.WebhookEventTypeRemoteSigning {

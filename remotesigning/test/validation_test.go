@@ -1,10 +1,11 @@
 package remotesigning_test
 
 import (
+	"encoding/hex"
 	"testing"
 	"time"
 
-	utils "github.com/lightsparkdev/go-sdk/keyscripts"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/remotesigning"
 	"github.com/lightsparkdev/go-sdk/webhooks"
@@ -43,19 +44,17 @@ func TestParseReleasePaymentPreimage(t *testing.T) {
 	assert.True(t, parsedRequest.IsUma)
 	assert.False(t, parsedRequest.IsLnurl)
 }
-func TestSplitDerivationPath(t *testing.T) {
+func TestDerivationPath(t *testing.T) {
 	tests := []struct {
 		name           string
 		path           string
-		wantHardened   []uint32
-		wantRemaining  []uint32
+		expectedPath   []uint32
 		expectedErrMsg string
 	}{
 		{
-			name:          "valid path with hardened and non-hardened components",
-			path:          "m/84'/0'/0'/0/1",
-			wantHardened:  []uint32{84 + 0x80000000, 0x80000000, 0x80000000},
-			wantRemaining: []uint32{0, 1},
+			name:         "valid path with hardened and non-hardened components",
+			path:         "m/84'/0'/0'/0/1",
+			expectedPath: []uint32{84 + 0x80000000, 0x80000000, 0x80000000, 0, 1},
 		},
 		{
 			name:           "path with empty component 1",
@@ -76,7 +75,7 @@ func TestSplitDerivationPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hardened, remaining, err := remotesigning.SplitDerivationPath(tt.path)
+			path, err := remotesigning.DerivationPathFromString(tt.path)
 
 			if tt.expectedErrMsg != "" {
 				assert.EqualError(t, err, tt.expectedErrMsg)
@@ -84,57 +83,19 @@ func TestSplitDerivationPath(t *testing.T) {
 			}
 
 			assert.NoError(t, err)
-			assert.Equal(t, tt.wantHardened, hardened)
-			assert.Equal(t, tt.wantRemaining, remaining)
+			assert.Equal(t, tt.expectedPath, path)
 		})
 	}
 }
 
-func TestDeriveChildPubKeyFromExistingXPub(t *testing.T) {
-	testXPub := "xpub6BosfCnifzxcFwrSzQiqu2DBVTshkCXacvNsWGYJVVhhawA7d4R5WSWGFNbi8Aw6ZRc1brxMyWMzG3DSSSSoekkudhUd9yLb6qx39T9nMdj"
-
-	tests := []struct {
-		name        string
-		path        []uint32
-		expectedLen int
-	}{
-		{
-			name:        "valid derivation",
-			path:        []uint32{0, 0},
-			expectedLen: 33,
-		},
-		{
-			name:        "empty path",
-			path:        []uint32{},
-			expectedLen: 33,
-		},
-		{
-			name: "hardened index should fail",
-			path: []uint32{0x80000000},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			pubkey, err := utils.DeriveChildPubKeyFromExistingXPub(testXPub, tt.path)
-
-			if tt.expectedLen > 0 {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.expectedLen, len(pubkey))
-			} else {
-				assert.Error(t, err)
-			}
-		})
-	}
-}
 func TestValidateScript(t *testing.T) {
-	// THIS IS A TEST XPUB - DO NOT USE IN PRODUCTION!
-	testXPub := "xpub6CrnwQT4n7fEqLPG6A4KZcNXRctojRQGtvUztN5aKUqEMDU3ai5N9SvPnA56y5kwATN6CCHzmA7ccTwXbKtU7kZALRCVs1YY88987Ghv4jy"
+	testMasterSeed, err := hex.DecodeString("370eb72fc3dd38c74f933b477378d51c3b5e6db126ad64fa3244b16e2b8a1bd37f6454dbdb2d58b98f3f6fa2d1c9232216b67616eb2c61bf8c2abe8f67edf252")
+	assert.NoError(t, err)
 
 	tests := []struct {
 		name        string
 		signingJob  *remotesigning.SigningJob
-		xpub        string
+		masterSeed  []byte
 		expectValid bool
 	}{
 		{
@@ -142,9 +103,9 @@ func TestValidateScript(t *testing.T) {
 			signingJob: &remotesigning.SigningJob{
 				DerivationPath:            "m/84'/1'/0'/0/0",
 				DestinationDerivationPath: "m/1/77",
-				Transaction:               ptr("020000000001017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02f40100000000000016001427d703f9a06364bd45d122da1baea1e517a9ff1810500e0000000000160014b8a75a216b0a957b259d1b27049fdbaba42f950c020021021c902f59731d64721914f4826bc1868d2b3e5df40edbb3a8d7c4b21b95affb0400000000"),
+				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
 			},
-			xpub:        testXPub,
+			masterSeed:  testMasterSeed,
 			expectValid: true,
 		}, {
 			name: "invalid transaction",
@@ -153,23 +114,25 @@ func TestValidateScript(t *testing.T) {
 				DestinationDerivationPath: "m/1/77",
 				Transaction:               ptr("abcd"),
 			},
-			xpub:        testXPub,
+			masterSeed:  testMasterSeed,
 			expectValid: false,
 		}, {
 			name: "invalid derivation path",
 			signingJob: &remotesigning.SigningJob{
 				DerivationPath:            "m/84'/0/0",
 				DestinationDerivationPath: "m/1/299",
-				Transaction:               ptr("020000000001017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02f40100000000000016001427d703f9a06364bd45d122da1baea1e517a9ff1810500e0000000000160014b8a75a216b0a957b259d1b27049fdbaba42f950c020021021c902f59731d64721914f4826bc1868d2b3e5df40edbb3a8d7c4b21b95affb0400000000"),
+				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
 			},
-			xpub:        testXPub,
+			masterSeed:  testMasterSeed,
 			expectValid: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			isValid, err := remotesigning.ValidateScript(tt.signingJob, tt.xpub)
+			publicKey, err := remotesigning.DerivePublicKey(tt.masterSeed, tt.signingJob.DestinationDerivationPath, &chaincfg.MainNetParams)
+			assert.NoError(t, err)
+			isValid, err := remotesigning.ValidateScript(tt.signingJob, publicKey)
 			if tt.expectValid {
 				assert.NoError(t, err)
 				assert.True(t, isValid)

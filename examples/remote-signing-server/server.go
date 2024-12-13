@@ -12,16 +12,6 @@ import (
 	"github.com/lightsparkdev/go-sdk/webhooks"
 )
 
-func getValidator(config *Config) remotesigning.Validator {
-	if config.ValidationEnabled {
-		return remotesigning.NewMultiValidator(
-			remotesigning.HashValidator{},
-			remotesigning.DestinationValidator{})
-	} else {
-		return &remotesigning.PositiveValidator{}
-	}
-}
-
 /**
  * This is a simple Gin server (https://gin-gonic.com) that implements a simple remote-signer using
  * the Lightspark SDK.
@@ -41,7 +31,14 @@ func main() {
 	}
 
 	lsClient := services.NewLightsparkClient(config.ApiClientId, config.ApiClientSecret, config.ApiEndpoint)
-	validator := getValidator(config)
+	var validator remotesigning.Validator
+	if config.ValidationEnabled {
+		validator = remotesigning.NewMultiValidator(
+			remotesigning.HashValidator{},
+			remotesigning.NewDestinationValidator(config.MasterSeed))
+	} else {
+		validator = remotesigning.PositiveValidator{}
+	}
 
 	engine := gin.Default()
 

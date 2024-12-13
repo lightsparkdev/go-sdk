@@ -10,10 +10,12 @@ import (
 	"strings"
 
 	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/btcutil/psbt"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
-	utils "github.com/lightsparkdev/go-sdk/keyscripts"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
 func GetPaymentHashFromScript(scriptHex string) (*string, error) {
@@ -95,17 +97,73 @@ func CalculateWitnessHashPSBT(transaction string) (*string, error) {
 	return &result, nil
 }
 
-func ValidateScript(signing *SigningJob, xpub string) (bool, error) {
-	// Step 1: Derive Tx Script from extended public key
-	_, nonHardenedPath, err := SplitDerivationPath(signing.DestinationDerivationPath)
-	if err != nil {
-		return false, err
+func DerivationPathFromString(path string) ([]uint32, error) {
+	if !strings.HasPrefix(path, "m/") {
+		return nil, fmt.Errorf("invalid derivation path: derivation path must start with 'm/'")
 	}
-	childPubkey, err := utils.DeriveChildPubKeyFromExistingXPub(xpub, nonHardenedPath)
-	if err != nil {
-		return false, err
+
+	components := strings.Split(path[2:], "/")
+	if len(components) == 0 {
+		return nil, fmt.Errorf("invalid derivation path: empty component")
 	}
-	generated_script, err := GenerateP2WPKHFromPubkey(childPubkey)
+
+	// Validate no empty components
+	for _, component := range components {
+		if component == "" {
+			return nil, fmt.Errorf("invalid derivation path: empty component")
+		}
+	}
+	derivationPath := make([]uint32, 0)
+
+	for _, component := range components {
+		isHardened := strings.HasSuffix(component, "'")
+		if isHardened {
+			component = component[:len(component)-1]
+		}
+
+		num, err := strconv.ParseUint(component, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid path: %s", component)
+		}
+
+		if isHardened {
+			num += 0x80000000
+		}
+		derivationPath = append(derivationPath, uint32(num))
+	}
+
+	return derivationPath, nil
+}
+
+func DeriveKey(masterSeed []byte, derivationPath []uint32, networkParams *chaincfg.Params) (*hdkeychain.ExtendedKey, error) {
+	masterKey, err := hdkeychain.NewMaster(masterSeed, networkParams)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create master key: %v", err)
+	}
+	key := masterKey
+	for _, index := range derivationPath {
+		key, err = key.Derive(index)
+		if err != nil {
+			return nil, fmt.Errorf("failed to derive key: %v", err)
+		}
+	}
+	return key, nil
+}
+
+func DerivePublicKey(masterSeed []byte, derivationPath string, networkParams *chaincfg.Params) (*secp256k1.PublicKey, error) {
+	derivationPathComponents, err := DerivationPathFromString(derivationPath)
+	if err != nil {
+		return nil, err
+	}
+	key, err := DeriveKey(masterSeed, derivationPathComponents, networkParams)
+	if err != nil {
+		return nil, err
+	}
+	return key.ECPubKey()
+}
+
+func ValidateScript(signing *SigningJob, publicKey *secp256k1.PublicKey) (bool, error) {
+	generated_script, err := GenerateP2WPKHFromPubkey(publicKey.SerializeCompressed())
 	if err != nil {
 		return false, err
 	}
@@ -137,39 +195,19 @@ func ValidateScript(signing *SigningJob, xpub string) (bool, error) {
 }
 
 func SplitDerivationPath(path string) (hardenedPath []uint32, remainingPath []uint32, err error) {
-	if !strings.HasPrefix(path, "m/") {
-		return nil, nil, fmt.Errorf("invalid derivation path: derivation path must start with 'm/'")
+	derivationPath, err := DerivationPathFromString(path)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	components := strings.Split(path[2:], "/")
-	if len(components) == 0 {
-		return nil, nil, fmt.Errorf("invalid derivation path: empty component")
-	}
-
-	// Validate no empty components
-	for _, component := range components {
-		if component == "" {
-			return nil, nil, fmt.Errorf("invalid derivation path: empty component")
-		}
-	}
 	hardenedPath = make([]uint32, 0)
 	remainingPath = make([]uint32, 0)
 
-	for _, component := range components {
-		isHardened := strings.HasSuffix(component, "'")
-		if isHardened {
-			component = component[:len(component)-1]
-		}
-
-		num, err := strconv.ParseUint(component, 10, 32)
-		if err != nil {
-			return nil, nil, fmt.Errorf("invalid path: %s", component)
-		}
-
-		if isHardened {
-			hardenedPath = append(hardenedPath, uint32(num)+0x80000000)
+	for _, component := range derivationPath {
+		if component >= 0x80000000 {
+			hardenedPath = append(hardenedPath, component)
 		} else {
-			remainingPath = append(remainingPath, uint32(num))
+			remainingPath = append(remainingPath, component)
 		}
 	}
 
