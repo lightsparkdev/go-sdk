@@ -89,10 +89,11 @@ func ValidateWitnessHash(signing *SigningJob) bool {
 // addresses.
 type DestinationValidator struct{
 	masterSeed []byte
+	validateForceClosureClaims bool
 }
 
-func NewDestinationValidator(masterSeed []byte) DestinationValidator {
-	return DestinationValidator{masterSeed: masterSeed}
+func NewDestinationValidator(masterSeed []byte, validateForceClosureClaims bool) DestinationValidator {
+	return DestinationValidator{masterSeed, validateForceClosureClaims}
 }
 
 func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
@@ -102,7 +103,10 @@ func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) boo
 		return true
 	}
 	for _, signing := range request.SigningJobs {
-		if isL1WalletSigningJob(signing) {
+		shouldValidateDestination := isL1WalletSigningJob(signing) ||
+			(v.validateForceClosureClaims &&
+			isForceClosureClaimSigningJob(signing))
+		if shouldValidateDestination {
 			publicKey, err := DerivePublicKey(v.masterSeed, signing.DerivationPath, &chaincfg.MainNetParams)
 			if err != nil {
 				return false
