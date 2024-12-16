@@ -36,6 +36,16 @@ func (v MultiValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 	return true
 }
 
+func isL1WalletSigningJob(job SigningJob) bool {
+	return strings.HasPrefix(job.DerivationPath, "m/84")
+}
+
+func isForceClosureClaimSigningJob(job SigningJob) bool {
+	return !isL1WalletSigningJob(job) &&
+		(strings.HasSuffix(job.DerivationPath, "/2") ||
+		strings.HasSuffix(job.DerivationPath, "/3"))
+}
+
 type HashValidator struct{}
 
 func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
@@ -53,7 +63,7 @@ func (v HashValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
 }
 
 func ValidateWitnessHash(signing *SigningJob) bool {
-	if strings.HasSuffix(signing.DerivationPath, "/2") || strings.HasSuffix(signing.DerivationPath, "/3") {
+	if isForceClosureClaimSigningJob(*signing) {
 		msg, err := CalculateWitnessHashPSBT(*signing.Transaction)
 		if err != nil {
 			return false
@@ -92,7 +102,7 @@ func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) boo
 		return true
 	}
 	for _, signing := range request.SigningJobs {
-		if strings.HasPrefix(signing.DerivationPath, "m/84") {
+		if isL1WalletSigningJob(signing) {
 			publicKey, err := DerivePublicKey(v.masterSeed, signing.DerivationPath, &chaincfg.MainNetParams)
 			if err != nil {
 				return false
