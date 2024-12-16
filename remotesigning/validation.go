@@ -194,26 +194,6 @@ func ValidateScript(signing *SigningJob, publicKey *secp256k1.PublicKey) (bool, 
 	return true, nil
 }
 
-func SplitDerivationPath(path string) (hardenedPath []uint32, remainingPath []uint32, err error) {
-	derivationPath, err := DerivationPathFromString(path)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	hardenedPath = make([]uint32, 0)
-	remainingPath = make([]uint32, 0)
-
-	for _, component := range derivationPath {
-		if component >= 0x80000000 {
-			hardenedPath = append(hardenedPath, component)
-		} else {
-			remainingPath = append(remainingPath, component)
-		}
-	}
-
-	return hardenedPath, remainingPath, nil
-}
-
 func GenerateP2WPKHFromPubkey(child_pubkey []byte) ([]byte, error) {
 	pkHash := btcutil.Hash160(child_pubkey)
 	// Create P2WPKH script: OP_0 <20-byte-key-hash>
