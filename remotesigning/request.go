@@ -2,12 +2,14 @@
 package remotesigning
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 
+	"github.com/btcsuite/btcd/wire"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/webhooks"
 )
@@ -507,4 +509,17 @@ func (j *SigningJob) AddTweakBytes() ([]byte, error) {
 
 func (j *SigningJob) MessageBytes() ([]byte, error) {
 	return hex.DecodeString(j.Message)
+}
+
+func (j *SigningJob) BitcoinTx() (wire.MsgTx, error) {
+	txHex := *j.Transaction
+	rawTxBytes, err := hex.DecodeString(txHex)
+	if err != nil {
+		return wire.MsgTx{}, fmt.Errorf("failed to decode transaction hex: %v", err)
+	}
+	var tx wire.MsgTx
+	if err := tx.Deserialize(bytes.NewReader(rawTxBytes)); err != nil {
+		return wire.MsgTx{}, fmt.Errorf("failed to deserialize transaction: %v", err)
+	}
+	return tx, nil
 }

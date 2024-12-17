@@ -162,35 +162,23 @@ func DerivePublicKey(masterSeed []byte, derivationPath string, networkParams *ch
 	return key.ECPubKey()
 }
 
-func ValidateScript(signing *SigningJob, publicKey *secp256k1.PublicKey) (bool, error) {
-	generated_script, err := GenerateP2WPKHFromPubkey(publicKey.SerializeCompressed())
-	if err != nil {
-		return false, err
+func ValidateOutputScript(tx wire.MsgTx, expectedScript []byte) (bool, error) {
+	if len(tx.TxOut) < 1 {
+		return false, fmt.Errorf("no output found")
 	}
-
-	// Step 2: Obtain Tx Script from Change Address (Directly from Transaction)
-	txHex := *signing.Transaction
-	rawTxBytes, err := hex.DecodeString(txHex)
-	if err != nil {
-		return false, fmt.Errorf("failed to decode transaction hex: %v", err)
-	}
-
-	var tx wire.MsgTx
-	if err := tx.Deserialize(bytes.NewReader(rawTxBytes)); err != nil {
-		return false, fmt.Errorf("failed to deserialize transaction: %v", err)
-	}
-
-	if len(tx.TxOut) < 2 {
-		// TODO: May need to modify this to validate non-withdrawal L1 transactions.
-		return false, fmt.Errorf("no change output found")
-	}
-	expected_script := tx.TxOut[1].PkScript
-
-	// Step 3: Compare the two scripts
-	if !bytes.Equal(generated_script, expected_script) {
+	if !bytes.Equal(tx.TxOut[0].PkScript, expectedScript) {
 		return false, fmt.Errorf("scripts do not match")
 	}
+	return true, nil
+}
 
+func ValidateChangeScript(tx wire.MsgTx, expectedScript []byte) (bool, error) {
+	if len(tx.TxOut) < 2 {
+		return false, fmt.Errorf("no change output found")
+	}
+	if !bytes.Equal(tx.TxOut[1].PkScript, expectedScript) {
+		return false, fmt.Errorf("scripts do not match")
+	}
 	return true, nil
 }
 

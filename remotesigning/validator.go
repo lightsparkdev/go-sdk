@@ -103,15 +103,34 @@ func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) boo
 		return true
 	}
 	for _, signing := range request.SigningJobs {
-		shouldValidateDestination := isL1WalletSigningJob(signing) ||
-			(v.validateForceClosureClaims &&
-			isForceClosureClaimSigningJob(signing))
-		if shouldValidateDestination {
-			publicKey, err := DerivePublicKey(v.masterSeed, signing.DestinationDerivationPath, &chaincfg.MainNetParams)
-			if err != nil {
+		l1SigningJob := isL1WalletSigningJob(signing)
+		forceClosureClaim := v.validateForceClosureClaims &&
+			isForceClosureClaimSigningJob(signing)
+		if !l1SigningJob && !forceClosureClaim {
+			continue
+		}
+
+		tx, err := signing.BitcoinTx()
+		if err != nil {
+			return false
+		}
+		publicKey, err := DerivePublicKey(v.masterSeed, signing.DestinationDerivationPath, &chaincfg.MainNetParams)
+		if err != nil {
+			return false
+		}
+		script, err := GenerateP2WPKHFromPubkey(publicKey.SerializeCompressed())
+		if err != nil {
+			return false
+		}
+
+		if isL1WalletSigningJob(signing) {
+			validScript, err := ValidateChangeScript(tx, script)
+			if err != nil || !validScript {
 				return false
 			}
-			validScript, err := ValidateScript(&signing, publicKey)
+		}
+		if forceClosureClaim {
+			validScript, err := ValidateOutputScript(tx, script)
 			if err != nil || !validScript {
 				return false
 			}
