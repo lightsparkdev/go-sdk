@@ -88,7 +88,40 @@ func TestDerivationPath(t *testing.T) {
 	}
 }
 
-func TestValidateScript(t *testing.T) {
+func TestValidTransaction(t *testing.T) {
+	tests := []struct {
+		name        string
+		signingJob  *remotesigning.SigningJob
+		expectValid bool
+	}{
+		{
+			name: "valid transaction",
+			signingJob: &remotesigning.SigningJob{
+				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
+			},
+			expectValid: true,
+		}, {
+			name: "invalid transaction",
+			signingJob: &remotesigning.SigningJob{
+				Transaction:               ptr("abcd"),
+			},
+			expectValid: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tt.signingJob.BitcoinTx()
+			if tt.expectValid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateChangeScript(t *testing.T) {
 	testMasterSeed, err := hex.DecodeString("370eb72fc3dd38c74f933b477378d51c3b5e6db126ad64fa3244b16e2b8a1bd37f6454dbdb2d58b98f3f6fa2d1c9232216b67616eb2c61bf8c2abe8f67edf252")
 	assert.NoError(t, err)
 
@@ -108,15 +141,6 @@ func TestValidateScript(t *testing.T) {
 			masterSeed:  testMasterSeed,
 			expectValid: true,
 		}, {
-			name: "invalid transaction",
-			signingJob: &remotesigning.SigningJob{
-				DerivationPath:            "m/84'/1'/0'/0/0",
-				DestinationDerivationPath: "m/1/77",
-				Transaction:               ptr("abcd"),
-			},
-			masterSeed:  testMasterSeed,
-			expectValid: false,
-		}, {
 			name: "invalid derivation path",
 			signingJob: &remotesigning.SigningJob{
 				DerivationPath:            "m/84'/0/0",
@@ -132,7 +156,61 @@ func TestValidateScript(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			publicKey, err := remotesigning.DerivePublicKey(tt.masterSeed, tt.signingJob.DestinationDerivationPath, &chaincfg.MainNetParams)
 			assert.NoError(t, err)
-			isValid, err := remotesigning.ValidateScript(tt.signingJob, publicKey)
+			script, err := remotesigning.GenerateP2WPKHFromPubkey(publicKey.SerializeCompressed())
+			assert.NoError(t, err)
+			tx, err := tt.signingJob.BitcoinTx()
+			assert.NoError(t, err)
+			isValid, err := remotesigning.ValidateChangeScript(tx, script)
+			if tt.expectValid {
+				assert.NoError(t, err)
+				assert.True(t, isValid)
+			} else {
+				assert.False(t, isValid)
+			}
+		})
+	}
+}
+
+func TestValidateOutputScript(t *testing.T) {
+	testMasterSeed, err := hex.DecodeString("370eb72fc3dd38c74f933b477378d51c3b5e6db126ad64fa3244b16e2b8a1bd37f6454dbdb2d58b98f3f6fa2d1c9232216b67616eb2c61bf8c2abe8f67edf252")
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		signingJob  *remotesigning.SigningJob
+		masterSeed  []byte
+		expectValid bool
+	}{
+		{
+			name: "valid transaction and script",
+			signingJob: &remotesigning.SigningJob{
+				DerivationPath:            "m/84'/1'/0'/0/0",
+				DestinationDerivationPath: "m/1/12",
+				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a0860100000000001600147a0770afcc2afeba0cc9f01c52acc77b5b82f387a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c01200000000"),
+			},
+			masterSeed:  testMasterSeed,
+			expectValid: true,
+		}, {
+			name: "invalid derivation path",
+			signingJob: &remotesigning.SigningJob{
+				DerivationPath:            "m/84'/0/0",
+				DestinationDerivationPath: "m/1/299",
+				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a0860100000000001600147a0770afcc2afeba0cc9f01c52acc77b5b82f387a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c01200000000"),
+			},
+			masterSeed:  testMasterSeed,
+			expectValid: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			publicKey, err := remotesigning.DerivePublicKey(tt.masterSeed, tt.signingJob.DestinationDerivationPath, &chaincfg.MainNetParams)
+			assert.NoError(t, err)
+			script, err := remotesigning.GenerateP2WPKHFromPubkey(publicKey.SerializeCompressed())
+			assert.NoError(t, err)
+			tx, err := tt.signingJob.BitcoinTx()
+			assert.NoError(t, err)
+			isValid, err := remotesigning.ValidateOutputScript(tx, script)
 			if tt.expectValid {
 				assert.NoError(t, err)
 				assert.True(t, isValid)

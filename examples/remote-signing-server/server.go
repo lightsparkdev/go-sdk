@@ -35,7 +35,7 @@ func main() {
 	if config.ValidationEnabled {
 		validator = remotesigning.NewMultiValidator(
 			remotesigning.HashValidator{},
-			remotesigning.NewDestinationValidator(config.MasterSeed))
+			remotesigning.NewDestinationValidator(config.MasterSeed, config.L1WalletEnabled))
 	} else {
 		validator = remotesigning.PositiveValidator{}
 	}

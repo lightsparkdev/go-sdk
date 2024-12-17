@@ -89,10 +89,11 @@ func ValidateWitnessHash(signing *SigningJob) bool {
 // addresses.
 type DestinationValidator struct{
 	masterSeed []byte
+	validateForceClosureClaims bool
 }
 
-func NewDestinationValidator(masterSeed []byte) DestinationValidator {
-	return DestinationValidator{masterSeed: masterSeed}
+func NewDestinationValidator(masterSeed []byte, validateForceClosureClaims bool) DestinationValidator {
+	return DestinationValidator{masterSeed, validateForceClosureClaims}
 }
 
 func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) bool {
@@ -102,12 +103,34 @@ func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) boo
 		return true
 	}
 	for _, signing := range request.SigningJobs {
+		l1SigningJob := isL1WalletSigningJob(signing)
+		forceClosureClaim := v.validateForceClosureClaims &&
+			isForceClosureClaimSigningJob(signing)
+		if !l1SigningJob && !forceClosureClaim {
+			continue
+		}
+
+		tx, err := signing.BitcoinTx()
+		if err != nil {
+			return false
+		}
+		publicKey, err := DerivePublicKey(v.masterSeed, signing.DestinationDerivationPath, &chaincfg.MainNetParams)
+		if err != nil {
+			return false
+		}
+		script, err := GenerateP2WPKHFromPubkey(publicKey.SerializeCompressed())
+		if err != nil {
+			return false
+		}
+
 		if isL1WalletSigningJob(signing) {
-			publicKey, err := DerivePublicKey(v.masterSeed, signing.DerivationPath, &chaincfg.MainNetParams)
-			if err != nil {
+			validScript, err := ValidateChangeScript(tx, script)
+			if err != nil || !validScript {
 				return false
 			}
-			validScript, err := ValidateScript(&signing, publicKey)
+		}
+		if forceClosureClaim {
+			validScript, err := ValidateOutputScript(tx, script)
 			if err != nil || !validScript {
 				return false
 			}

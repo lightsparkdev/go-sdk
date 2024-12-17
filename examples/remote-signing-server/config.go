@@ -16,6 +16,7 @@ const WEBHOOK_SECRET = "WEBHOOK_SECRET"
 const MASTER_SEED_HEX = "MASTER_SEED_HEX"
 const RESPOND_DIRECTLY = "RESPOND_DIRECTLY"
 const VALIDATION_ENABLED = "VALIDATION_ENABLED"
+const L1_WALLET_ENABLED = "L1_WALLET_ENABLED"
 
 type Config struct {
 	ApiEndpoint       *string
@@ -25,6 +26,7 @@ type Config struct {
 	MasterSeed        []byte
 	RespondDirectly   bool
 	ValidationEnabled bool
+	L1WalletEnabled   bool
 }
 
 func NewConfigFromEnv() (*Config, error) {
@@ -61,6 +63,7 @@ func NewConfigFromEnv() (*Config, error) {
 
 	respondDirectly := lookupEnvBool(RESPOND_DIRECTLY, false)
 	validationEnabled := lookupEnvBool(VALIDATION_ENABLED, true)
+	l1WalletEnabled := lookupEnvBool(L1_WALLET_ENABLED, false)
 
 	log.Print("Loaded configuration:")
 	log.Printf("  - API_ENDPOINT: %s", showEmpty(apiEndpointStr))
@@ -77,6 +80,7 @@ func NewConfigFromEnv() (*Config, error) {
 		MasterSeed:        masterSeed,
 		RespondDirectly:   respondDirectly,
 		ValidationEnabled: validationEnabled,
+		L1WalletEnabled:   l1WalletEnabled,
 	}, nil
 }
 
