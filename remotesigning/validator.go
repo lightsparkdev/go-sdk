@@ -107,7 +107,7 @@ func (v DestinationValidator) ShouldSign(webhookEvent webhooks.WebhookEvent) boo
 			(v.validateForceClosureClaims &&
 			isForceClosureClaimSigningJob(signing))
 		if shouldValidateDestination {
-			publicKey, err := DerivePublicKey(v.masterSeed, signing.DerivationPath, &chaincfg.MainNetParams)
+			publicKey, err := DerivePublicKey(v.masterSeed, signing.DestinationDerivationPath, &chaincfg.MainNetParams)
 			if err != nil {
 				return false
 			}
