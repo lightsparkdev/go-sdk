@@ -1,19 +1,25 @@
+
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
+
+
 
 type CreateNodeWalletAddressOutput struct {
-	Node types.EntityWrapper `json:"create_node_wallet_address_output_node"`
 
-	WalletAddress string `json:"create_node_wallet_address_output_wallet_address"`
+    
+    Node types.EntityWrapper `json:"create_node_wallet_address_output_node"`
 
-	// MultisigWalletAddressValidationParameters Vaildation parameters for the 2-of-2 multisig address. None if the address is not a 2-of-2 multisig address.
-	MultisigWalletAddressValidationParameters *MultiSigAddressValidationParameters `json:"create_node_wallet_address_output_multisig_wallet_address_validation_parameters"`
+    
+    WalletAddress string `json:"create_node_wallet_address_output_wallet_address"`
+
+    // MultisigWalletAddressValidationParameters Vaildation parameters for the 2-of-2 multisig address. None if the address is not a 2-of-2 multisig address.
+    MultisigWalletAddressValidationParameters *MultiSigAddressValidationParameters `json:"create_node_wallet_address_output_multisig_wallet_address_validation_parameters"`
+
 }
 
 const (
-	CreateNodeWalletAddressOutputFragment = `
+    CreateNodeWalletAddressOutputFragment = `
 fragment CreateNodeWalletAddressOutputFragment on CreateNodeWalletAddressOutput {
     __typename
     create_node_wallet_address_output_node: node {
@@ -28,3 +34,10 @@ fragment CreateNodeWalletAddressOutputFragment on CreateNodeWalletAddressOutput 
 }
 `
 )
+
+
+
+
+
+
+
