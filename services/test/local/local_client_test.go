@@ -23,6 +23,15 @@ func TestCreateInvoice(t *testing.T) {
 	t.Log(invoice)
 }
 
+func TestCreateOffer(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+	offer, err := createOfferForNode(client, env.NodeID)
+	require.NoError(t, err)
+	require.NotEmpty(t, offer.EncodedOffer)
+	t.Log(offer)
+}
+
 // Create invoice for node 1 and pay it from routing node. You'll need to run this a few
 // times the first time you are funding a node to get enough funds in.
 // Note: This will only work with REGTEST nodes.
@@ -155,4 +164,12 @@ func createInvoiceForNode(client *services.LightsparkClient, nodeID string) (*ob
 		return nil, err
 	}
 	return invoice, nil
+}
+
+func createOfferForNode(client *services.LightsparkClient, nodeID string) (*objects.Offer, error) {
+	offer, err := client.CreateOffer(nodeID, 10_000_000, nil)
+	if err != nil {
+		return nil, err
+	}
+	return offer, nil
 }

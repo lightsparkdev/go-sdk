@@ -157,6 +157,36 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	return &invoice, nil
 }
 
+// CreateOffer generates a Bolt 12 offer
+//
+// Args:
+//
+//	nodeId: the id of the node that will create the offer
+//	amountMsats: the amount of the invoice in millisatoshis
+//	description: the description of the offer
+func (client *LightsparkClient) CreateOffer(nodeId string, amountMsats int64,
+	description *string) (*objects.Offer, error) {
+
+	variables := map[string]interface{}{
+		"amount_msats": amountMsats,
+		"node_id":      nodeId,
+		"description":  description,
+	}
+	response, err := client.Requester.ExecuteGraphql(scripts.CREATE_OFFER_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_offer"].(map[string]interface{})
+	var offer objects.Offer
+	offerJson, err := json.Marshal(output["offer"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing offer")
+	}
+	json.Unmarshal(offerJson, &offer)
+	return &offer, nil
+}
+
 // CreateLnurlInvoice creates a new LNURL invoice. The metadata is hashed and included in the invoice.
 // This API generates a Lightning Invoice (follows the Bolt 11 specification) to request a payment
 // from another Lightning Node. This should only be used for generating invoices
