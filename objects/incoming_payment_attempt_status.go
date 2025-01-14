@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // IncomingPaymentAttemptStatus This is an enum that enumerates all potential statuses for an incoming payment attempt.

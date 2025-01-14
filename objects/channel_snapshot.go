@@ -1,11 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 type ChannelSnapshot struct {
 

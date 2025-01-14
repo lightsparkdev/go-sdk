@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // WalletStatus This is an enum of the potential statuses that your Lightspark wallet can take.
