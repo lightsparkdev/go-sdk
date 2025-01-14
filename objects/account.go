@@ -1,12 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-)
+import "time"
 
 // Account This is an object representing the connected Lightspark account. You can retrieve this object to see your account information and objects tied to your account.
 type Account struct {
@@ -734,11 +729,11 @@ func (obj Account) GetChannels(requester *requester.Requester, bitcoinNetwork Bi
 	return result, nil
 }
 
-func (obj Account) GetTransactions(requester *requester.Requester, first *int64, after *string, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string, statuses *[]TransactionStatus, excludeFailures *TransactionFailures) (*AccountToTransactionsConnection, error) {
-	query := `query FetchAccountToTransactionsConnection($entity_id: ID!, $first: Int, $after: String, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID, $statuses: [TransactionStatus!], $exclude_failures: TransactionFailures) {
+func (obj Account) GetTransactions(requester *requester.Requester, first *int64, after *string, types *[]TransactionType, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string, statuses *[]TransactionStatus, excludeFailures *TransactionFailures, maxAmount *CurrencyAmountInput, minAmount *CurrencyAmountInput) (*AccountToTransactionsConnection, error) {
+	query := `query FetchAccountToTransactionsConnection($entity_id: ID!, $first: Int, $after: String, $types: [TransactionType!], $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID, $statuses: [TransactionStatus!], $exclude_failures: TransactionFailures, $max_amount: CurrencyAmountInput, $min_amount: CurrencyAmountInput) {
     entity(id: $entity_id) {
         ... on Account {
-            transactions(, first: $first, after: $after, types: $types, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id, statuses: $statuses, exclude_failures: $exclude_failures) {
+            transactions(, first: $first, after: $after, types: $types, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id, statuses: $statuses, exclude_failures: $exclude_failures, max_amount: $max_amount, min_amount: $min_amount) {
                 __typename
                 account_to_transactions_connection_count: count
                 account_to_transactions_connection_page_info: page_info {
@@ -1337,6 +1332,8 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
 		"lightning_node_id": lightningNodeId,
 		"statuses":          statuses,
 		"exclude_failures":  excludeFailures,
+		"max_amount":        maxAmount,
+		"min_amount":        minAmount,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -1351,11 +1348,11 @@ func (obj Account) GetTransactions(requester *requester.Requester, first *int64,
 	return result, nil
 }
 
-func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string) (*AccountToPaymentRequestsConnection, error) {
-	query := `query FetchAccountToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: String, $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID) {
+func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int64, after *string, afterDate *time.Time, beforeDate *time.Time, bitcoinNetwork *BitcoinNetwork, lightningNodeId *string, maxAmount *CurrencyAmountInput, minAmount *CurrencyAmountInput) (*AccountToPaymentRequestsConnection, error) {
+	query := `query FetchAccountToPaymentRequestsConnection($entity_id: ID!, $first: Int, $after: String, $after_date: DateTime, $before_date: DateTime, $bitcoin_network: BitcoinNetwork, $lightning_node_id: ID, $max_amount: CurrencyAmountInput, $min_amount: CurrencyAmountInput) {
     entity(id: $entity_id) {
         ... on Account {
-            payment_requests(, first: $first, after: $after, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id) {
+            payment_requests(, first: $first, after: $after, after_date: $after_date, before_date: $before_date, bitcoin_network: $bitcoin_network, lightning_node_id: $lightning_node_id, max_amount: $max_amount, min_amount: $min_amount) {
                 __typename
                 account_to_payment_requests_connection_count: count
                 account_to_payment_requests_connection_page_info: page_info {
@@ -1688,6 +1685,8 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 		"before_date":       beforeDate,
 		"bitcoin_network":   bitcoinNetwork,
 		"lightning_node_id": lightningNodeId,
+		"max_amount":        maxAmount,
+		"min_amount":        minAmount,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
@@ -1702,11 +1701,11 @@ func (obj Account) GetPaymentRequests(requester *requester.Requester, first *int
 	return result, nil
 }
 
-func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, idempotencyKeys *[]string, afterDate *time.Time, beforeDate *time.Time) (*AccountToWithdrawalRequestsConnection, error) {
-	query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $idempotency_keys: [String!], $after_date: DateTime, $before_date: DateTime) {
+func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *int64, after *string, bitcoinNetworks *[]BitcoinNetwork, statuses *[]WithdrawalRequestStatus, nodeIds *[]string, idempotencyKeys *[]string, afterDate *time.Time, beforeDate *time.Time, maxAmount *CurrencyAmountInput, minAmount *CurrencyAmountInput) (*AccountToWithdrawalRequestsConnection, error) {
+	query := `query FetchAccountToWithdrawalRequestsConnection($entity_id: ID!, $first: Int, $after: String, $bitcoin_networks: [BitcoinNetwork!], $statuses: [WithdrawalRequestStatus!], $node_ids: [ID!], $idempotency_keys: [String!], $after_date: DateTime, $before_date: DateTime, $max_amount: CurrencyAmountInput, $min_amount: CurrencyAmountInput) {
     entity(id: $entity_id) {
         ... on Account {
-            withdrawal_requests(, first: $first, after: $after, bitcoin_networks: $bitcoin_networks, statuses: $statuses, node_ids: $node_ids, idempotency_keys: $idempotency_keys, after_date: $after_date, before_date: $before_date) {
+            withdrawal_requests(, first: $first, after: $after, bitcoin_networks: $bitcoin_networks, statuses: $statuses, node_ids: $node_ids, idempotency_keys: $idempotency_keys, after_date: $after_date, before_date: $before_date, max_amount: $max_amount, min_amount: $min_amount) {
                 __typename
                 account_to_withdrawal_requests_connection_count: count
                 account_to_withdrawal_requests_connection_page_info: page_info {
@@ -1785,6 +1784,8 @@ func (obj Account) GetWithdrawalRequests(requester *requester.Requester, first *
 		"idempotency_keys": idempotencyKeys,
 		"after_date":       afterDate,
 		"before_date":      beforeDate,
+		"max_amount":       maxAmount,
+		"min_amount":       minAmount,
 	}
 
 	response, err := requester.ExecuteGraphql(query, variables, nil)
