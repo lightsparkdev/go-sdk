@@ -1,13 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // IncomingPayment This object represents any payment sent to a Lightspark node on the Lightning Network. You can retrieve this object to receive payment related information about a specific payment received by a Lightspark node.
 type IncomingPayment struct {

@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // LightningPaymentDirection This is an enum identifying the payment direction.

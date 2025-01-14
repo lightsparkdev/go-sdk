@@ -1,13 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/requester"
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // WithdrawalRequest This object represents a request made for an L1 withdrawal from your Lightspark Node to any Bitcoin wallet. You can retrieve this object to receive detailed information about any withdrawal request made from your Lightspark account.
 type WithdrawalRequest struct {

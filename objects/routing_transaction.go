@@ -1,11 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // RoutingTransaction This object represents a transaction that was forwarded through a Lightspark node on the Lightning Network, i.e., a routed transaction. You can retrieve this object to receive information about any transaction routed through your Lightspark Node.
 type RoutingTransaction struct {
