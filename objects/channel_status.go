@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // ChannelStatus This is an enum representing the status of a channel on the Lightning Network.

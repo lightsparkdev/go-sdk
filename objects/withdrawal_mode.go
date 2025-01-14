@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // WithdrawalMode This is an enum of the potential modes that your Bitcoin withdrawal can take.
