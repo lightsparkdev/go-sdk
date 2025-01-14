@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // PaymentDirection This is an enum indicating the direction of the payment.

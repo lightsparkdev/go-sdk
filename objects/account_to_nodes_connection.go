@@ -1,8 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "encoding/json"
-
 // AccountToNodesConnection A connection between an account and the nodes it manages.
 type AccountToNodesConnection struct {
 

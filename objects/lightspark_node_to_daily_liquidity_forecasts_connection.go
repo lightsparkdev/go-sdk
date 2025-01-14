@@ -1,8 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import "github.com/lightsparkdev/go-sdk/types"
-
 type LightsparkNodeToDailyLiquidityForecastsConnection struct {
 	FromDate types.Date `json:"lightspark_node_to_daily_liquidity_forecasts_connection_from_date"`
 

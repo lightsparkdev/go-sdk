@@ -1,11 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // ChannelClosingTransaction This is an object representing a transaction which closes a channel on the Lightning Network. This operation allocates balances back to the local and remote nodes.
 type ChannelClosingTransaction struct {

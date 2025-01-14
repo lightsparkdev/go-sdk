@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // HtlcAttemptFailureCode This is an enum representing a particular reason why an htlc sent over the Lightning Network may have failed.
