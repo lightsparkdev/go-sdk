@@ -47,6 +47,9 @@ const (
         ... on LightsparkNodeWithRemoteSigning {
             ...LightsparkNodeWithRemoteSigningFragment
         }
+        ... on Offer {
+            ...OfferFragment
+        }
         ... on OutgoingPayment {
             ...OutgoingPaymentFragment
         }
@@ -90,6 +93,7 @@ const (
 		InvoiceFragment +
 		LightsparkNodeWithOSKFragment +
 		LightsparkNodeWithRemoteSigningFragment +
+		OfferFragment +
 		OutgoingPaymentFragment +
 		OutgoingPaymentAttemptFragment +
 		RoutingTransactionFragment +

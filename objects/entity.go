@@ -118,6 +118,12 @@ func EntityUnmarshal(data map[string]interface{}) (Entity, error) {
 			return nil, err
 		}
 		return lightsparkNodeWithRemoteSigning, nil
+	case "Offer":
+		var offer Offer
+		if err := json.Unmarshal(dataJSON, &offer); err != nil {
+			return nil, err
+		}
+		return offer, nil
 	case "OutgoingPayment":
 		var outgoingPayment OutgoingPayment
 		if err := json.Unmarshal(dataJSON, &outgoingPayment); err != nil {
