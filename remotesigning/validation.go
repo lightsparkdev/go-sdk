@@ -190,3 +190,34 @@ func GenerateP2WPKHFromPubkey(child_pubkey []byte) ([]byte, error) {
 		AddData(pkHash).
 		Script()
 }
+
+func L1WalletDerivationPrefix(networkParams *chaincfg.Params) (string, error) {
+	var network uint32
+	switch networkParams.Name {
+	case chaincfg.MainNetParams.Name:
+		network = 0
+	case chaincfg.TestNet3Params.Name:
+		network = 1
+	case chaincfg.RegressionNetParams.Name:
+		network = 2
+	default:
+		return "", fmt.Errorf("unsupported network")
+	}
+	return fmt.Sprintf("m/84'/%d'/0'", network), nil
+}
+
+func DeriveL1WalletHardenedXpub(masterSeed []byte, networkParams *chaincfg.Params) (*hdkeychain.ExtendedKey, error) {
+	derivationPathString, err := L1WalletDerivationPrefix(networkParams)
+	if err != nil {
+		return nil, err
+	}
+	derivationPath, err := DerivationPathFromString(derivationPathString)
+	if err != nil {
+		return nil, err
+	}
+	key, err := DeriveKey(masterSeed, derivationPath, networkParams)
+	if err != nil {
+		return nil, err
+	}
+	return key.Neuter()
+}

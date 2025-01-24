@@ -88,6 +88,50 @@ func TestDerivationPath(t *testing.T) {
 	}
 }
 
+func TestL1WalletDerivationPath(t *testing.T) {
+	masterSeed, err := hex.DecodeString("69f580170954f411bbabc60118c0a3a0e483381d196d4087d32b78bdfee4a114")
+	assert.NoError(t, err)
+
+	tests := []struct {
+		name	   string
+		network	chaincfg.Params
+		expectedPath   string
+		expectedKey    string
+		expectedErrMsg string
+	}{
+		{
+			name: "mainnet",
+			network: chaincfg.MainNetParams,
+			expectedPath: "m/84'/0'/0'",
+			expectedKey: "xpub6D87MELKGzkxrhQcQVNddwHLC3td1ftP4sS6zBaz5JU4MimSwKqK3XcEnrE38mgfydBmsedXc35tETx5HALSzBfre3ZXo26nS2kBmPwvJ3n",
+		},
+		{
+			name: "testnet",
+			network: chaincfg.TestNet3Params,
+			expectedPath: "m/84'/1'/0'",
+			expectedKey: "tpubDDPLaqgr8bawQ6chGQ7ZkSChHBjVihms7dXdcZF8XvDNirxsctoK17brjJt7eMb7ZgppHz86uQNT1ksw89svDiAqNeMKsHfYfs8K8F1kq8m",
+		},
+		{
+			name: "regtest",
+			network: chaincfg.RegressionNetParams,
+			expectedPath: "m/84'/2'/0'",
+			expectedKey: "tpubDC7fZywQZQ45q3ebc3HC2CiCWUe1p3g5ZrM4uh7GBXRqnBzpG5qLD8swyYqUThvmNksGLEHYcjtChXUXGUWXuH1FqTF6rwwr2ErEoZJQnE3",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path, err := remotesigning.L1WalletDerivationPrefix(&tt.network)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedPath, path)
+
+			key, err := remotesigning.DeriveL1WalletHardenedXpub(masterSeed, &tt.network)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedKey, key.String())
+		})
+	}
+}
+
 func TestValidTransaction(t *testing.T) {
 	tests := []struct {
 		name        string
