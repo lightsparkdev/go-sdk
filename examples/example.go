@@ -79,14 +79,16 @@ func main() {
 	transactionsConnection, err := account.GetTransactions(
 		client.Requester,
 		&count,   // first
-		nil,      //after
+		nil,      // after
 		nil,      // types
 		nil,      // after_date
 		nil,      // before_date
 		&network, // bitcoin_network
 		nil,      // lightning_node_id
 		nil,      // statuses
-		nil,      //exclude_failures
+		nil,      // exclude_failures
+		nil,      // max_amount
+		nil,      // min_amount
 	)
 	if err != nil {
 		fmt.Printf("get transactions failed: %v", err)
@@ -127,14 +129,16 @@ func main() {
 		transactionsConnection, err = account.GetTransactions(
 			client.Requester,
 			&pageSize, // first
-			after,     //after
+			after,     // after
 			nil,       // types
 			nil,       // after_date
 			nil,       // before_date
 			&network,  // bitcoin_network
 			nil,       // lightning_node_id
 			nil,       // statuses
-			nil,       //exclude_failures
+			nil,       // exclude_failures
+			nil,       // max_amount
+			nil,       // min_amount
 		)
 		fmt.Printf("We got %v transactions for the page (iteration #%v)\n", transactionsConnection.Count, iterations)
 		if *transactionsConnection.PageInfo.HasNextPage {
@@ -153,14 +157,16 @@ func main() {
 	transactionsConnection, err = account.GetTransactions(
 		client.Requester,
 		&count,     // first
-		nil,        //after
+		nil,        // after
 		nil,        // types
 		&afterDate, // after_date
 		nil,        // before_date
 		&network,   // bitcoin_network
 		nil,        // lightning_node_id
 		nil,        // statuses
-		nil,        //exclude_failures
+		nil,        // exclude_failures
+		nil,        // max_amount
+		nil,        // min_amount
 	)
 	fmt.Printf("We had %v transactions in the past 24 hours.", transactionsConnection.Count)
 	fmt.Println()
