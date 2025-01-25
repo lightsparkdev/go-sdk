@@ -287,6 +287,32 @@ func (client *LightsparkClient) CancelInvoice(invoiceId string) (*objects.Invoic
 	return &invoice, nil
 }
 
+func (client *LightsparkClient) CreateOffer(nodeId string, amountMsats *int64, description *string) (*objects.Offer, error) {
+	variables := map[string]interface{}{
+		"node_id": nodeId,
+	}
+	if amountMsats != nil {
+		variables["amount_msats"] = amountMsats
+	}
+	if description != nil {
+		variables["description"] = description
+	}
+
+	response, err := client.ExecuteGraphql(scripts.CREATE_OFFER_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_offer"].(map[string]interface{})
+	var offer objects.Offer
+	offerJson, err := json.Marshal(output["offer"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New(("error parsing offer"))
+	}
+	json.Unmarshal(offerJson, &offer)
+	return &offer, nil
+}
+
 // CreateNodeWalletAddress creates a Bitcoin address for the wallet associated with
 // your Lightning Node. You can use this address to send funds to your node. It is
 // a best practice to generate a new wallet address every time you need to send money.
@@ -699,6 +725,39 @@ func (client *LightsparkClient) PayUmaInvoiceWithSenderIdentifier(nodeId string,
 	}
 
 	output := response["pay_uma_invoice"].(map[string]interface{})
+	var payment objects.OutgoingPayment
+	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing payment")
+	}
+	json.Unmarshal(paymentJson, &payment)
+	return &payment, nil
+}
+
+func (client *LightsparkClient) PayOffer(nodeId string, encodedOffer string, timeoutSecs int, maximumFeesMsats int64, amountMsats *int64, idempotencyKey *string) (*objects.OutgoingPayment, error) {
+	variables := map[string]interface{}{
+		"node_id":            nodeId,
+		"encoded_offer":      encodedOffer,
+		"timeout_secs":       timeoutSecs,
+		"maximum_fees_msats": maximumFeesMsats,
+	}
+	if amountMsats != nil {
+		variables["amount_msats"] = amountMsats
+	}
+	if idempotencyKey != nil {
+		variables["idempotency_key"] = *idempotencyKey
+	}
+	signingKey, err := client.getNodeSigningKey(nodeId)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.ExecuteGraphql(scripts.PAY_OFFER_MUTATION, variables, signingKey)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["pay_offer"].(map[string]interface{})
 	var payment objects.OutgoingPayment
 	paymentJson, err := json.Marshal(output["payment"].(map[string]interface{}))
 	if err != nil {
