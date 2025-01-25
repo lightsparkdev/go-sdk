@@ -18,6 +18,7 @@ import (
 
 const (
 	InvoiceAmount = 1_000_000
+	OfferAmount   = 1_000_000
 )
 
 func TestCreateInvoice(t *testing.T) {
@@ -128,11 +129,47 @@ func TestPayInvoiceNode1ToNode2(t *testing.T) {
 
 	t.Log(invoice)
 	client2 := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	ensureEnoughNodeFunds(t, client2, env.NodeID, InvoiceAmount)
+	ensureEnoughNodeFunds(t, client2, env.NodeID, OfferAmount)
 	servicestest.LoadSeedAsSigningKey(t, env.NodeID, env.MasterSeedHex, objects.BitcoinNetworkRegtest, client2)
 	payment, err := client2.PayInvoice(env.NodeID, invoice.Data.EncodedPaymentRequest, 60, InvoiceAmount*0.16, nil)
 	require.NoError(t, err)
 
+	completedTransaction := *waitForPaymentCompletion(t, client2, payment.Id)
+	if completedTransaction != nil {
+		t.Log(completedTransaction)
+	}
+}
+
+func TestPayOfferNode2ToNode1(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+	offer, err := createOfferForNode(client, env.NodeID)
+	require.NoError(t, err)
+
+	t.Log(offer)
+	client2 := services.NewLightsparkClient(env.ApiClientID2, env.ApiClientSecret2, &env.ApiClientEndpoint)
+	ensureEnoughNodeFunds(t, client2, env.NodeID2, OfferAmount)
+	servicestest.LoadSeedAsSigningKey(t, env.NodeID2, env.MasterSeedHex2, objects.BitcoinNetworkRegtest, client2)
+	payment, err := client2.PayOffer(env.NodeID2, offer.EncodedOffer, 60, OfferAmount*0.16, nil, nil)
+	require.NoError(t, err)
+	completedTransaction := *waitForPaymentCompletion(t, client2, payment.Id)
+	if completedTransaction != nil {
+		t.Log(completedTransaction)
+	}
+}
+
+func TestPayOfferNode1ToNode2(t *testing.T) {
+	env := servicestest.NewConfig()
+	client := services.NewLightsparkClient(env.ApiClientID2, env.ApiClientSecret2, &env.ApiClientEndpoint)
+	offer, err := createOfferForNode(client, env.NodeID2)
+	require.NoError(t, err)
+
+	t.Log(offer)
+	client2 := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
+	ensureEnoughNodeFunds(t, client2, env.NodeID, OfferAmount)
+	servicestest.LoadSeedAsSigningKey(t, env.NodeID, env.MasterSeedHex, objects.BitcoinNetworkRegtest, client2)
+	payment, err := client2.PayOffer(env.NodeID, offer.EncodedOffer, 60, OfferAmount*0.16, nil, nil)
+	require.NoError(t, err)
 	completedTransaction := *waitForPaymentCompletion(t, client2, payment.Id)
 	if completedTransaction != nil {
 		t.Log(completedTransaction)
@@ -164,6 +201,16 @@ func createInvoiceForNode(client *services.LightsparkClient, nodeID string) (*ob
 	return invoice, nil
 }
 
+func createOfferForNode(client *services.LightsparkClient, nodeId string) (*objects.Offer, error) {
+	var offerAmount int64 = OfferAmount
+
+	offer, err := client.CreateOffer(nodeId, &offerAmount, nil)
+	if err != nil {
+		return nil, err
+	}
+	return offer, nil
+}
+
 func waitForPaymentCompletion(
 	t *testing.T, client *services.LightsparkClient, paymentId string) *objects.Transaction {
 	payment, err := client.GetEntity(paymentId)
@@ -172,6 +219,8 @@ func waitForPaymentCompletion(
 	require.True(t, didCast)
 	startTime := time.Now()
 	for castPayment.GetStatus() != objects.TransactionStatusSuccess && castPayment.GetStatus() != objects.TransactionStatusFailed {
+		t.Logf("Payment status: %s; Sleeping for 5 seconds before refetching...", castPayment.GetStatus().StringValue())
+		time.Sleep(5 * time.Second)
 		if time.Since(startTime) > time.Minute*3 {
 			t.Fatalf("Payment timed out: %s", paymentId)
 			return nil
