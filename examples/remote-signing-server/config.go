@@ -71,6 +71,9 @@ func NewConfigFromEnv() (*Config, error) {
 	log.Printf("  - API_CLIENT_SECRET: %s", showEmpty(apiClientSecret))
 	log.Printf("  - WEBHOOK_SECRET: %s", showEmpty(webhookSecret))
 	log.Printf("  - MASTER_SEED_HEX: %s", showEmpty(masterSeedHex))
+	log.Printf("  - RESPOND_DIRECTLY: %t", respondDirectly)
+	log.Printf("  - VALIDATION_ENABLED: %t", validationEnabled)
+	log.Printf("  - L1_WALLET_ENABLED: %t", l1WalletEnabled)
 
 	return &Config{
 		ApiEndpoint:       apiEndpoint,
