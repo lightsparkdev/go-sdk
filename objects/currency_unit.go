@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // CurrencyUnit This enum identifies the unit of currency associated with a CurrencyAmount.

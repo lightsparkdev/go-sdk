@@ -13,7 +13,7 @@ type CreateInvoiceInput struct {
 
 	InvoiceType *InvoiceType `json:"create_invoice_input_invoice_type"`
 
-	// ExpirySecs The expiry of the invoice in seconds. Default value is 86400 (1 day).
+	// ExpirySecs The expiry of the invoice in seconds. Default value is 86400 (1 day) for AMP invoice, or 3600 (1 hour) for STANDARD invoice.
 	ExpirySecs *int64 `json:"create_invoice_input_expiry_secs"`
 
 	// PaymentHash The payment hash of the invoice. It should only be set if your node is a remote signing node. If not set, it will be requested through REMOTE_SIGNING webhooks with sub event type REQUEST_INVOICE_PAYMENT_HASH.

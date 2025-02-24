@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // IncentivesStatus Describes the status of the incentives for this invitation.

@@ -1,12 +1,9 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"time"
-)
+import "time"
 
-// InvoiceData This object represents the data associated with a BOLT #11 invoice. You can retrieve this object to receive the relevant data associated with a specific invoice.
+// InvoiceData This object represents the data associated with a Bolt #11 or Bolt #12 invoice. You can retrieve this object to receive the relevant data associated with a specific invoice.
 type InvoiceData struct {
 	EncodedPaymentRequest string `json:"invoice_data_encoded_payment_request"`
 

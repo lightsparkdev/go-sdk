@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // RegionCode The alpha-2 representation of a country, as defined by the ISO 3166-1 standard.

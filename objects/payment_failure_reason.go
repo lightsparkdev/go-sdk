@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // PaymentFailureReason This is an enum of the potential reasons why an OutgoingPayment sent from a Lightspark Node may have failed.

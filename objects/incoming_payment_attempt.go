@@ -1,11 +1,7 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"time"
-
-	"github.com/lightsparkdev/go-sdk/types"
-)
+import "time"
 
 // IncomingPaymentAttempt This object represents any attempted payment sent to a Lightspark node on the Lightning Network. You can retrieve this object to receive payment related information about a specific incoming payment attempt.
 type IncomingPaymentAttempt struct {

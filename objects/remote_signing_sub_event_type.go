@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // RemoteSigningSubEventType This is an enum of the potential sub-event types for Remote Signing webook events.

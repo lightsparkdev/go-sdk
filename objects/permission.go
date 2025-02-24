@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // Permission This is an enum of the potential permissions that a Lightspark user can have in regards to account management.
