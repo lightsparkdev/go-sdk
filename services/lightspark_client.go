@@ -130,14 +130,18 @@ func (client *LightsparkClient) CreateApiToken(name string, transact bool,
 //	memo: the memo of the invoice
 //	invoiceType: the type of the invoice
 //	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day).
+//	paymentHash: an optional payment hash to use for the invoice. This only applies to remote
+//	             signing nodes. If not provided, it will be requested from the remote signer
+//	             separately.
 func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
-	memo *string, invoiceType *objects.InvoiceType, expirySecs *int32,
+	memo *string, invoiceType *objects.InvoiceType, expirySecs *int32, paymentHash *string,
 ) (*objects.Invoice, error) {
 	variables := map[string]interface{}{
 		"amount_msats": amountMsats,
 		"node_id":      nodeId,
 		"memo":         memo,
 		"invoice_type": invoiceType,
+		"payment_hash": paymentHash,
 	}
 	if expirySecs != nil {
 		variables["expiry_secs"] = expirySecs

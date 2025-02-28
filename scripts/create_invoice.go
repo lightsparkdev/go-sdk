@@ -10,6 +10,7 @@ mutation CreateInvoice(
     $memo: String
     $invoice_type: InvoiceType
 	$expiry_secs: Int
+    $payment_hash: String
 ) {
     create_invoice(input: {
         node_id: $node_id
@@ -17,6 +18,7 @@ mutation CreateInvoice(
         memo: $memo
         invoice_type: $invoice_type
 		expiry_secs: $expiry_secs
+        payment_hash: $payment_hash
     }) {
         invoice {
             ...InvoiceFragment
