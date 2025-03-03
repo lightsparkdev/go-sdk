@@ -12,6 +12,11 @@ require (
 )
 
 require (
+	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
+	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
+)
+
+require (
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
@@ -28,6 +33,7 @@ require (
 	github.com/btcsuite/btcd/btcutil/psbt v1.1.9
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/tyler-smith/go-bip32 v1.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

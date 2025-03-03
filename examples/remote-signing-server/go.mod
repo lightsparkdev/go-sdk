@@ -11,6 +11,8 @@ require (
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
+	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
+	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/btcsuite/btcd v0.24.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5 // indirect
@@ -38,6 +40,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
+	github.com/tyler-smith/go-bip32 v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
