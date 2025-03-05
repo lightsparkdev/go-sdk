@@ -157,6 +157,54 @@ func (client *LightsparkClient) CreateInvoice(nodeId string, amountMsats int64,
 	return &invoice, nil
 }
 
+// CreateInvoiceWithPaymentHash generates a Lightning Invoice (follows the Bolt 11 specification)
+// to request a payment from another Lightning Node, while also providing an optional payment hash.
+//
+// This method only applies to remote signing nodes. If the payment hash is not provided, it will
+// be requested from the remote signer separately.
+//
+// Args:
+//
+//	nodeId: the id of the node that should be paid
+//	amountMsats: the amount of the invoice in millisatoshis
+//	memo: the memo of the invoice
+//	invoiceType: the type of the invoice
+//	expirySecs: the expiry of the invoice in seconds. Default value is 86400 (1 day).
+//	paymentHash: an optional payment hash to use for the invoice.
+//	nonce: an optional 32 byte nonce used to generate the payment hash.
+func (client *LightsparkClient) CreateInvoiceWithPaymentHash(nodeId string, amountMsats int64,
+	memo *string, invoiceType *objects.InvoiceType, expirySecs *int32, paymentHash *string, preimageNonce *[]byte,
+) (*objects.Invoice, error) {
+	variables := map[string]interface{}{
+		"amount_msats": amountMsats,
+		"node_id":      nodeId,
+		"memo":         memo,
+		"invoice_type": invoiceType,
+	}
+	if expirySecs != nil {
+		variables["expiry_secs"] = expirySecs
+	}
+	if paymentHash != nil {
+		variables["payment_hash"] = paymentHash
+	}
+	if preimageNonce != nil {
+		variables["preimage_nonce"] = hex.EncodeToString(*preimageNonce)
+	}
+	response, err := client.ExecuteGraphql(scripts.CREATE_INVOICE_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_invoice"].(map[string]interface{})
+	var invoice objects.Invoice
+	invoiceJson, err := json.Marshal(output["invoice"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invoice")
+	}
+	json.Unmarshal(invoiceJson, &invoice)
+	return &invoice, nil
+}
+
 // CreateLnurlInvoice creates a new LNURL invoice. The metadata is hashed and included in the invoice.
 // This API generates a Lightning Invoice (follows the Bolt 11 specification) to request a payment
 // from another Lightning Node. This should only be used for generating invoices

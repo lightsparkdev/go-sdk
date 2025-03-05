@@ -4,6 +4,7 @@
 package regtest_test
 
 import (
+	"encoding/hex"
 	"log"
 	"reflect"
 	"testing"
@@ -13,6 +14,7 @@ import (
 	"github.com/lightsparkdev/go-sdk/services"
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/lightsparkdev/go-sdk/utils"
+	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,7 +26,7 @@ const (
 func TestCreateInvoice(t *testing.T) {
 	env := servicestest.NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(client, env.NodeID)
+	invoice, err := createInvoiceForNode(t, client, env.NodeID)
 	require.NoError(t, err)
 	t.Log(invoice)
 }
@@ -35,7 +37,7 @@ func TestCreateInvoice(t *testing.T) {
 func TestCreateTestPaymentNode1(t *testing.T) {
 	env := servicestest.NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(client, env.NodeID)
+	invoice, err := createInvoiceForNode(t, client, env.NodeID)
 	require.NoError(t, err)
 	t.Logf("Created invoice %v", invoice)
 	payment, err := client.CreateTestModePayment(env.NodeID, invoice.Data.EncodedPaymentRequest, nil)
@@ -54,7 +56,7 @@ func TestCreateTestPaymentNode1(t *testing.T) {
 func TestCreateTestPaymentNode2(t *testing.T) {
 	env := servicestest.NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID2, env.ApiClientSecret2, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(client, env.NodeID2)
+	invoice, err := createInvoiceForNode(t, client, env.NodeID2)
 	require.NoError(t, err)
 	t.Logf("Created invoice %v", invoice)
 	payment, err := client.CreateTestModePayment(env.NodeID2, invoice.Data.EncodedPaymentRequest, nil)
@@ -105,7 +107,7 @@ func TestCreateTestInvoiceAndPayFromNode2(t *testing.T) {
 func TestPayInvoiceNode2ToNode1(t *testing.T) {
 	env := servicestest.NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID, env.ApiClientSecret, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(client, env.NodeID)
+	invoice, err := createInvoiceForNode(t, client, env.NodeID)
 	require.NoError(t, err)
 
 	t.Log(invoice)
@@ -120,11 +122,11 @@ func TestPayInvoiceNode2ToNode1(t *testing.T) {
 	}
 }
 
-// Create an invoice from node 2, pay it from node 1
+// Create an invoice from node 2 (providing payment hash), pay it from node 1
 func TestPayInvoiceNode1ToNode2(t *testing.T) {
 	env := servicestest.NewConfig()
 	client := services.NewLightsparkClient(env.ApiClientID2, env.ApiClientSecret2, &env.ApiClientEndpoint)
-	invoice, err := createInvoiceForNode(client, env.NodeID2)
+	invoice, err := createInvoiceWithPaymentHashForNode(t, client, env.NodeID2, env.MasterSeedHex2)
 	require.NoError(t, err)
 
 	t.Log(invoice)
@@ -193,11 +195,54 @@ func TestGetFundingAddress(t *testing.T) {
 	t.Log(address)
 }
 
-func createInvoiceForNode(client *services.LightsparkClient, nodeID string) (*objects.Invoice, error) {
+func createInvoiceForNode(t *testing.T, client *services.LightsparkClient, nodeID string) (*objects.Invoice, error) {
+	startTime := time.Now()
+
 	invoice, err := client.CreateInvoice(nodeID, InvoiceAmount, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	t.Logf("Created invoice %s in %s", invoice.Id, time.Since(startTime))
+
+	return invoice, nil
+}
+
+func createInvoiceWithPaymentHashForNode(t *testing.T, client *services.LightsparkClient, nodeID string, seedHex string) (*objects.Invoice, error) {
+	startTime := time.Now()
+
+	seedBytes, err := hex.DecodeString(seedHex)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce, err := lightspark_crypto.GeneratePreimageNonce(seedBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	paymentHash, err := lightspark_crypto.GeneratePreimageHash(seedBytes, nonce)
+	if err != nil {
+		return nil, err
+	}
+
+	paymentHashHex := hex.EncodeToString(paymentHash)
+
+	invoice, err := client.CreateInvoiceWithPaymentHash(
+		nodeID,
+		InvoiceAmount,
+		nil,
+		nil,
+		nil,
+		&paymentHashHex,
+		&nonce,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Logf("Created invoice %s in %s", invoice.Id, time.Since(startTime))
+
 	return invoice, nil
 }
 
