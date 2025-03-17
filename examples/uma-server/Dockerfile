@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.21-bookworm as builder
+FROM --platform=$BUILDPLATFORM golang:1.22-bookworm as builder
 
 ARG TARGETOS TARGETARCH
 RUN echo "$TARGETARCH" | sed 's,arm,aarch,;s,amd,x86_,' > /tmp/arch
@@ -18,5 +18,6 @@ RUN addgroup --system --gid 1000 go && adduser --system --uid 1000 --ingroup go 
 RUN apt-get update && apt-get -y install ca-certificates && apt-get clean && rm -rf /var/lib/apt/lists
 
 COPY --from=builder /go/bin/uma-server /usr/local/bin
+COPY --from=builder /src/examples/uma-server/templates /templates
 
 ENTRYPOINT ["uma-server"]
