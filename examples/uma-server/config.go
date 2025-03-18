@@ -81,7 +81,7 @@ func NewConfig() UmaConfig {
 	if username == "" {
 		username = "ls_test"
 	}
-	password := os.Getenv("LIGHTSPARK_UMA_RECEIVER_PASSWORD")
+	password := os.Getenv("LIGHTSPARK_UMA_RECEIVER_USER_PASSWORD")
 	if password == "" {
 		password = "pa$$w0rd" // Super secure, right?
 	}
