@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // NodeAddressType This is an enum of the potential types of addresses that a node on the Lightning Network can have.

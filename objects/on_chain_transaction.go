@@ -1,11 +1,6 @@
 // Copyright ©, 2023-present, Lightspark Group, Inc. - All Rights Reserved
 package objects
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 // OnChainTransaction This object represents an L1 transaction that occurred on the Bitcoin Network. You can retrieve this object to receive information about a specific on-chain transaction made on the Lightning Network associated with your Lightspark Node.
 type OnChainTransaction interface {
 	Transaction

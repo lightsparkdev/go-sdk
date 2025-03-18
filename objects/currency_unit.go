@@ -3,6 +3,7 @@ package objects
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 // CurrencyUnit This enum identifies the unit of currency associated with a CurrencyAmount.
@@ -23,6 +24,8 @@ const (
 	CurrencyUnitMxn
 	// CurrencyUnitPhp Philippine Peso.
 	CurrencyUnitPhp
+	// CurrencyUnitEur Euro.
+	CurrencyUnitEur
 	// CurrencyUnitNanobitcoin 0.000000001 (10e-9) Bitcoin or a billionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
 	CurrencyUnitNanobitcoin
 	// CurrencyUnitMicrobitcoin 0.000001 (10e-6) Bitcoin or a millionth of a Bitcoin. We recommend using the Satoshi unit instead when possible.
@@ -51,6 +54,8 @@ func (a *CurrencyUnit) UnmarshalJSON(b []byte) error {
 		*a = CurrencyUnitMxn
 	case "PHP":
 		*a = CurrencyUnitPhp
+	case "EUR":
+		*a = CurrencyUnitEur
 	case "NANOBITCOIN":
 		*a = CurrencyUnitNanobitcoin
 	case "MICROBITCOIN":
@@ -79,6 +84,8 @@ func (a CurrencyUnit) StringValue() string {
 		s = "MXN"
 	case CurrencyUnitPhp:
 		s = "PHP"
+	case CurrencyUnitEur:
+		s = "EUR"
 	case CurrencyUnitNanobitcoin:
 		s = "NANOBITCOIN"
 	case CurrencyUnitMicrobitcoin:
