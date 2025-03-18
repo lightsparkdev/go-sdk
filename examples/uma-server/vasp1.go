@@ -368,7 +368,7 @@ func (v *Vasp1) handlePayInvoice(context *gin.Context) {
 	}
 
 	callbackUuid := uuid.New().String()
-	v.handlePayRequest(payreq, invoice.Callback, invoice.ReceiverUma, callbackUuid, context)
+	v.handlePayRequest(payreq, invoice.Callback, invoice.ReceiverUma, callbackUuid, context, uma.MAJOR_VERSION)
 }
 
 func (v *Vasp1) handleClientPayReq(context *gin.Context) {
@@ -528,7 +528,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	}
 
 	payeeIdentifier := initialRequestData.receiverId + "@" + initialRequestData.vasp2Domain
-	v.handlePayRequest(payReq, initialRequestData.lnurlpResponse.Callback, payeeIdentifier, callbackUuid, context)
+	v.handlePayRequest(payReq, initialRequestData.lnurlpResponse.Callback, payeeIdentifier, callbackUuid, context, umaMajorVersion)
 }
 
 func (v *Vasp1) handlePayRequest(
@@ -537,6 +537,7 @@ func (v *Vasp1) handlePayRequest(
 	payeeIdentifier string,
 	callbackUuid string,
 	context *gin.Context,
+	umaMajorVersion int,
 ) {
 	payReqBytes, err := json.Marshal(payReq)
 	if err != nil {
@@ -592,7 +593,6 @@ func (v *Vasp1) handlePayRequest(
 		return
 	}
 
-	umaMajorVersion := uma.MAJOR_VERSION
 	if umaMajorVersion > 0 {
 		if err := uma.VerifyPayReqResponseSignature(
 			payreqResponse,
