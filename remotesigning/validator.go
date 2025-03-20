@@ -19,7 +19,7 @@ func (v PositiveValidator) ShouldSign(webhook webhooks.WebhookEvent) bool {
 	return true
 }
 
-type MultiValidator struct{
+type MultiValidator struct {
 	validators []Validator
 }
 
@@ -43,7 +43,7 @@ func isL1WalletSigningJob(job SigningJob) bool {
 func isForceClosureClaimSigningJob(job SigningJob) bool {
 	return !isL1WalletSigningJob(job) &&
 		(strings.HasSuffix(job.DerivationPath, "/2") ||
-		strings.HasSuffix(job.DerivationPath, "/3"))
+			strings.HasSuffix(job.DerivationPath, "/3"))
 }
 
 type HashValidator struct{}
@@ -87,8 +87,8 @@ func ValidateWitnessHash(signing *SigningJob) bool {
 // for where we allow sending funds. This is used to ensure that when signing
 // transactions spending L1 wallet funds, we are only sending funds to certain
 // addresses.
-type DestinationValidator struct{
-	masterSeed []byte
+type DestinationValidator struct {
+	masterSeed                 []byte
 	validateForceClosureClaims bool
 }
 

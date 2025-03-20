@@ -1,7 +1,8 @@
 package main
 
 import (
-	"errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/generated"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 	"regexp"
 	"strings"
@@ -10,7 +11,10 @@ import (
 func ValidateUmaAddress(address string) error {
 	addressParts := strings.Split(address, "@")
 	if len(addressParts) != 2 {
-		return errors.New("invalid receiver address")
+		return &errors.UmaError{
+			Reason:    "invalid receiver address",
+			ErrorCode: generated.InvalidInput,
+		}
 	}
 	receiverId := addressParts[0]
 	receiverVasp := addressParts[1]
@@ -28,7 +32,10 @@ func ValidateUmaAddress(address string) error {
 func ValidateUserName(userName string) error {
 	userNameRegex := regexp.MustCompile(`^\$?[a-zA-Z0-9-._+]+$`)
 	if !userNameRegex.MatchString(userName) {
-		return errors.New("invalid UMA user name")
+		return &errors.UmaError{
+			Reason:    "invalid UMA user name",
+			ErrorCode: generated.InvalidInput,
+		}
 	}
 	return nil
 }
@@ -39,7 +46,10 @@ func ValidateDomain(domain string) error {
 	localHostWithPortRegex := regexp.MustCompile(`^localhost(:[0-9]+)?$`)
 	domainRegex := regexp.MustCompile(`^([a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*[._]?$`)
 	if !domainRegex.MatchString(domain) && !localHostWithPortRegex.MatchString(domain) && !isLocalDomain {
-		return errors.New("invalid VASP domain")
+		return &errors.UmaError{
+			Reason:    "invalid VASP domain",
+			ErrorCode: generated.InvalidInput,
+		}
 	}
 	return nil
 }

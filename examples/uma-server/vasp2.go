@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,6 +16,8 @@ import (
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/generated"
 	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
@@ -65,10 +67,11 @@ func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 
 	// Allow with or without the $ for LNURL fallback.
 	if username != v.config.Username && username != "$"+v.config.Username {
-		context.JSON(http.StatusNotFound, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("User not found: %s", username),
-		})
+		umaError := &errors.UmaError{
+			Reason:    fmt.Sprintf("User not found: %s", username),
+			ErrorCode: generated.UserNotFound,
+		}
+		context.AbortWithError(umaError.ToHttpStatusCode(), umaError)
 		return
 	}
 
@@ -78,19 +81,14 @@ func (v *Vasp2) handleWellKnownLnurlp(context *gin.Context) {
 	lnurlpRequest, err := uma.ParseLnurlpRequest(*requestUrl)
 	if err != nil {
 		var unsupportedVersionErr *uma.UnsupportedVersionError
-		if errors.As(err, &unsupportedVersionErr) {
-			context.JSON(http.StatusPreconditionFailed, gin.H{
-				"status":                 "ERROR",
-				"reason":                 fmt.Sprintf("Unsupported version: %s", unsupportedVersionErr.UnsupportedVersion),
-				"supportedMajorVersions": unsupportedVersionErr.SupportedMajorVersions,
-				"unsupportedVersion":     unsupportedVersionErr.UnsupportedVersion,
+		if stderrors.As(err, &unsupportedVersionErr) {
+			context.Error(err)
+		} else {
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.ParseLnurlpRequestError,
 			})
-			return
 		}
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
 		return
 	}
 
@@ -113,9 +111,9 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 	metadata, err := v.getMetadata()
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -138,10 +136,7 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 	)
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -151,44 +146,32 @@ func (v *Vasp2) handleNonUmaLnurlRequest(context *gin.Context, lnurlpRequest uma
 func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotocol.UmaLnurlpRequest) (*umaprotocol.LnurlpResponse, bool) {
 	vaspDomainValidationErr := ValidateDomain(lnurlpRequest.VaspDomain)
 	if vaspDomainValidationErr != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid sending VASP domain: %v", vaspDomainValidationErr),
-		})
+		context.Error(vaspDomainValidationErr)
 		return nil, true
 	}
 	pubKeys, err := uma.FetchPublicKeyForVasp(lnurlpRequest.VaspDomain, v.pubKeyCache)
 	if err != nil || pubKeys == nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return nil, true
 	}
 
 	if err := uma.VerifyUmaLnurlpQuerySignature(lnurlpRequest, *pubKeys, v.nonceCache); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return nil, true
 	}
 
 	metadata, err := v.getMetadata()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return nil, true
 	}
 
 	umaPrivateKey, err := v.config.UmaSigningPrivKeyBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return nil, true
 	}
 
@@ -217,10 +200,7 @@ func (v *Vasp2) handleUmaQueryData(context *gin.Context, lnurlpRequest umaprotoc
 		nil,
 	)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return nil, true
 	}
 	return signedResponse, false
@@ -231,27 +211,32 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 	uuid := context.Param("uuid")
 
 	if uuid != v.config.UserID {
-		context.JSON(http.StatusNotFound, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("User not found: %s", uuid),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("User not found: %s", uuid),
+			ErrorCode: generated.UserNotFound,
 		})
 		return
 	}
 
 	payreq, err := umaprotocol.ParsePayRequestFromQueryParams(context.Request.URL.Query())
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid request: %v", err),
-		})
+		var umaErr *errors.UmaError
+		if stderrors.As(err, &umaErr) {
+			context.Error(err)
+		} else {
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.ParsePayreqRequestError,
+			})
+		}
 		return
 	}
 
 	metadata, err := v.getMetadata()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -291,10 +276,7 @@ func (v *Vasp2) handleLnurlPayreq(context *gin.Context) {
 	)
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -305,76 +287,72 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	uuid := context.Param("uuid")
 
 	if uuid != v.config.UserID {
-		context.JSON(http.StatusNotFound, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("User not found: %s", uuid),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("User not found: %s", uuid),
+			ErrorCode: generated.UserNotFound,
 		})
 		return
 	}
 
 	requestBody, err := context.GetRawData()
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid request body: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Invalid request body: %v", err),
+			ErrorCode: generated.ParsePayreqRequestError,
 		})
 		return
 	}
 	request, err := uma.ParsePayRequest(requestBody)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid request body: %v", err),
-		})
+		var umaErr *errors.UmaError
+		if stderrors.As(err, &umaErr) {
+			context.Error(err)
+		} else {
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.ParsePayreqRequestError,
+			})
+		}
 		return
 	}
 	if !request.IsUmaRequest() {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid request body: not a UMA request.",
+		context.Error(&errors.UmaError{
+			Reason:    "Invalid request body: not a UMA request.",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 
 	sendingVaspDomain, err := uma.GetVaspDomainFromUmaAddress(*request.PayerData.Identifier())
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid sender indentifier. UMA address required in the format $alice@vasp.com: %v", err),
-		})
+		context.Error(err)
 		return
 	}
 	addressValidationError := ValidateUmaAddress(*request.PayerData.Identifier())
 	if addressValidationError != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid sender indentifier. UMA address required in the format $alice@vasp.com: %v", addressValidationError),
-		})
+		context.Error(addressValidationError)
 		return
 	}
 
 	pubKeys, err := uma.FetchPublicKeyForVasp(sendingVaspDomain, v.pubKeyCache)
 	if err != nil || pubKeys == nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return
 	}
 
 	if err := uma.VerifyPayReqSignature(request, *pubKeys, v.nonceCache); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
 	metadata, err := v.getMetadata()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -395,18 +373,18 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	txID := "1234" // In practice, you'd probably use some real transaction ID here.
 	receiverUtxos, err := lsClient.GetNodeChannelUtxos(v.config.NodeUUID)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Error getting pre-screening utxos: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Error getting pre-screening utxos: %v", err),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 
 	receiverNode, err := GetNode(lsClient, v.config.NodeUUID)
 	if err != nil || receiverNode == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Error getting receiver node: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Error getting receiver node: %v", err),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -418,10 +396,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 	receiverUma := "$" + v.config.Username + "@" + v.getVaspDomain(context)
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 	payeeInfo := v.getPayeeInfo(request.RequestedPayeeData, context)
@@ -448,10 +423,7 @@ func (v *Vasp2) handleUmaPayreq(context *gin.Context) {
 		nil,
 	)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 	}
 
 	context.JSON(http.StatusOK, response)
@@ -462,10 +434,7 @@ func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
 	twoWeeksFromNowSec := twoWeeksFromNow.Unix()
 	response, err := uma.GetPubKeyResponse(v.config.UmaSigningCertChain, v.config.UmaEncryptionCertChain, &twoWeeksFromNowSec)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -475,27 +444,32 @@ func (v *Vasp2) handlePubKeyRequest(context *gin.Context) {
 func (v *Vasp2) handleUtxoCallback(context *gin.Context) {
 	txId := context.Query("txid")
 	if txId == "" {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Missing txid query parameter",
+		context.Error(&errors.UmaError{
+			Reason:    "Missing txid query parameter",
+			ErrorCode: generated.ParseUtxoCallbackError,
 		})
 		return
 	}
 
 	requestBody, err := context.GetRawData()
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid request body: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Invalid request body: %v", err),
+			ErrorCode: generated.ParseUtxoCallbackError,
 		})
 		return
 	}
 	callbackData, err := uma.ParsePostTransactionCallback(requestBody)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Invalid request body: %v", err),
-		})
+		var umaErr *errors.UmaError
+		if stderrors.As(err, &umaErr) {
+			context.Error(err)
+		} else {
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.ParseUtxoCallbackError,
+			})
+		}
 		return
 	}
 
@@ -507,18 +481,15 @@ func (v *Vasp2) handleUtxoCallback(context *gin.Context) {
 func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
 	invoice, err := v.createInvoice(context, false)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to create invoice: %v", err),
-		})
+		context.Error(err)
 		return
 	}
 
 	invoiceString, err := invoice.ToBech32String()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -529,10 +500,7 @@ func (v *Vasp2) handleCreateInvoice(context *gin.Context) {
 func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 	invoice, err := v.createInvoice(context, true)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to create invoice: %v", err),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -547,10 +515,7 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 		senderVaspDomain = "https://" + senderVaspDomain
 	}
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to get sender's VASP domain: %v", err),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -593,9 +558,9 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 
 	invoiceString, err := invoice.ToBech32String()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed to convert invoice to bech32 string: %v", err),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -605,18 +570,18 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 	})
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Error marshalling request body: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Error marshalling request body: %v", err),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 
 	resp, err = http.Post(requestEndpoint, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Error making POST request: %v", err),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Error making POST request: %v", err),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -628,7 +593,10 @@ func (v *Vasp2) handleCreateAndSendInvoice(context *gin.Context) {
 func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.UmaInvoice, error) {
 	uuid := context.Param("uuid")
 	if uuid != v.config.UserID {
-		return nil, fmt.Errorf("user not found: %s", uuid)
+		return nil, &errors.UmaError{
+			Reason:    fmt.Sprintf("user not found: %s", uuid),
+			ErrorCode: generated.UserNotFound,
+		}
 	}
 
 	var requestBody struct {
@@ -637,11 +605,17 @@ func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.
 		SenderUma    *string `json:"sender_uma"`
 	}
 	if err := context.BindJSON(&requestBody); err != nil {
-		return nil, err
+		return nil, &errors.UmaError{
+			Reason:    fmt.Sprintf("failed to bind request body: %v", err),
+			ErrorCode: generated.InvalidInput,
+		}
 	}
 
 	if requestBody.SenderUma == nil && request {
-		return nil, fmt.Errorf("sender_uma is required")
+		return nil, &errors.UmaError{
+			Reason:    "sender_uma is required",
+			ErrorCode: generated.InvalidInput,
+		}
 	}
 
 	if requestBody.CurrencyCode == "" {
@@ -656,7 +630,10 @@ func (v *Vasp2) createInvoice(context *gin.Context, request bool) (*umaprotocol.
 		}
 	}
 	if len(receiverCurrencies) == 0 {
-		return nil, fmt.Errorf("user does not support currency %s", requestBody.CurrencyCode)
+		return nil, &errors.UmaError{
+			Reason:    fmt.Sprintf("user does not support currency %s", requestBody.CurrencyCode),
+			ErrorCode: generated.InvalidCurrency,
+		}
 	}
 	currency := receiverCurrencies[0]
 

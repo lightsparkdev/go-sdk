@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"log"
@@ -20,6 +20,8 @@ import (
 	"github.com/lightsparkdev/go-sdk/services"
 	"github.com/lightsparkdev/go-sdk/utils"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/generated"
 	umaprotocol "github.com/uma-universal-money-address/uma-go-sdk/uma/protocol"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
@@ -52,10 +54,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverAddress := context.Param("receiver")
 	err := ValidateUmaAddress(receiverAddress)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid receiver address",
-		})
+		context.Error(err)
 		return
 	}
 	addressParts := strings.Split(receiverAddress, "@")
@@ -63,10 +62,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	receiverVasp := addressParts[1]
 	signingKey, err := v.config.UmaSigningPrivKeyBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -75,10 +71,7 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 		lnurlpRequest, err = uma.GetSignedLnurlpRequestUrl(
 			signingKey, receiverAddress, v.getVaspDomain(context), true, nil)
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"status": "ERROR",
-				"reason": err.Error(),
-			})
+			context.Error(err)
 			return
 		}
 	} else {
@@ -87,10 +80,9 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 
 	resp, err := http.Get(lnurlpRequest.String())
 	if err != nil {
-		// TODO: Maybe this should be a 400 depending on the error?
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to fetch receiver's lnurlp",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to fetch receiver's lnurlp",
+			ErrorCode: generated.LnurlpRequestFailed,
 		})
 		return
 	}
@@ -106,28 +98,33 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed response from receiver: %d", resp.StatusCode),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed response from receiver: %d", resp.StatusCode),
+			ErrorCode: generated.LnurlpRequestFailed,
 		})
 		return
 	}
 
 	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to read lnurlp response from receiver",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to read lnurlp response from receiver",
+			ErrorCode: generated.LnurlpRequestFailed,
 		})
 		return
 	}
 
 	lnurlpResponse, err := uma.ParseLnurlpResponse(responseBodyBytes)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to parse lnurlp response",
-		})
+		var umaErr *errors.UmaError
+		if stderrors.As(err, &umaErr) {
+			context.Error(err)
+		} else {
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.ParseLnurlpResponseError,
+			})
+		}
 		return
 	}
 	if !lnurlpResponse.IsUmaResponse() {
@@ -138,19 +135,16 @@ func (v *Vasp1) handleClientUmaLookup(context *gin.Context) {
 
 	receivingVaspPubKey, err := uma.FetchPublicKeyForVasp(receiverVasp, v.pubKeyCache)
 	if err != nil || receivingVaspPubKey == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to fetch public key for receiving VASP",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to fetch public key for receiving VASP",
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return
 	}
 
 	err = uma.VerifyUmaLnurlpResponseSignature(*lnurlpResponse.AsUmaResponse(), *receivingVaspPubKey, v.nonceCache)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to verify lnurlp response signature from receiver",
-		})
+		context.Error(err)
 		return
 	}
 
@@ -184,25 +178,25 @@ func (v *Vasp1) getNonUmaLnurlRequestUrl(receiverId string, receiverVasp string,
 func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signingKey []byte, receiverAddress string, context *gin.Context) (*http.Response, bool) {
 	responseBodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to read lnurlp response from receiver",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to read lnurlp response from receiver",
+			ErrorCode: generated.LnurlpRequestFailed,
 		})
 		return nil, true
 	}
 	supportedMajorVersions, err := uma.GetSupportedMajorVersionsFromErrorResponseBody(responseBodyBytes)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to parse supported major versions from error response",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to parse supported major versions from error response",
+			ErrorCode: generated.ParseLnurlpResponseError,
 		})
 		return nil, true
 	}
 	highestSupportedVersion := uma.SelectHighestSupportedVersion(supportedMajorVersions)
 	if highestSupportedVersion == nil {
-		context.JSON(http.StatusPreconditionFailed, gin.H{
-			"status": "ERROR",
-			"reason": "No compatible UMA version with VASP2",
+		context.Error(&errors.UmaError{
+			Reason:    "No compatible UMA version with VASP2",
+			ErrorCode: generated.NoCompatibleUmaVersion,
 		})
 		return nil, true
 	}
@@ -215,19 +209,15 @@ func (v *Vasp1) handleUnsupportedVersionResponse(response *http.Response, signin
 		highestSupportedVersion,
 	)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to generate lnurlp request",
-		})
+		context.Error(err)
 		return nil, true
 	}
 
 	retryResponse, err := http.Get(lnurlpRequest.String())
 	if err != nil {
-		// TODO: Maybe this should be a 400 depending on the error?
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to fetch receiver's lnurlp",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to fetch receiver's lnurlp",
+			ErrorCode: generated.LnurlpRequestFailed,
 		})
 		return nil, true
 	}
@@ -246,63 +236,51 @@ func (v *Vasp1) handlePayInvoice(context *gin.Context) {
 	invoiceString := context.Query("invoice")
 	invoice, err := uma.DecodeUmaInvoice(invoiceString)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid invoice",
+		context.Error(&errors.UmaError{
+			Reason:    "Invalid invoice",
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}
 
 	vasp2Domain, err := uma.GetVaspDomainFromUmaAddress(invoice.ReceiverUma)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid receiver address",
-		})
+		context.Error(err)
 		return
 	}
 
 	vasp2PubKeys, err := uma.FetchPublicKeyForVasp(vasp2Domain, v.pubKeyCache)
 	if err != nil || vasp2PubKeys == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to fetch public key for receiving VASP",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to fetch public key for receiving VASP",
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return
 	}
 
 	err = uma.VerifyUmaInvoiceSignature(*invoice, *vasp2PubKeys)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to verify invoice signature",
-		})
+		context.Error(err)
 		return
 	}
 
 	if int64(invoice.Expiration) < time.Now().Unix() {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invoice has expired",
+		context.Error(&errors.UmaError{
+			Reason:    "Invoice has expired",
+			ErrorCode: generated.InvoiceExpired,
 		})
 		return
 	}
 
 	vasp2EncryptionPubKey, err := vasp2PubKeys.EncryptionPubKey()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get encryption pub key for receiving VASP",
-		})
+		context.Error(err)
 		return
 	}
 
 	umaSigningPrivateKey, err := v.config.UmaSigningPrivKeyBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
@@ -316,18 +294,18 @@ func (v *Vasp1) handlePayInvoice(context *gin.Context) {
 	senderUtxos, err := v.client.GetNodeChannelUtxos(v.config.NodeUUID)
 	if err != nil {
 		log.Printf("Failed to get prescreening UTXOs: %v", err)
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get prescreening UTXOs",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to get prescreening UTXOs",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 
 	senderNode, err := GetNode(v.client, v.config.NodeUUID)
 	if err != nil || senderNode == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get sender node pub key",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to get sender node pub key",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -360,10 +338,7 @@ func (v *Vasp1) handlePayInvoice(context *gin.Context) {
 	)
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to generate payreq",
-		})
+		context.Error(err)
 		return
 	}
 
@@ -375,9 +350,9 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	callbackUuid := context.Param("callbackUuid")
 	initialRequestData, ok := v.requestCache.GetLnurlpResponseData(callbackUuid)
 	if !ok {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid or missing callback UUID",
+		context.Error(&errors.UmaError{
+			Reason:    "Invalid or missing callback UUID",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -385,9 +360,9 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	amount := context.Query("amount")
 	amountInt64, err := strconv.ParseInt(amount, 10, 64)
 	if err != nil || amountInt64 <= 0 {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid amount",
+		context.Error(&errors.UmaError{
+			Reason:    "Invalid amount",
+			ErrorCode: generated.InvalidInput,
 		})
 		return
 	}
@@ -408,9 +383,9 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		}
 	}
 	if !currencySupported {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Unsupported currency",
+		context.Error(&errors.UmaError{
+			Reason:    "Unsupported currency",
+			ErrorCode: generated.InvalidCurrency,
 		})
 		return
 	}
@@ -436,18 +411,15 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 
 	umaSigningPrivateKey, err := v.config.UmaSigningPrivKeyBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
-		})
+		context.Error(err)
 		return
 	}
 
 	vasp2PubKeys, err := uma.FetchPublicKeyForVasp(initialRequestData.vasp2Domain, v.pubKeyCache)
 	if err != nil || vasp2PubKeys == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to fetch public key for receiving VASP",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to fetch public key for receiving VASP",
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return
 	}
@@ -456,26 +428,26 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	senderUtxos, err := v.client.GetNodeChannelUtxos(v.config.NodeUUID)
 	if err != nil {
 		log.Printf("Failed to get prescreening UTXOs: %v", err)
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get prescreening UTXOs",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to get prescreening UTXOs",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 	vasp2EncryptionPubKey, err := vasp2PubKeys.EncryptionPubKey()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get encryption pub key for receiving VASP",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to get encryption pub key for receiving VASP",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 
 	senderNode, err := GetNode(v.client, v.config.NodeUUID)
 	if err != nil || senderNode == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get sender node pub key",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to get sender node pub key",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -484,9 +456,9 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 	if initialRequestData.lnurlpResponse.UmaVersion != nil {
 		umaVersion, err := uma.ParseVersion(*initialRequestData.lnurlpResponse.UmaVersion)
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"status": "ERROR",
-				"reason": "Failed to parse uma version",
+			context.Error(&errors.UmaError{
+				Reason:    "Failed to parse uma version",
+				ErrorCode: generated.InternalError,
 			})
 			return
 		}
@@ -520,10 +492,7 @@ func (v *Vasp1) handleClientPayReq(context *gin.Context) {
 		nil,
 	)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to generate payreq",
-		})
+		context.Error(err)
 		return
 	}
 
@@ -541,25 +510,25 @@ func (v *Vasp1) handlePayRequest(
 ) {
 	payReqBytes, err := json.Marshal(payReq)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to marshal payreq",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to marshal payreq",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 	payreqResult, err := http.Post(callback, "application/json", bytes.NewBuffer(payReqBytes))
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.PayreqRequestFailed,
 		})
 		return
 	}
 
 	if payreqResult.StatusCode != http.StatusOK {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed payreq response: %d", payreqResult.StatusCode),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed payreq response: %d", payreqResult.StatusCode),
+			ErrorCode: generated.PayreqRequestFailed,
 		})
 		return
 	}
@@ -568,27 +537,32 @@ func (v *Vasp1) handlePayRequest(
 
 	payreqResultBytes, err := io.ReadAll(payreqResult.Body)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to read payreq response",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to read payreq response",
+			ErrorCode: generated.PayreqRequestFailed,
 		})
 		return
 	}
 
 	payreqResponse, err := uma.ParsePayReqResponse(payreqResultBytes)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to unmarshal payreq response",
-		})
+		var umaErr *errors.UmaError
+		if stderrors.As(err, &umaErr) {
+			context.Error(err)
+		} else {
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.ParsePayreqResponseError,
+			})
+		}
 		return
 	}
 
 	pubKeys, err := uma.FetchPublicKeyForVasp(v.getVaspDomain(context), v.pubKeyCache)
 	if err != nil || pubKeys == nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return
 	}
@@ -601,10 +575,7 @@ func (v *Vasp1) handlePayRequest(
 			"$"+v.config.Username+"@"+v.getVaspDomain(context),
 			payeeIdentifier,
 		); err != nil {
-			context.JSON(http.StatusBadRequest, gin.H{
-				"status": "ERROR",
-				"reason": err.Error(),
-			})
+			context.Error(err)
 			return
 		}
 	}
@@ -614,18 +585,18 @@ func (v *Vasp1) handlePayRequest(
 	log.Printf("Received invoice: %s", payreqResponse.EncodedInvoice)
 	invoice, err := v.client.DecodePaymentRequest(payreqResponse.EncodedInvoice)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to decode invoice",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to decode invoice",
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}
 	invoiceData := (*invoice).(objects.InvoiceData)
 	compliance, err := payreqResponse.PayeeData.Compliance()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to get compliance data",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to get compliance data",
+			ErrorCode: generated.MissingRequiredUmaParameters,
 		})
 		return
 	}
@@ -642,9 +613,9 @@ func (v *Vasp1) handlePayRequest(
 
 	amountMsats, err := utils.ValueMilliSatoshi(invoiceData.Amount)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to convert amount to millisats",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to convert amount to millisats",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -666,25 +637,25 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 	callbackUuid := context.Param("callbackUuid")
 	payReqData, ok := v.requestCache.GetPayReqData(callbackUuid)
 	if !ok {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid or missing callback UUID",
+		context.Error(&errors.UmaError{
+			Reason:    "Invalid or missing callback UUID",
+			ErrorCode: generated.Forbidden,
 		})
 		return
 	}
 
 	if payReqData.invoiceData.Amount.OriginalValue == 0 {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "cannot pay zero-amount invoices via UMA",
+		context.Error(&errors.UmaError{
+			Reason:    "cannot pay zero-amount invoices via UMA",
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}
 	seedBytes, err := v.config.NodeMasterSeedBytes()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -701,17 +672,17 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		nil,
 	)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to pay invoice",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to pay invoice",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
 	payment, err = v.waitForPaymentCompletion(payment)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed while waiting for payment completion",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed while waiting for payment completion",
+			ErrorCode: generated.InternalError,
 		})
 		return
 	}
@@ -736,25 +707,22 @@ func (v *Vasp1) handleClientPaymentConfirm(context *gin.Context) {
 		log.Printf("Sending UTXOs to %s: %+v", *payReqData.utxoCallback, utxosWithAmounts)
 		signingPrivateKey, err := v.config.UmaSigningPrivKeyBytes()
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"status": "ERROR",
-				"reason": err.Error(),
+			context.Error(&errors.UmaError{
+				Reason:    err.Error(),
+				ErrorCode: generated.InternalError,
 			})
 			return
 		}
 		postTxCallback, err := uma.GetPostTransactionCallback(utxosWithAmounts, v.getVaspDomain(context), signingPrivateKey)
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"status": "ERROR",
-				"reason": err.Error(),
-			})
+			context.Error(err)
 			return
 		}
 		requestBody, err := json.Marshal(postTxCallback)
 		if err != nil {
-			context.JSON(http.StatusInternalServerError, gin.H{
-				"status": "ERROR",
-				"reason": err.Error(),
+			context.Error(&errors.UmaError{
+				Reason:    fmt.Sprintf("Failed to marshal post-transaction callback: %v", err),
+				ErrorCode: generated.InternalError,
 			})
 			return
 		}
@@ -782,7 +750,10 @@ func (v *Vasp1) waitForPaymentCompletion(payment *objects.OutgoingPayment) (*obj
 	attemptLimit := 200
 	for payment.Status != objects.TransactionStatusSuccess && payment.Status != objects.TransactionStatusFailed {
 		if attemptLimit == 0 {
-			return nil, errors.New("payment timed out")
+			return nil, &errors.UmaError{
+				Reason:    "payment timed out",
+				ErrorCode: generated.InternalError,
+			}
 		}
 		attemptLimit--
 		time.Sleep(100 * time.Millisecond)
@@ -793,7 +764,10 @@ func (v *Vasp1) waitForPaymentCompletion(payment *objects.OutgoingPayment) (*obj
 		}
 		castPayment, didCast := (*entity).(objects.OutgoingPayment)
 		if !didCast {
-			return nil, errors.New("failed to cast payment to OutgoingPayment")
+			return nil, &errors.UmaError{
+				Reason:    "failed to cast payment to OutgoingPayment",
+				ErrorCode: generated.InternalError,
+			}
 		}
 		payment = &castPayment
 	}
@@ -824,9 +798,9 @@ func (v *Vasp1) handleNonUmaPayReq(
 ) {
 	callbackUrl, err := url.Parse(initialRequestData.lnurlpResponse.Callback)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to parse callback URL",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to parse callback URL",
+			ErrorCode: generated.InvalidInput,
 		})
 		return
 	}
@@ -853,10 +827,7 @@ func (v *Vasp1) handleNonUmaPayReq(
 
 	payreqParams, err := payreq.EncodeAsUrlParams()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to encode payreq as URL params",
-		})
+		context.Error(err)
 		return
 	}
 	queryParams := callbackUrl.Query()
@@ -869,17 +840,17 @@ func (v *Vasp1) handleNonUmaPayReq(
 
 	payreqResult, err := http.Get(callbackUrl.String())
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": err.Error(),
+		context.Error(&errors.UmaError{
+			Reason:    err.Error(),
+			ErrorCode: generated.PayreqRequestFailed,
 		})
 		return
 	}
 
 	if payreqResult.StatusCode != http.StatusOK {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": fmt.Sprintf("Failed payreq response: %d", payreqResult.StatusCode),
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed payreq response: %d", payreqResult.StatusCode),
+			ErrorCode: generated.PayreqRequestFailed,
 		})
 		return
 	}
@@ -888,9 +859,9 @@ func (v *Vasp1) handleNonUmaPayReq(
 
 	payreqResultBytes, err := io.ReadAll(payreqResult.Body)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to read payreq response",
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed to read payreq response: %v", err),
+			ErrorCode: generated.PayreqRequestFailed,
 		})
 		return
 	}
@@ -898,9 +869,9 @@ func (v *Vasp1) handleNonUmaPayReq(
 	var payreqResponse umaprotocol.PayReqResponse
 	err = json.Unmarshal(payreqResultBytes, &payreqResponse)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to unmarshal payreq response",
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed to unmarshal payreq response: %v", err),
+			ErrorCode: generated.ParsePayreqResponseError,
 		})
 		return
 	}
@@ -908,9 +879,9 @@ func (v *Vasp1) handleNonUmaPayReq(
 	log.Printf("Received invoice: %s", payreqResponse.EncodedInvoice)
 	invoice, err := v.client.DecodePaymentRequest(payreqResponse.EncodedInvoice)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to decode invoice",
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed to decode invoice: %v", err),
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}
@@ -924,9 +895,9 @@ func (v *Vasp1) handleNonUmaPayReq(
 
 	amountMsats, err := utils.ValueMilliSatoshi(invoiceData.Amount)
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to convert amount to millisats",
+		context.Error(&errors.UmaError{
+			Reason:    fmt.Sprintf("Failed to convert amount to millisats: %v", err),
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}
@@ -991,52 +962,46 @@ func (v *Vasp1) handleRequestPayInvoice(context *gin.Context) {
 	invoiceString := context.Query("invoice")
 	invoice, err := uma.DecodeUmaInvoice(invoiceString)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid invoice",
+		context.Error(&errors.UmaError{
+			Reason:    "Invalid invoice",
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}
 
 	vasp2Domain, err := uma.GetVaspDomainFromUmaAddress(invoice.ReceiverUma)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invalid receiver address",
-		})
+		context.Error(err)
 		return
 	}
 
 	vasp2PubKeys, err := uma.FetchPublicKeyForVasp(vasp2Domain, v.pubKeyCache)
 	if err != nil || vasp2PubKeys == nil {
-		context.JSON(http.StatusInternalServerError, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to fetch public key for receiving VASP",
+		context.Error(&errors.UmaError{
+			Reason:    "Failed to fetch public key for receiving VASP",
+			ErrorCode: generated.CounterpartyPubkeyFetchError,
 		})
 		return
 	}
 
 	err = uma.VerifyUmaInvoiceSignature(*invoice, *vasp2PubKeys)
 	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Failed to verify invoice signature",
-		})
+		context.Error(err)
 		return
 	}
 
 	if int64(invoice.Expiration) < time.Now().Unix() {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invoice has expired",
+		context.Error(&errors.UmaError{
+			Reason:    "Invoice has expired",
+			ErrorCode: generated.InvoiceExpired,
 		})
 		return
 	}
 
 	if invoice.SenderUma == nil {
-		context.JSON(http.StatusBadRequest, gin.H{
-			"status": "ERROR",
-			"reason": "Invoice missing sender address",
+		context.Error(&errors.UmaError{
+			Reason:    "Invoice missing sender address",
+			ErrorCode: generated.InvalidInvoice,
 		})
 		return
 	}

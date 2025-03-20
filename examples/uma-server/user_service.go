@@ -4,9 +4,12 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"strings"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"strings"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/generated"
 )
 
 // User represents a user in the system.
@@ -52,14 +55,20 @@ func NewUserServiceFromEnv(config UmaConfig) *UserServiceFromEnv {
 
 func (u *UserServiceFromEnv) GetUser(id string) (*User, error) {
 	if u.user == nil || u.user.ID != id {
-		return nil, fmt.Errorf("user not found")
+		return nil, &errors.UmaError{
+			Reason:    "User not found",
+			ErrorCode: generated.UserNotFound,
+		}
 	}
 	return u.user, nil
 }
 
 func (u *UserServiceFromEnv) GetUserFromContext(context *gin.Context) (*User, error) {
 	if u.user == nil {
-		return nil, fmt.Errorf("user not found")
+		return nil, &errors.UmaError{
+			Reason:    "User not found",
+			ErrorCode: generated.UserNotFound,
+		}
 	}
 
 	// Get from session cookie:
@@ -75,11 +84,17 @@ func (u *UserServiceFromEnv) GetUserFromContext(context *gin.Context) (*User, er
 		encodedCredentials := strings.TrimPrefix(authHeader, basicToken)
 		decodedCredentials, err := base64.StdEncoding.DecodeString(encodedCredentials)
 		if err != nil {
-			return nil, fmt.Errorf("error decoding credentials: %v", err)
+			return nil, &errors.UmaError{
+				Reason:    fmt.Sprintf("error decoding credentials: %v", err),
+				ErrorCode: generated.Forbidden,
+			}
 		}
 		credentials := strings.Split(string(decodedCredentials), ":")
 		if len(credentials) != 2 {
-			return nil, fmt.Errorf("invalid credentials")
+			return nil, &errors.UmaError{
+				Reason:    "invalid credentials",
+				ErrorCode: generated.Forbidden,
+			}
 		}
 		password := credentials[1]
 		hashedPassword := hashString(password)
@@ -88,12 +103,18 @@ func (u *UserServiceFromEnv) GetUserFromContext(context *gin.Context) (*User, er
 		}
 	}
 
-	return nil, fmt.Errorf("user not found")
+	return nil, &errors.UmaError{
+		Reason:    "user not found",
+		ErrorCode: generated.UserNotFound,
+	}
 }
 
 func (u *UserServiceFromEnv) GetUserByUmaAddress(umaAddress string, config UmaConfig, context *gin.Context) (*User, error) {
 	if u.user == nil || u.user.GetUmaAddress(&config, context) != umaAddress {
-		return nil, fmt.Errorf("user not found")
+		return nil, &errors.UmaError{
+			Reason:    "user not found",
+			ErrorCode: generated.UserNotFound,
+		}
 	}
 	return u.user, nil
 }
