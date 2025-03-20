@@ -1,17 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+
 	"github.com/gin-gonic/gin"
 	"github.com/uma-universal-money-address/uma-go-sdk/uma"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/generated"
 	umautils "github.com/uma-universal-money-address/uma-go-sdk/uma/utils"
 )
 
@@ -41,9 +45,9 @@ func main() {
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	userService := NewUserServiceFromEnv(config)
 
+	engine.Use(UmaErrorHandler())
 	engine.Use(gin.Logger())
 	engine.Use(gin.Recovery())
-	engine.Use(gin.ErrorLogger())
 
 	// Require authentication for all API routes.
 	engine.Use(func(c *gin.Context) {
@@ -53,7 +57,7 @@ func main() {
 		}
 		user, err := userService.GetUserFromContext(c)
 		if err != nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			c.Error(err)
 			return
 		}
 		c.Set("user_id", user.ID)
@@ -182,4 +186,46 @@ func main() {
 		port = "8081"
 	}
 	engine.Run(":" + port)
+}
+
+func UmaErrorHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		for _, err := range c.Errors {
+			switch e := err.Err.(type) {
+			case *errors.UmaError:
+				c.AbortWithStatusJSON(e.ToHttpStatusCode(), umaErrorToMap(e))
+				return
+			default:
+				internalError := &errors.UmaError{
+					Reason:    c.Errors.Last().Error(),
+					ErrorCode: generated.InternalError,
+				}
+				c.AbortWithStatusJSON(internalError.ToHttpStatusCode(), umaErrorToMap(internalError))
+				return
+			}
+		}
+	}
+}
+
+func umaErrorToMap(umaError *errors.UmaError) map[string]interface{} {
+	jsonStr, marshalErr := umaError.ToJSON()
+	if marshalErr != nil {
+		return map[string]interface{}{
+			"status": "ERROR",
+			"reason": "Failed to serialize UMA error",
+			"code":   generated.InternalError.Code,
+		}
+	} else {
+		var jsonMap map[string]interface{}
+		if err := json.Unmarshal([]byte(jsonStr), &jsonMap); err != nil {
+			return map[string]interface{}{
+				"status": "ERROR",
+				"reason": "Failed to parse error JSON",
+				"code":   generated.InternalError.Code,
+			}
+		} else {
+			return jsonMap
+		}
+	}
 }

@@ -93,29 +93,29 @@ func TestL1WalletDerivationPath(t *testing.T) {
 	assert.NoError(t, err)
 
 	tests := []struct {
-		name	   string
-		network	chaincfg.Params
+		name           string
+		network        chaincfg.Params
 		expectedPath   string
 		expectedKey    string
 		expectedErrMsg string
 	}{
 		{
-			name: "mainnet",
-			network: chaincfg.MainNetParams,
+			name:         "mainnet",
+			network:      chaincfg.MainNetParams,
 			expectedPath: "m/84'/0'/0'",
-			expectedKey: "xpub6D87MELKGzkxrhQcQVNddwHLC3td1ftP4sS6zBaz5JU4MimSwKqK3XcEnrE38mgfydBmsedXc35tETx5HALSzBfre3ZXo26nS2kBmPwvJ3n",
+			expectedKey:  "xpub6D87MELKGzkxrhQcQVNddwHLC3td1ftP4sS6zBaz5JU4MimSwKqK3XcEnrE38mgfydBmsedXc35tETx5HALSzBfre3ZXo26nS2kBmPwvJ3n",
 		},
 		{
-			name: "testnet",
-			network: chaincfg.TestNet3Params,
+			name:         "testnet",
+			network:      chaincfg.TestNet3Params,
 			expectedPath: "m/84'/1'/0'",
-			expectedKey: "tpubDDPLaqgr8bawQ6chGQ7ZkSChHBjVihms7dXdcZF8XvDNirxsctoK17brjJt7eMb7ZgppHz86uQNT1ksw89svDiAqNeMKsHfYfs8K8F1kq8m",
+			expectedKey:  "tpubDDPLaqgr8bawQ6chGQ7ZkSChHBjVihms7dXdcZF8XvDNirxsctoK17brjJt7eMb7ZgppHz86uQNT1ksw89svDiAqNeMKsHfYfs8K8F1kq8m",
 		},
 		{
-			name: "regtest",
-			network: chaincfg.RegressionNetParams,
+			name:         "regtest",
+			network:      chaincfg.RegressionNetParams,
 			expectedPath: "m/84'/2'/0'",
-			expectedKey: "tpubDC7fZywQZQ45q3ebc3HC2CiCWUe1p3g5ZrM4uh7GBXRqnBzpG5qLD8swyYqUThvmNksGLEHYcjtChXUXGUWXuH1FqTF6rwwr2ErEoZJQnE3",
+			expectedKey:  "tpubDC7fZywQZQ45q3ebc3HC2CiCWUe1p3g5ZrM4uh7GBXRqnBzpG5qLD8swyYqUThvmNksGLEHYcjtChXUXGUWXuH1FqTF6rwwr2ErEoZJQnE3",
 		},
 	}
 
@@ -141,13 +141,13 @@ func TestValidTransaction(t *testing.T) {
 		{
 			name: "valid transaction",
 			signingJob: &remotesigning.SigningJob{
-				Transaction:               ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
+				Transaction: ptr("02000000017ab44ffadf03b57ce0eb63074c541b3aea0b57497764a6790611332c441b989d0100000000ffffffff02a086010000000000160014aff40d81f6ffd5a98e358af465b1e1bf3fe9c012a086010000000000160014dd71b57f94e6876380850d0fbbaedb52d698b9e000000000"),
 			},
 			expectValid: true,
 		}, {
 			name: "invalid transaction",
 			signingJob: &remotesigning.SigningJob{
-				Transaction:               ptr("abcd"),
+				Transaction: ptr("abcd"),
 			},
 			expectValid: false,
 		},

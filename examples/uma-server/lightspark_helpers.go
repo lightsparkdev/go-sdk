@@ -1,9 +1,10 @@
 package main
 
 import (
-	"errors"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/errors"
+	"github.com/uma-universal-money-address/uma-go-sdk/uma/generated"
 )
 
 func GetNode(client *services.LightsparkClient, nodeId string) (*objects.LightsparkNode, error) {
@@ -14,7 +15,10 @@ func GetNode(client *services.LightsparkClient, nodeId string) (*objects.Lightsp
 
 	castNode, didCast := (*entity).(objects.LightsparkNode)
 	if !didCast {
-		return nil, errors.New("failed to cast entity to LightsparkNode")
+		return nil, &errors.UmaError{
+			Reason:    "failed to cast entity to LightsparkNode",
+			ErrorCode: generated.InternalError,
+		}
 	}
 
 	return &castNode, nil

@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/lightsparkdev/go-sdk v0.15.1
-	github.com/uma-universal-money-address/uma-go-sdk v1.3.1
+	github.com/uma-universal-money-address/uma-go-sdk v1.5.0
 )
 
 require (
