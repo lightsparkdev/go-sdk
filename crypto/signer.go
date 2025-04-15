@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/tyler-smith/go-bip32"
 )
 
@@ -86,4 +87,48 @@ func GeneratePreimageAndPaymentHash(key []byte, nonce []byte) ([]byte, []byte, e
 	paymentHash := sha256.Sum256(preimage)
 
 	return preimage, paymentHash[:], nil
+}
+
+func GetPerCommitmentPoint(seedBytes []byte, derivationPath string, perCommitmentPointIdx uint64) ([]byte, error) {
+	secret, err := ReleasePerCommitmentSecret(seedBytes, derivationPath, perCommitmentPointIdx)
+	if err != nil {
+		return nil, err
+	}
+
+	privKey, _ := btcec.PrivKeyFromBytes(secret)
+	pubKey := privKey.PubKey()
+	return pubKey.SerializeCompressed(), nil
+}
+
+func ReleasePerCommitmentSecret(seedBytes []byte, derivationPath string, perCommitmentPointIdx uint64) ([]byte, error) {
+	xpriv, err := DeriveXpriv(seedBytes, derivationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	privKeyHash := sha256.Sum256(xpriv.Key)
+	channelSeed := privKeyHash[:]
+	commitmentSeed := buildCommitmentSeed(channelSeed)
+	commitmentSecret := buildCommitmentSecret(commitmentSeed[:], perCommitmentPointIdx)
+	return commitmentSecret, nil
+}
+
+func buildCommitmentSeed(channelSeed []byte) [32]byte {
+	combined := append(channelSeed, []byte("commitment seed")...)
+	return sha256.Sum256(combined)
+}
+
+func buildCommitmentSecret(seed []byte, idx uint64) []byte {
+	res := make([]byte, len(seed))
+	copy(res, seed)
+
+	for i := range 48 {
+		bitpos := 47 - i
+		if (idx & (1 << bitpos)) == (1 << bitpos) {
+			res[bitpos/8] ^= 1 << (bitpos & 7)
+			hash := sha256.Sum256(res)
+			res = hash[:]
+		}
+	}
+	return res
 }

@@ -1,14 +1,12 @@
 package services
 
 import (
-	"encoding/hex"
 	"errors"
 
 	"github.com/lightsparkdev/go-sdk/crypto"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/requester"
 	"github.com/lightsparkdev/go-sdk/scripts"
-	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 )
 
 type SigningKeyLoader struct {
@@ -67,23 +65,13 @@ func (s *SigningKeyLoader) loadSigningKeyFromMasterSeed() (requester.SigningKey,
 	if s.masterSeedAndNetwork == nil {
 		return nil, errors.New("invalid signing key loader")
 	}
-	var network lightspark_crypto.BitcoinNetwork
-	if s.masterSeedAndNetwork.network == objects.BitcoinNetworkMainnet {
-		network = lightspark_crypto.Mainnet
-	} else if s.masterSeedAndNetwork.network == objects.BitcoinNetworkTestnet {
-		network = lightspark_crypto.Testnet
-	} else if s.masterSeedAndNetwork.network == objects.BitcoinNetworkRegtest {
-		network = lightspark_crypto.Regtest
-	} else {
-		return nil, errors.New("invalid network")
-	}
 
 	derivationPath := "m/5"
-	key, error := lightspark_crypto.DerivePrivateKey(s.masterSeedAndNetwork.masterSeed, network, derivationPath)
+	key, error := crypto.DeriveXpriv(s.masterSeedAndNetwork.masterSeed, derivationPath)
 	if error != nil {
 		return nil, error
 	}
-	keyBytes, error := hex.DecodeString(key)
+	keyBytes := key.Key
 	if error != nil {
 		return nil, error
 	}

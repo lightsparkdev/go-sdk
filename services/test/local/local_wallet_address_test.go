@@ -23,7 +23,7 @@ func TestGetNodeWalletAddressWithKeys(t *testing.T) {
 
 	// Get the master xpub
 	seed := env.MasterSeedHex
-	ourMasterPubkey, err := crypto.DerivePublicKey(seed, lightspark_crypto.Regtest, "m")
+	ourMasterPubkey, err := crypto.DerivePublicKey(seed, "m")
 	require.NoError(t, err)
 
 	pubkey1, err := hex.DecodeString(address.MultisigWalletAddressValidationParameters.CounterpartyFundingPubkey)
