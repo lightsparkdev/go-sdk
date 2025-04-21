@@ -6,7 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/DataDog/zstd v1.5.5
-	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.4.1
+	github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go v0.4.2
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.23.0
 )
