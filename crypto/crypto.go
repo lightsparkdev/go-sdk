@@ -82,13 +82,19 @@ func Sha256HexString(str string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func DerivePublicKey(seedHexString string, network lightspark_crypto.BitcoinNetwork, derivationPath string) (string, error) {
+func DerivePublicKey(seedHexString string, derivationPath string) (string, error) {
 	seedBytes, err := hex.DecodeString(seedHexString)
 	if err != nil {
 		return "", err
 	}
 
-	return lightspark_crypto.DerivePublicKey(seedBytes, network, derivationPath)
+	xpriv, err := DeriveXpriv(seedBytes, derivationPath)
+	if err != nil {
+		return "", err
+	}
+
+	xpub := xpriv.PublicKey()
+	return xpub.String(), nil
 }
 
 func ECDH(seedBytes []byte, network lightspark_crypto.BitcoinNetwork, otherPubKey string) (string, error) {

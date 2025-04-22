@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lightsparkdev/go-sdk/crypto"
 	"github.com/lightsparkdev/go-sdk/objects"
 	"github.com/lightsparkdev/go-sdk/services"
 	servicestest "github.com/lightsparkdev/go-sdk/services/test"
 	"github.com/lightsparkdev/go-sdk/utils"
-	lightspark_crypto "github.com/lightsparkdev/lightspark-crypto-uniffi/lightspark-crypto-go"
 	"github.com/stretchr/testify/require"
 )
 
@@ -216,12 +216,12 @@ func createInvoiceWithPaymentHashForNode(t *testing.T, client *services.Lightspa
 		return nil, err
 	}
 
-	nonce, err := lightspark_crypto.GeneratePreimageNonce(seedBytes)
+	nonce, err := crypto.GeneratePreimageNonce()
 	if err != nil {
 		return nil, err
 	}
 
-	paymentHash, err := lightspark_crypto.GeneratePreimageHash(seedBytes, nonce)
+	_, paymentHash, err := crypto.GeneratePreimageAndPaymentHash(seedBytes, nonce)
 	if err != nil {
 		return nil, err
 	}

@@ -215,14 +215,9 @@ func HandleEcdhRequest(request *ECDHRequest, seedBytes []byte) (*ECDHResponse, e
 
 func HandleGetPerCommitmentPointRequest(request *GetPerCommitmentPointRequest, seedBytes []byte) (*GetPerCommitmentPointResponse, error) {
 	log.Println("Handling GET_PER_COMMITMENT_POINT webhook")
-	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
-	if err != nil {
-		return nil, err
-	}
 
-	perCommitmentPoint, err := lightspark_crypto.GetPerCommitmentPoint(
+	perCommitmentPoint, err := crypto.GetPerCommitmentPoint(
 		seedBytes,
-		bitcoinNetwork,
 		request.DerivationPath,
 		request.PerCommitmentPointIdx)
 	if err != nil {
@@ -240,14 +235,8 @@ func HandleGetPerCommitmentPointRequest(request *GetPerCommitmentPointRequest, s
 
 func HandleReleasePerCommitmentSecretRequest(request *ReleasePerCommitmentSecretRequest, seedBytes []byte) (*ReleasePerCommitmentSecretResponse, error) {
 	log.Println("Handling RELEASE_PER_COMMITMENT_SECRET webhook")
-	bitcoinNetwork, err := bitcoinNetworkConversion(request.BitcoinNetwork)
-	if err != nil {
-		return nil, err
-	}
-
-	perCommitmentSecret, err := lightspark_crypto.ReleasePerCommitmentSecret(
+	perCommitmentSecret, err := crypto.ReleasePerCommitmentSecret(
 		seedBytes,
-		bitcoinNetwork,
 		request.DerivationPath,
 		request.PerCommitmentPointIdx)
 	if err != nil {
@@ -265,11 +254,11 @@ func HandleReleasePerCommitmentSecretRequest(request *ReleasePerCommitmentSecret
 
 func HandleInvoicePaymentHashRequest(request *InvoicePaymentHashRequest, seedBytes []byte) (*InvoicePaymentHashResponse, error) {
 	log.Println("Handling REQUEST_INVOICE_PAYMENT_HASH webhook")
-	nonce, err := lightspark_crypto.GeneratePreimageNonce(seedBytes)
+	nonce, err := crypto.GeneratePreimageNonce()
 	if err != nil {
 		return nil, err
 	}
-	paymentHash, err := lightspark_crypto.GeneratePreimageHash(seedBytes, nonce)
+	_, paymentHash, err := crypto.GeneratePreimageAndPaymentHash(seedBytes, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +312,7 @@ func HandleReleaseInvoicePreimageRequest(request *ReleasePaymentPreimageRequest,
 		return nil, err
 	}
 
-	preimage, err := lightspark_crypto.GeneratePreimage(seedBytes, nonceBytes)
+	preimage, _, err := crypto.GeneratePreimageAndPaymentHash(seedBytes, nonceBytes)
 	if err != nil {
 		return nil, err
 	}
