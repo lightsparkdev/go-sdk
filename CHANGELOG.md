@@ -1,5 +1,11 @@
 # Changelog
 
+# v0.16.0
+- Add `LightsparkClient.CreateInvoiceWithPaymentHash`
+- Add util functions for preimage generation
+- Add L1 wallet validation
+- Add support for offers
+
 # v0.15.1
 - Fix: Remove default null param on `PayUmaInvoice` graphql
 
