@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.16.1
+- Replace go-bip32 library for key derivation
+
 # v0.16.0
 - Add `LightsparkClient.CreateInvoiceWithPaymentHash`
 - Add util functions for preimage generation
