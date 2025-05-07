@@ -9,7 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tyler-smith/go-bip32"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	"github.com/btcsuite/btcd/chaincfg"
 )
 
 func GeneratePreimageNonce() ([]byte, error) {
@@ -21,8 +22,8 @@ func GeneratePreimageNonce() ([]byte, error) {
 	return nonce, nil
 }
 
-func DeriveXpriv(seed []byte, path string) (*bip32.Key, error) {
-	masterKey, err := bip32.NewMasterKey(seed)
+func DeriveXpriv(seed []byte, path string) (*hdkeychain.ExtendedKey, error) {
+	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +55,7 @@ func DeriveXpriv(seed []byte, path string) (*bip32.Key, error) {
 			return nil, fmt.Errorf("invalid path: %s", path)
 		}
 
-		currentKey, err = currentKey.NewChildKey(uint32(childIndex) + baseIndex)
+		currentKey, err = currentKey.Derive(uint32(childIndex) + baseIndex)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +70,12 @@ func DerivePreimageBaseKey(seed []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return xpriv.Key, nil
+	privKey, err := xpriv.ECPrivKey()
+	if err != nil {
+		return nil, err
+	}
+
+	return privKey.Serialize(), nil
 }
 
 func GeneratePreimageAndPaymentHash(key []byte, nonce []byte) ([]byte, []byte, error) {
