@@ -1177,6 +1177,59 @@ func (client *LightsparkClient) CreateUmaInvitationWithIncentives(
 	return &invitation, nil
 }
 
+
+// CreateUmaInvitationWithPayment creates a new uma invitation with payment.
+//
+// Args:
+//
+//  inviterUma: the uma of the inviter
+//  paymentAmount: the amount of the payment
+//  paymentCurrencyCode: the code of the payment currency
+//  paymentCurrencySymbol: the symbol of the payment currency
+//  paymentCurrencyName: the name of the payment currency
+//  paymentCurrencyDecimals: the decimals of the payment currency
+//  expiresAt: the expiration time of the invitation
+//
+// Returns:
+//
+//  *objects.UmaInvitation: the created invitation
+func (client *LightsparkClient) CreateUmaInvitationWithPayment(
+	inviterUma string,
+	paymentAmount int,
+	paymentCurrencyCode string,
+	paymentCurrencySymbol string,
+	paymentCurrencyName string,
+	paymentCurrencyDecimals int,
+	expiresAt time.Time,
+) (*objects.UmaInvitation, error) {
+	variables := map[string]interface{}{
+		"inviter_uma": inviterUma,
+		"payment_amount": paymentAmount,
+		"payment_currency_code": paymentCurrencyCode,
+		"payment_currency_symbol": paymentCurrencySymbol,
+		"payment_currency_name": paymentCurrencyName,
+		"payment_currency_decimals": paymentCurrencyDecimals,
+		"expires_at": expiresAt.Format(time.RFC3339),
+	}
+
+	response, err := client.ExecuteGraphql(scripts.CREATE_UMA_INVITATION_WITH_PAYMENT_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	output := response["create_uma_invitation_with_payment"].(map[string]interface{})
+	var invitation objects.UmaInvitation
+	invitationJson, err := json.Marshal(output["invitation"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing invitation")
+	}
+	err = json.Unmarshal(invitationJson, &invitation)
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
 // ClaimUmaInvitation claims an existing uma invitation.
 //
 // Args:

@@ -35,3 +35,32 @@ mutation CreateUmaInvitationWithIncentives(
 }
 
 ` + objects.UmaInvitationFragment
+
+const CREATE_UMA_INVITATION_WITH_PAYMENT_MUTATION = `
+mutation CreateUmaInvitationWithPayment(
+    $inviter_uma: String!
+    $payment_amount: Int!
+    $payment_currency_code: String!
+    $payment_currency_symbol: String!
+    $payment_currency_name: String!
+    $payment_currency_decimals: Int!
+    $expires_at: DateTime!
+) {
+    create_uma_invitation_with_payment(input: {
+        inviter_uma: $inviter_uma
+        payment_amount: $payment_amount
+        payment_currency: {
+          code: $payment_currency_code
+          symbol: $payment_currency_symbol
+          name: $payment_currency_name
+          decimals: $payment_currency_decimals
+        }
+        expires_at: $expires_at
+    }) {
+        invitation {
+            ...UmaInvitationFragment
+        }
+    }
+}
+
+` + objects.UmaInvitationFragment
