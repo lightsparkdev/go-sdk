@@ -115,9 +115,11 @@ func TestWebhooks_MissingSignatureHeader(t *testing.T) {
 }
 
 func TestWebhooks_LargePayload(t *testing.T) {
-	largeData := make([]byte, 2*1024*1024)
-	for i := range largeData {
-		largeData[i] = 'a'
+	largeData, err := json.Marshal(map[string]interface{}{
+		"data": strings.Repeat("abcdefghijklmnopqrstuvwxyz", 80000), // ~2MB of data in a valid JSON string
+	})
+	if err != nil {
+		t.Fatalf("Failed to create large JSON payload: %v", err)
 	}
 	hexdigest := "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
