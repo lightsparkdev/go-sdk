@@ -98,9 +98,16 @@ func TestWebhooks_BoundaryInjection(t *testing.T) {
 	hexdigest := "b2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2"
 	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
 
+	// Set up panic recovery to ensure no panic occurs
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Test panicked: %v", r)
+		}
+	}()
+
 	// We expect signature verification to fail, but if it passed, parsing should not panic
-	_, _ = webhooks.VerifyAndParse([]byte(data), hexdigest, webhookSecret)
-	// No assertion here, just ensuring no panic occurs
+	_, err := webhooks.VerifyAndParse([]byte(data), hexdigest, webhookSecret)
+	require.Error(t, err, "Expected signature verification to fail")
 }
 
 func TestWebhooks_MissingSignatureHeader(t *testing.T) {
