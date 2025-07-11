@@ -1,5 +1,8 @@
 # Changelog
 
+# v0.16.2
+- Improve webhook request validation and test coverage
+
 # v0.16.1
 - Replace go-bip32 library for key derivation
 
