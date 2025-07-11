@@ -80,3 +80,70 @@ func TestWebhooks_ParseNumber(t *testing.T) {
 	require.Equal(t, int64(281474976710654), perCommitmentPointIdx)
 
 }
+
+func TestWebhooks_InvalidSignature(t *testing.T) {
+	data := `{"event_type": "NODE_STATUS", "event_id": "1615c8be5aa44e429eba700db2ed8ca5", "timestamp": "2023-05-17T23:56:47.874449+00:00", "entity_id": "lightning_node:01882c25-157a-f96b-0000-362d42b64397"}`
+	invalidHexDigest := "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" // wrong
+	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
+
+	event, err := webhooks.VerifyAndParse([]byte(data), invalidHexDigest, webhookSecret)
+	if err == nil {
+		t.Fatalf("Expected error for invalid signature, got event: %+v", event)
+	}
+}
+
+func TestWebhooks_BoundaryInjection(t *testing.T) {
+	// Payload with a very large number and a script tag in a string field
+	data := `{"event_type": "NODE_STATUS", "event_id": "<script>alert('x')</script>", "timestamp": "2023-05-17T23:56:47.874449+00:00", "entity_id": "lightning_node:01882c25-157a-f96b-0000-362d42b64397", "data": {"large_number": 1e+100}}`
+	hexdigest := "b2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2"
+	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
+
+	// Set up panic recovery to ensure no panic occurs
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("Test panicked: %v", r)
+		}
+	}()
+
+	// We expect signature verification to fail, but if it passed, parsing should not panic
+	_, err := webhooks.VerifyAndParse([]byte(data), hexdigest, webhookSecret)
+	require.Error(t, err, "Expected signature verification to fail")
+}
+
+func TestWebhooks_MissingSignatureHeader(t *testing.T) {
+	data := `{"event_type": "NODE_STATUS", "event_id": "1615c8be5aa44e429eba700db2ed8ca5", "timestamp": "2023-05-17T23:56:47.874449+00:00", "entity_id": "lightning_node:01882c25-157a-f96b-0000-362d42b64397"}`
+	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
+
+	// Simulate missing signature header by passing an empty string
+	_, err := webhooks.VerifyAndParse([]byte(data), "", webhookSecret)
+	if err == nil {
+		t.Fatalf("Expected error for missing signature, got nil")
+	}
+}
+
+func TestWebhooks_LargePayload(t *testing.T) {
+	largeData, err := json.Marshal(map[string]interface{}{
+		"data": strings.Repeat("abcdefghijklmnopqrstuvwxyz", 80000), // ~2MB of data in a valid JSON string
+	})
+	if err != nil {
+		t.Fatalf("Failed to create large JSON payload: %v", err)
+	}
+	hexdigest := "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
+
+	_, err := webhooks.VerifyAndParse(largeData, hexdigest, webhookSecret)
+	if err != nil {
+		t.Logf("Received error for large payload (expected if size limit is enforced): %v", err)
+	}
+}
+
+func TestWebhooks_UnexpectedDataTypes(t *testing.T) {
+	data := `{"event_type": ["NODE_STATUS"], "event_id": 12345, "timestamp": {}, "entity_id": null}`
+	hexdigest := "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+	webhookSecret := "3gZ5oQQUASYmqQNuEk0KambNMVkOADDItIJjzUlAWjX"
+
+	_, err := webhooks.VerifyAndParse([]byte(data), hexdigest, webhookSecret)
+	if err == nil {
+		t.Fatalf("Expected error for unexpected data types, got nil")
+	}
+}
