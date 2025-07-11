@@ -11,6 +11,8 @@ require (
 	golang.org/x/crypto v0.23.0
 )
 
+require github.com/google/go-cmp v0.7.0 // indirect
+
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.5

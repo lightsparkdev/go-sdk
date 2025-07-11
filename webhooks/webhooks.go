@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/lightsparkdev/go-sdk/objects"
@@ -36,9 +35,15 @@ func VerifyAndParse(data []byte, hexdigest string, webhookSecret string) (*Webho
 	hash := hmac.New(sha256.New, []byte(webhookSecret))
 	hash.Write(data)
 	result := hash.Sum(nil)
-	if strings.ToLower(hex.EncodeToString(result)) != strings.ToLower(hexdigest) {
-		return nil, errors.New("Webhook message hash does not match signature")
+
+	headerBytes, err := hex.DecodeString(hexdigest)
+	if err != nil {
+		return nil, errors.New("invalid message signature format")
 	}
+	if !hmac.Equal(result, headerBytes) {
+		return nil, errors.New("webhook message hash does not match signature")
+	}
+
 	return Parse(data)
 }
 
