@@ -815,6 +815,25 @@ func (client *LightsparkClient) PayOffer(nodeId string, encodedOffer string, tim
 	return &payment, nil
 }
 
+func (client *LightsparkClient) ReleasePaymentPreimage(invoiceId string, paymentPreimage string) (*objects.ReleasePaymentPreimageOutput, error) {
+	variables := map[string]interface{}{
+		"invoice_id":       invoiceId,
+		"payment_preimage": paymentPreimage,
+	}
+
+	response, err := client.ExecuteGraphql(scripts.RELEASE_PAYMENT_PREIMAGE_MUTATION, variables, nil)
+	if err != nil {
+		return nil, err
+	}
+	outputJson, err := json.Marshal(response["release_payment_preimage"].(map[string]interface{}))
+	if err != nil {
+		return nil, errors.New("error parsing response")
+	}
+	var output objects.ReleasePaymentPreimageOutput
+	json.Unmarshal(outputJson, &output)
+	return &output, nil
+}
+
 // RequestWithdrawal withdraws funds from the account and sends it to the requested
 // bitcoin address. Depending on the chosen mode, it will first take the funds from
 // the wallet, and if applicable, close channels appropriately to recover enough

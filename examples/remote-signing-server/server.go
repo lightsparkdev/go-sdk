@@ -12,6 +12,8 @@ import (
 	"github.com/lightsparkdev/go-sdk/webhooks"
 )
 
+const hardcodedPreimage = "00000000000000000000000000000000000000000000000000000000deadbeef"
+
 /**
  * This is a simple Gin server (https://gin-gonic.com) that implements a simple remote-signer using
  * the Lightspark SDK.
@@ -101,6 +103,18 @@ func main() {
 					log.Printf("Webhook complete")
 				}
 
+				c.Status(http.StatusNoContent)
+			}
+		case objects.WebhookEventTypeHoldInvoiceAccepted:
+			resp, err := lsClient.ReleasePaymentPreimage(event.EntityId, hardcodedPreimage)
+			if err != nil {
+				log.Printf("ERROR: Unable to handle remote signing webhook: %s", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+			if resp != nil {
+				c.JSON(http.StatusOK, resp.Invoice)
+			} else {
 				c.Status(http.StatusNoContent)
 			}
 		default:
