@@ -58,6 +58,7 @@ func main() {
 		user, err := userService.GetUserFromContext(c)
 		if err != nil {
 			c.Error(err)
+			c.Abort()
 			return
 		}
 		c.Set("user_id", user.ID)
