@@ -51,7 +51,7 @@ func main() {
 
 	// Require authentication for all API routes.
 	engine.Use(func(c *gin.Context) {
-		if !strings.HasPrefix(c.Request.RequestURI, "/api/") {
+		if !strings.HasPrefix(c.Request.URL.Path, "/api/") {
 			c.Next()
 			return
 		}
