@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/lightsparkdev/go-sdk/crypto"
@@ -299,8 +300,7 @@ func HandleSignInvoiceRequest(request *SignInvoiceRequest, seedBytes []byte) (*S
 
 	signedInvoice, err := lightspark_crypto.SignInvoiceHash(seedBytes, bitcoinNetwork, hash)
 	if err != nil {
-		log.Fatalf("Error signing invoice: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("error signing invoice: %w", err)
 	}
 
 	response := SignInvoiceResponse{
